@@ -69,23 +69,35 @@ int main()
 
     // vertex data
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f
+        -0.5f, -0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f
     };
+    unsigned int indices[] = {
+        0, 1, 3,    // first triangle
+        1, 2, 3     // second triangle
+    };
+
+    // Create Vertex Array and related buffers
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
 
     // create a Vertex Buffer Object to hold the vertices
     // the ID of the VBO is 1
     unsigned int vbo;
     glGenBuffers(1, &vbo);
 
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
+    unsigned int ebo;
+    glGenBuffers(1, &ebo);
 
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     /*
         first arg is which attribute to use
@@ -96,7 +108,6 @@ int main()
         fifth arg is stride
         what is the last arg
     */
-
     //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void*>(nullptr));
     glEnableVertexAttribArray(0);
@@ -122,7 +133,10 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT); // state user
 
         // Draw triangles using 3 vertices from vertex array 0
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // Last arg is offset if using EBO, pointer otherwise
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
