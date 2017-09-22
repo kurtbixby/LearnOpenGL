@@ -25,6 +25,10 @@
   <ItemGroup>
     <ClInclude Include="Shader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="First.frag" />
+    <None Include="First.vert" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6ACAE42F-7262-4006-BC2B-DE8777D0DE74}</ProjectGuid>
     <RootNamespace>FirstTutorial</RootNamespace>
