@@ -26,8 +26,13 @@
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Colors.frag" />
+    <None Include="Colors.vert" />
     <None Include="First.frag" />
     <None Include="First.vert" />
+    <None Include="Linked.frag" />
+    <None Include="Linked.vert" />
+    <None Include="Uniform.frag" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6ACAE42F-7262-4006-BC2B-DE8777D0DE74}</ProjectGuid>

@@ -2,6 +2,8 @@
 #include <GLFW\glfw3.h>
 #include <iostream>
 
+#include "Shader.h"
+
 void process_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void check_shader_compilation(unsigned int shader);
@@ -10,20 +12,6 @@ unsigned int create_shader(GLenum shader_type, const char* source);
 
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
-
-const char* vertex_shader_text = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\n";
-
-const char* fragment_shader_text = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);"
-    "}\n";
 
 int main()
 {
@@ -53,30 +41,15 @@ int main()
         return -1;
     }
 
-    // shader initialization
-    unsigned int vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_shader_text);
-    unsigned int fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_shader_text);
-
-    unsigned int shader_program = glCreateProgram();
-    glAttachShader(shader_program, vertex_shader);
-    glAttachShader(shader_program, fragment_shader);
-    glLinkProgram(shader_program);
-    check_shader_program_linking(shader_program);
-
-    // These shaders aren't reused, so they can be deleted
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
+    const char* vertex_shader_path = "Colors.vert";
+    const char* fragment_shader_path = "Colors.frag";
+    Shader shader = Shader(vertex_shader_path, fragment_shader_path);
 
     // vertex data
     float vertices[] = {
-        0.5f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f
-    };
-    unsigned int indices[] = {
-        0, 1, 3,    // first triangle
-        1, 2, 3     // second triangle
+        0.0f, 0.5f, 0.0f,   1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
     };
 
     // Create Vertex Array and related buffers
@@ -88,16 +61,10 @@ int main()
     unsigned int vbo;
     glGenBuffers(1, &vbo);
 
-    unsigned int ebo;
-    glGenBuffers(1, &ebo);
-
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     /*
         first arg is which attribute to use
@@ -109,18 +76,15 @@ int main()
         what is the last arg
     */
     //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void*>(nullptr));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(nullptr));
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     /*
         These calls can be put into the main render loop once there is more than 1 object and shader
     */
-    // Could be put into the main render loop
-    // Out here because I'm only using one set of shaders
-    glUseProgram(shader_program);
-
-    // Bind the vertex array to use for the draw calls
-    glBindVertexArray(vao);
 
     // main loop
     while (!glfwWindowShouldClose(window))
@@ -132,13 +96,13 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state setter
         glClear(GL_COLOR_BUFFER_BIT); // state user
 
-        // Draw triangles using 3 vertices from vertex array 0
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-
+        shader.Use();
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        // Last arg is offset if using EBO, pointer otherwise
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // Draw triangles using 3 vertices from vertex array 0
+        // Bind the vertex array to use for the draw calls
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
