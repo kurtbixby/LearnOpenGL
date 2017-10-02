@@ -24,15 +24,27 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Colors.frag" />
     <None Include="Colors.vert" />
+    <None Include="Container.frag" />
+    <None Include="Container.vert" />
+    <None Include="ControlMix.frag" />
     <None Include="First.frag" />
     <None Include="First.vert" />
+    <None Include="FlippedTextureMix.frag" />
+    <None Include="GroovyContainer.frag" />
     <None Include="Linked.frag" />
     <None Include="Linked.vert" />
+    <None Include="TextureMix.frag" />
     <None Include="Uniform.frag" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\awesomeface.png" />
+    <Image Include="Resources\container.jpg" />
+    <Image Include="Resources\wall.jpg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6ACAE42F-7262-4006-BC2B-DE8777D0DE74}</ProjectGuid>

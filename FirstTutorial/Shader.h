@@ -20,6 +20,7 @@ public:
     // Utility uniform methods
     void SetBool(const std::string &name, const bool value) const;
     void SetInt(const std::string &name, const int value) const;
+	void SetFloat(const std::string& name, const float value) const;
     void SetFloat4(const std::string& name, const float value1, const float value2, const float value3, const float value4) const;
 
 private:
@@ -59,6 +60,11 @@ inline void Shader::SetBool(const std::string& name, const bool value) const
 inline void Shader::SetInt(const std::string& name, const int value) const
 {
     glUniform1i(glGetUniformLocation(id_, name.c_str()), value);
+}
+
+inline void Shader::SetFloat(const std::string& name, const float value) const
+{
+	glUniform1f(glGetUniformLocation(id_, name.c_str()), value);
 }
 
 inline void Shader::SetFloat4(const std::string& name, const float value1, const float value2, const float value3, const float value4) const

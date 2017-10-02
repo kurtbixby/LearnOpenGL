@@ -29,6 +29,9 @@
     <ClInclude Include="Shader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="First.vert">
@@ -52,5 +55,34 @@
     <None Include="Colors.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="Container.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Container.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="GroovyContainer.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="TextureMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="FlippedTextureMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="ControlMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\container.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\awesomeface.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
