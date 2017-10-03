@@ -39,6 +39,7 @@
     <None Include="Linked.frag" />
     <None Include="Linked.vert" />
     <None Include="TextureMix.frag" />
+    <None Include="Transform.vert" />
     <None Include="Uniform.frag" />
   </ItemGroup>
   <ItemGroup>

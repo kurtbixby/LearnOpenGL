@@ -1,11 +1,16 @@
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 #include <iostream>
+#include <algorithm>
 
 #include "Shader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 void process_input(GLFWwindow* window);
@@ -51,7 +56,7 @@ int main()
         return -1;
     }
 
-    const char* vertex_shader_path = "Container.vert";
+    const char* vertex_shader_path = "Transform.vert";
     const char* fragment_shader_path = "ControlMix.frag";
     Shader shader = Shader(vertex_shader_path, fragment_shader_path);
 
@@ -137,6 +142,24 @@ int main()
 
 		shader.SetFloat("mixture", texture_mix);
 
+		// Initialize identity matrix
+		glm::mat4 trans(1.0f);
+		// Translate (0.5, -0.5, 0.0)
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		// Rotate by 90 degrees (ccw) about (0, 0, 1)
+		trans = glm::rotate(trans, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		shader.SetMatrix4fv("transform", glm::value_ptr(trans));
+
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+		trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(-0.5, 0.5f, 0.0f));
+		trans = glm::scale(trans, glm::vec3(cos(glfwGetTime()), cos(glfwGetTime()), 0.0f));
+		shader.SetMatrix4fv("transform", glm::value_ptr(trans));
+
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -157,11 +180,11 @@ void process_input(GLFWwindow* window)
     }
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
-		texture_mix = min(texture_mix + mix_increment, mix_max);
+		texture_mix = std::min(texture_mix + mix_increment, mix_max);
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
-		texture_mix = max(texture_mix - mix_increment, mix_min);
+		texture_mix = std::max(texture_mix - mix_increment, mix_min);
 	}
 }
 
