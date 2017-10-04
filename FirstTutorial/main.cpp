@@ -22,6 +22,7 @@ unsigned int load_texture(const char* texture_file, const GLenum source_format, 
 
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
+const unsigned int cubes = 10;
 
 float texture_mix = 0.5f;
 float mix_increment = 0.01f;
@@ -56,22 +57,55 @@ int main()
         return -1;
     }
 
-    const char* vertex_shader_path = "Transform.vert";
+	glEnable(GL_DEPTH_TEST);
+
+    const char* vertex_shader_path = "SpacesMatrices.vert";
     const char* fragment_shader_path = "ControlMix.frag";
     Shader shader = Shader(vertex_shader_path, fragment_shader_path);
 
     // vertex data
 	float vertices[] = {
-		// positions		// colors           // texture coords
-		0.5f,  0.5f, 0.0f,	1.0f, 0.0f, 0.0f,	2.0f, 2.0f,   // top right
-		0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	2.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,	1.0f, 1.0f, 0.0f,	0.0f, 2.0f    // top left 
-	};
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-	unsigned int indices[] = {
-		0, 1, 3,
-		1, 2, 3
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
     // Create Vertex Array and related buffers
@@ -83,16 +117,20 @@ int main()
     unsigned int vbo;
     glGenBuffers(1, &vbo);
 
-	unsigned int ebo;
-	glGenBuffers(1, &ebo);
-
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	//unsigned int indices[] = {
+	//	0, 1, 3,
+	//	1, 2, 3
+	//};
+	//unsigned int ebo;
+	//glGenBuffers(1, &ebo);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     /*
         first arg is which attribute to use
@@ -104,14 +142,11 @@ int main()
         what is the last arg
     */
 	// Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(nullptr));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), static_cast<void*>(nullptr));
     glEnableVertexAttribArray(0);
-	// Color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
 	// Texture
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// Texture Work
 	unsigned int texture0 = load_texture("resources\\container.jpg", GL_RGB, GL_CLAMP_TO_EDGE);
@@ -119,6 +154,26 @@ int main()
 
 	// End Texture Work
 
+	const int random_parts = 2000;
+	const float x_max = 5.0f;
+	const float x_min = -5.0f;
+	const float x_range = x_max - x_min;
+	const float y_max = 5.0f;
+	const float y_min = -5.0f;
+	const float y_range = y_max - y_min;
+	const float z_max = -1.0f;
+	const float z_min = -15.0f;
+	const float z_range = z_max - z_min;
+
+	glm::vec3 cube_locations[cubes];
+	for (int i = 0; i < cubes; i++)
+	{
+		const float x = (((rand() % random_parts) / static_cast<float>(random_parts)) * x_range) + x_min;
+		const float y = (((rand() % random_parts) / static_cast<float>(random_parts)) * y_range) + y_min;
+		const float z = (((rand() % random_parts) / static_cast<float>(random_parts)) * z_range) + z_min;
+
+		cube_locations[i] = glm::vec3(x, y, z);
+	}
 
     // main loop
     while (!glfwWindowShouldClose(window))
@@ -128,7 +183,7 @@ int main()
 
         // render section of main loop
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state setter
-        glClear(GL_COLOR_BUFFER_BIT); // state user
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
 		
 		glBindVertexArray(vao);
 
@@ -142,26 +197,27 @@ int main()
 
 		shader.SetFloat("mixture", texture_mix);
 
-		// Initialize identity matrix
-		glm::mat4 trans(1.0f);
-		// Translate (0.5, -0.5, 0.0)
-		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-		// Rotate by 90 degrees (ccw) about (0, 0, 1)
-		trans = glm::rotate(trans, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+		glm::mat4 projection(1.0f);
+		projection = glm::perspective(glm::radians(45.0f), WIDTH / static_cast<float>(HEIGHT), 0.1f, 100.0f);
+		shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 
-		shader.SetMatrix4fv("transform", glm::value_ptr(trans));
+		glm::mat4 view(1.0f);
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		shader.SetMatrix4fv("view", glm::value_ptr(view));
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		for (int i = 0; i < cubes; i++)
+		{
+			glm::mat4 model(1.0f);
+			//model = glm::translate(model, glm::vec3(0.0, -0.5f, 0.0f));
 
+			model = glm::translate(model, cube_locations[i]);
+			model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
+			shader.SetMatrix4fv("model", glm::value_ptr(model));
 
-		trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(-0.5, 0.5f, 0.0f));
-		trans = glm::scale(trans, glm::vec3(cos(glfwGetTime()), cos(glfwGetTime()), 0.0f));
-		shader.SetMatrix4fv("transform", glm::value_ptr(trans));
-
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
         // buffer swap and poll for new events
         glfwSwapBuffers(window);

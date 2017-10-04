@@ -85,6 +85,9 @@
     <None Include="Transform.vert">
       <Filter>Source Files\Shaders\Transformations</Filter>
     </None>
+    <None Include="SpacesMatrices.vert">
+      <Filter>Source Files\Shaders\Transformations</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\wall.jpg">
