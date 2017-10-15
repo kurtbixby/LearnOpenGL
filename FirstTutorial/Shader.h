@@ -100,6 +100,7 @@ unsigned int Shader::CompileShader(const GLchar* shader_path, const GLenum shade
     catch (std::ifstream::failure e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
+        std::cout << "SHADER PATH: " << shader_path << std::endl;
     }
 
     const char* shader_code_c = shader_code.c_str();

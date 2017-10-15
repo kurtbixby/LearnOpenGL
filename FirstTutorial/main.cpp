@@ -1,5 +1,5 @@
-#include <glad\glad.h>
-#include <GLFW\glfw3.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <iostream>
 #include <algorithm>
 
@@ -8,6 +8,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#define BOOST_FILESYSTEM_NO_DEPRECATED
+#include <boost/filesystem.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -36,7 +38,10 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // macOS compatibility
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // macOS compatibility
+#endif
 
     // glfw window creation
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
@@ -59,9 +64,9 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 
-    const char* vertex_shader_path = "SpacesMatrices.vert";
-    const char* fragment_shader_path = "ControlMix.frag";
-    Shader shader = Shader(vertex_shader_path, fragment_shader_path);
+	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/SpacesMatrices.vert").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/ControlMix.frag").make_preferred();
+    Shader shader = Shader(vertex_shader_path.c_str(), fragment_shader_path.c_str());
 
     // vertex data
 	float vertices[] = {
@@ -149,8 +154,10 @@ int main()
 	glEnableVertexAttribArray(1);
 
 	// Texture Work
-	unsigned int texture0 = load_texture("resources\\container.jpg", GL_RGB, GL_CLAMP_TO_EDGE);
-	unsigned int texture1 = load_texture("resources\\awesomeface.png", GL_RGBA);
+	boost::filesystem::path texture0_path = boost::filesystem::path("resources/container.jpg").make_preferred();
+	boost::filesystem::path texture1_path = boost::filesystem::path("resources/awesomeface.png").make_preferred();
+	unsigned int texture0 = load_texture(texture0_path.c_str(), GL_RGB, GL_CLAMP_TO_EDGE);
+	unsigned int texture1 = load_texture(texture1_path.c_str(), GL_RGBA);
 
 	// End Texture Work
 
