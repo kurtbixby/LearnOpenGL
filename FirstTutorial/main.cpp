@@ -22,6 +22,7 @@
 void process_input(GLFWwindow* window, Camera& cam);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
+void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void check_shader_compilation(unsigned int shader);
 void check_shader_program_linking(unsigned int program);
 unsigned int create_shader(GLenum shader_type, const char* source);
@@ -30,6 +31,7 @@ unsigned int load_texture(const char* texture_file, const GLenum source_format, 
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
 const unsigned int cubes = 10;
+const unsigned int FOV = 45;
 
 float texture_mix = 0.5f;
 float mix_increment = 0.01f;
@@ -41,6 +43,8 @@ float current_y = HEIGHT / 2.0f;
 
 float last_x = current_x;
 float last_y = current_y;
+
+float y_offset = 0.0f;
 
 int main()
 {
@@ -66,6 +70,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
     // glad load all opengl fxn pointers
     //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -200,7 +205,7 @@ int main()
 	glm::vec3 startingPosition = glm::vec3(0.0f, 0.0f, 10.0f);
 
 	Camera cam = Camera();
-
+	cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
     // main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -223,10 +228,7 @@ int main()
 
 		shader.SetFloat("mixture", texture_mix);
 
-		// Creates mat4 with 1.0 on the diagonals
-		glm::mat4 projection(1.0f);
-		// Vertical FOV, aspect ratio, near plane, far plane
-		projection = glm::perspective(glm::radians(45.0f), WIDTH / static_cast<float>(HEIGHT), 0.1f, 100.0f);
+		glm::mat4 projection = cam.GetProjection();
 		shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 
 		glm::mat4 view = cam.MakeViewMat();
@@ -303,6 +305,9 @@ void process_input(GLFWwindow* window, Camera& cam)
 	input.x_delta = x_delta;
 	input.y_delta = y_delta;
 
+	input.y_offset = y_offset;
+	y_offset = 0.0f;
+
 	cam.TakeInput(input);
 }
 
@@ -315,6 +320,11 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)
 {
 	current_x = xPos;
 	current_y = yPos;
+}
+
+void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
+{
+	y_offset += yOffset;
 }
 
 unsigned int create_shader(const GLenum shader_type, const char* source)

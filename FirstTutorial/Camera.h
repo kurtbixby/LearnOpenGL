@@ -15,6 +15,7 @@ struct CameraInput
 	unsigned char : 0;
 	float x_delta;
 	float y_delta;
+	float y_offset;
 };
 
 // Don't mess with roll or y-axis translation
@@ -30,9 +31,11 @@ public:
 
 	void TakeInput(CameraInput input);
 
-	glm::mat4 MakeViewMat();
+	void SetAspectRatio(const float ratio);
+	glm::mat4 GetProjection() const;
+	glm::mat4 MakeViewMat() const;
 private:
-	void Init(const glm::vec3 position, const glm::vec3 target, const glm::vec3 up);
+	glm::mat4 projection_;
 
 	glm::vec3 position_;
 	glm::vec3 direction_;
@@ -41,6 +44,8 @@ private:
 
 	float pitch_;
 	float yaw_;
+	float fov_;
+	float aspectRatio_;
 
 	float pitchSpeed_;
 	float yawSpeed_;
@@ -48,6 +53,7 @@ private:
 	float pitchSensitivity_;
 	float yawSensitivity_;
 
+	void UpdateProjection();
 	void UpdateDirection();
 	void MoveForward();
 	void MoveBack();

@@ -8,8 +8,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-const float MAX_PITCH = M_PI;
-const float MIN_PITCH = -1 * M_PI;
+const float MAX_PITCH = M_PI_2;
+const float MIN_PITCH = -1 * M_PI_2;
+
+const float MIN_FOV = 0.1f;
+const float MAX_FOV = M_PI_4;
 
 Camera::Camera(): Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f)) {}
 
@@ -29,9 +32,32 @@ Camera::Camera(const glm::vec3 position, const glm::vec3 target, const glm::vec3
 
 	pitchSensitivity_ = 0.003f;
 	yawSensitivity_ = 0.003f;
+
+	aspectRatio_ = 4 / 3.0f;
+	fov_ = M_PI_4;
+
+	projection_ = glm::perspective(fov_, aspectRatio_, 0.1f, 100.0f);
 }
 
-void Camera::TakeInput(CameraInput input)
+void Camera::SetAspectRatio(const float ratio)
+{
+	aspectRatio_ = ratio;
+}
+
+
+glm::mat4 Camera::GetProjection() const
+{
+	return projection_;
+}
+
+glm::mat4 Camera::MakeViewMat() const
+{
+	glm::mat4 view = glm::lookAt(position_, position_ + direction_, up_);
+	return view;
+}
+
+
+void Camera::TakeInput(const CameraInput input)
 {
 	if (input.MoveForward)
 	{
@@ -66,9 +92,20 @@ void Camera::TakeInput(CameraInput input)
 		pitch_ = std::max(MIN_PITCH, pitch_ + (input.y_delta * pitchSensitivity_));
 	}
 
-	std::cout << "Pitch: " << pitch_ << std::endl;
-	std::cout << "Delta: " << input.y_delta << std::endl;
 	yaw_ = yaw_ + (input.x_delta * yawSensitivity_);
+
+	if (input.y_offset > 0)
+	{
+		fov_ = std::max(MIN_FOV, fov_ - glm::radians(input.y_offset));
+	}
+	else
+	{
+		fov_ = std::min(MAX_FOV, fov_ - glm::radians(input.y_offset));
+	}
+	std::cout << "FOV: " << fov_ << std::endl;
+	std::cout << "Delta: " << input.y_offset << std::endl;
+
+	UpdateProjection();
 
 	UpdateDirection();
 }
@@ -113,6 +150,12 @@ void Camera::LookDown()
 	pitch_ = std::max(MIN_PITCH, pitch_ - pitchSpeed_);
 }
 
+void Camera::UpdateProjection()
+{
+	projection_ = glm::perspective(fov_, aspectRatio_, 0.1f, 100.0f);
+}
+
+
 void Camera::UpdateDirection()
 {
 	direction_.x = cos(yaw_) * cos(pitch_);
@@ -121,10 +164,4 @@ void Camera::UpdateDirection()
 
 	direction_ = glm::normalize(direction_);
 	right_ = glm::normalize(glm::cross(direction_, up_));
-}
-
-glm::mat4 Camera::MakeViewMat()
-{
-	glm::mat4 view = glm::lookAt(position_, position_ + direction_, up_);
-	return view;
 }
