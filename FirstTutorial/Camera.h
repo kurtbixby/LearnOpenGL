@@ -39,6 +39,7 @@ private:
 
 	glm::vec3 position_;
 	glm::vec3 direction_;
+	glm::vec3 xzDirection_;
 	glm::vec3 up_;
 	glm::vec3 right_;
 

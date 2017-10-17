@@ -22,6 +22,7 @@ Camera::Camera(const glm::vec3 position, const glm::vec3 target, const glm::vec3
 	direction_ = glm::normalize(target - position);
 	up_ = glm::normalize(up);
 	right_ = glm::normalize(glm::cross(direction_, up_));
+	xzDirection_ = glm::normalize(glm::vec3(direction_.x, 0.0f, direction_.z));
 
 	pitch_ = 0.0f;
 	yaw_ = 0.0f;
@@ -52,10 +53,35 @@ glm::mat4 Camera::GetProjection() const
 
 glm::mat4 Camera::MakeViewMat() const
 {
-	glm::mat4 view = glm::lookAt(position_, position_ + direction_, up_);
+	//glm::mat4 view = glm::lookAt(position_, position_ + direction_, up_);
+	glm::mat4 view = lookAt(position_, position_ + direction_, up_);
 	return view;
 }
 
+glm::mat4 lookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
+{
+	glm::vec3 zAxis = glm::normalize(position - target);
+	glm::vec3 xAxis = glm::normalize(glm::cross(up, zAxis));
+	glm::vec3 yAxis = glm::normalize(glm::cross(zAxis, xAxis));
+
+	glm::mat4 translation(1.0f);
+	translation[3][0] = -position.x;
+	translation[3][1] = -position.y;
+	translation[3][2] = -position.z;
+
+	glm::mat4 rotation(1.0f);
+	rotation[0][0] = xAxis.x;
+	rotation[1][0] = xAxis.y;
+	rotation[2][0] = xAxis.z;
+	rotation[0][1] = yAxis.x;
+	rotation[1][1] = yAxis.y;
+	rotation[2][1] = yAxis.z;
+	rotation[0][2] = zAxis.x;
+	rotation[1][2] = zAxis.y;
+	rotation[2][2] = zAxis.z;
+
+	return rotation * translation;
+}
 
 void Camera::TakeInput(const CameraInput input)
 {
@@ -112,12 +138,12 @@ void Camera::TakeInput(const CameraInput input)
 
 void Camera::MoveForward()
 {
-	position_ += direction_ * transSpeed_;
+	position_ += xzDirection_ * transSpeed_;
 }
 
 void Camera::MoveBack()
 {
-	position_ -= direction_ * transSpeed_;
+	position_ -= xzDirection_ * transSpeed_;
 }
 
 void Camera::MoveRight()
@@ -161,6 +187,8 @@ void Camera::UpdateDirection()
 	direction_.x = cos(yaw_) * cos(pitch_);
 	direction_.y = sin(pitch_);
 	direction_.z = sin(yaw_) * cos(pitch_);
+
+	xzDirection_ = glm::normalize(glm::vec3(direction_.x, 0.0f, direction_.z));
 
 	direction_ = glm::normalize(direction_);
 	right_ = glm::normalize(glm::cross(direction_, up_));
