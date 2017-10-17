@@ -23,6 +23,7 @@ public:
 	void SetFloat(const std::string& name, const float value) const;
     void SetFloat4(const std::string& name, const float value1, const float value2, const float value3, const float value4) const;
 	void SetMatrix4fv(const std::string&name, const float* values) const;
+	void Shader::SetVec3(const std::string& name, const float v0, const float v1, const float v2) const;
 
 private:
     // Shader Program ID
@@ -76,6 +77,11 @@ inline void Shader::SetFloat4(const std::string& name, const float value1, const
 inline void Shader::SetMatrix4fv(const std::string&name, const float* value) const
 {
 	glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, value);
+}
+
+inline void Shader::SetVec3(const std::string& name, const float v0, const float v1, const float v2) const
+{
+	glUniform3f(glGetUniformLocation(id_, name.c_str()), v0, v1, v2);
 }
 
 unsigned int Shader::CompileShader(const GLchar* shader_path, const GLenum shader_type)

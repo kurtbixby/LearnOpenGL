@@ -16,13 +16,10 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{138f9372-77a0-40f7-9c83-e34debcbfb02}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Shaders\Shaders">
-      <UniqueIdentifier>{6947348e-6a49-4773-85f2-cd0223e157de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Shaders\Textures">
+    <Filter Include="Source Files\Textures">
       <UniqueIdentifier>{7e15ed67-5aab-4a50-bbd8-ea7cca80d202}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Shaders\Transformations">
+    <Filter Include="Source Files\Transformations">
       <UniqueIdentifier>{2211c49d-fcbe-44f4-b275-26ba0c562f98}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -61,6 +58,60 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="makefile" />
+    <None Include="Shaders\Colors.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Colors.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Container.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Container.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\ControlMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\First.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\First.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\FlippedTextureMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\GroovyContainer.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Linked.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Linked.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Uniform.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\SpacesMatrices.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\TextureMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Transform.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BasicColor.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BasicColor.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Light.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />

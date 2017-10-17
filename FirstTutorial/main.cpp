@@ -18,7 +18,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
+int create_window(GLFWwindow** foo);
 void process_input(GLFWwindow* window, Camera& cam);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
@@ -28,11 +28,11 @@ void check_shader_program_linking(unsigned int program);
 unsigned int create_shader(GLenum shader_type, const char* source);
 unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type = GL_REPEAT);
 
+void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
+
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
-const unsigned int cubes = 10;
 const unsigned int FOV = 45;
-
 float texture_mix = 0.5f;
 float mix_increment = 0.01f;
 float mix_min = 0.0f;
@@ -48,43 +48,19 @@ float y_offset = 0.0f;
 
 int main()
 {
-    // glfw initialization and configuration
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	GLFWwindow* window;
+	if (create_window(&window))
+	{
+		std::cout << "Error creating window" << std::endl;
+		return -1;
+	}
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // macOS compatibility
-#endif
+	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/BasicColor.frag").make_preferred();
+    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
-    // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
-    if (nullptr == window)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-
-    // glad load all opengl fxn pointers
-    //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
-
-	glEnable(GL_DEPTH_TEST);
-
-	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/SpacesMatrices.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/ControlMix.frag").make_preferred();
-    Shader shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+	boost::filesystem::path light_fragment_shader_path = boost::filesystem::path("Shaders/Light.frag").make_preferred();
+	Shader lamp_shader = Shader(vertex_shader_path.string().c_str(), light_fragment_shader_path.string().c_str());
 
     // vertex data
 	float vertices[] = {
@@ -130,46 +106,30 @@ int main()
 		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
-
-    // Create Vertex Array and related buffers
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
-
     // create a Vertex Buffer Object to hold the vertices
     // the ID of the VBO is 1
     unsigned int vbo;
     glGenBuffers(1, &vbo);
 
+	// Create Vertex Array and related buffers
+	unsigned int vao;
+	glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
-
-
-	//unsigned int indices[] = {
-	//	0, 1, 3,
-	//	1, 2, 3
-	//};
-	//unsigned int ebo;
-	//glGenBuffers(1, &ebo);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    /*
-        first arg is which attribute to use
-            defined attr 0 to be location in vert shader
-        second arg is size of each attribute
-        third arg is data type
-        fourth arg is normalization or not
-        fifth arg is stride
-        what is the last arg
-    */
 	// Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), static_cast<void*>(nullptr));
     glEnableVertexAttribArray(0);
-	// Texture
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	//// Texture
+	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
+
+	unsigned int lightVao;
+	glGenVertexArrays(1, &lightVao);
+	glBindVertexArray(lightVao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), static_cast<void*>(nullptr));
+	glEnableVertexAttribArray(0);
 
 	// Texture Work
 	boost::filesystem::path texture0_path = boost::filesystem::path("resources/container.jpg").make_preferred();
@@ -177,35 +137,14 @@ int main()
 	unsigned int texture0 = load_texture(texture0_path.string().c_str(), GL_RGB, GL_CLAMP_TO_EDGE);
 	unsigned int texture1 = load_texture(texture1_path.string().c_str(), GL_RGBA);
 
-	// End Texture Work
-
-	const int random_parts = 2000;
-	const float x_max = 5.0f;
-	const float x_min = -5.0f;
-	const float x_range = x_max - x_min;
-	const float y_max = 5.0f;
-	const float y_min = -5.0f;
-	const float y_range = y_max - y_min;
-	const float z_max = -1.0f;
-	const float z_min = -15.0f;
-	const float z_range = z_max - z_min;
-
+	const unsigned int cubes = 1;
 	glm::vec3 cube_locations[cubes];
-	for (int i = 0; i < cubes; i++)
-	{
-		const float x = (((rand() % random_parts) / static_cast<float>(random_parts)) * x_range) + x_min;
-		const float y = (((rand() % random_parts) / static_cast<float>(random_parts)) * y_range) + y_min;
-		const float z = (((rand() % random_parts) / static_cast<float>(random_parts)) * z_range) + z_min;
-
-		cube_locations[i] = glm::vec3(x, y, z);
-	}
-
-	float startTime = glfwGetTime();
-	float radius = 4.0f;
-	glm::vec3 startingPosition = glm::vec3(0.0f, 0.0f, 10.0f);
+	generate_cube_locations(cubes, cube_locations);
 
 	Camera cam = Camera();
 	cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
+
+	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
     // main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -215,37 +154,47 @@ int main()
         // render section of main loop
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state setter
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
-		
-		glBindVertexArray(vao);
-
-		shader.Use();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture0);
-		shader.SetInt("texture0", 0);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		shader.SetInt("texture1", 1);
-
-		shader.SetFloat("mixture", texture_mix);
 
 		glm::mat4 projection = cam.GetProjection();
-		shader.SetMatrix4fv("projection", glm::value_ptr(projection));
-
 		glm::mat4 view = cam.MakeViewMat();
-		shader.SetMatrix4fv("view", glm::value_ptr(view));
 
+		glBindVertexArray(vao);
+		standard_shader.Use();
+		standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
+		standard_shader.SetMatrix4fv("view", glm::value_ptr(view));
+		standard_shader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		standard_shader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, texture0);
+		//standard_shader.SetInt("texture0", 0);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, texture1);
+		//standard_shader.SetInt("texture1", 1);
+
+		//standard_shader.SetFloat("mixture", texture_mix);
+		
 		for (int i = 0; i < cubes; i++)
 		{
 			glm::mat4 model(1.0f);
 
-			model = glm::translate(model, cube_locations[i]);
+			//model = glm::translate(model, cube_locations[i]);
 			model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
-			shader.SetMatrix4fv("model", glm::value_ptr(model));
+			standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
+
+		lamp_shader.Use();
+		lamp_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
+		lamp_shader.SetMatrix4fv("view", glm::value_ptr(view));
+
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
+		lamp_shader.SetMatrix4fv("model", glm::value_ptr(model));
+		glBindVertexArray(lightVao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
@@ -254,6 +203,48 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+int create_window(GLFWwindow** foo)
+{
+	// glfw initialization and configuration
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // macOS compatibility
+#endif
+
+														 // glfw window creation
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
+	if (nullptr == window)
+	{
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	// glad load all opengl fxn pointers
+	//if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	*foo = window;
+
+	return 0;
 }
 
 void process_input(GLFWwindow* window, Camera& cam)
@@ -411,4 +402,27 @@ void check_shader_program_linking(const unsigned int program)
         glGetProgramInfoLog(program, logSize, nullptr, infoLog);
         std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }
+}
+
+void generate_cube_locations(const unsigned number, glm::vec3* const cube_array)
+{
+	const int random_parts = 2000;
+	const float x_max = 5.0f;
+	const float x_min = -5.0f;
+	const float x_range = x_max - x_min;
+	const float y_max = 5.0f;
+	const float y_min = -5.0f;
+	const float y_range = y_max - y_min;
+	const float z_max = -1.0f;
+	const float z_min = -15.0f;
+	const float z_range = z_max - z_min;
+
+	for (int i = 0; i < number; i++)
+	{
+		const float x = (((rand() % random_parts) / static_cast<float>(random_parts)) * x_range) + x_min;
+		const float y = (((rand() % random_parts) / static_cast<float>(random_parts)) * y_range) + y_min;
+		const float z = (((rand() % random_parts) / static_cast<float>(random_parts)) * z_range) + z_min;
+
+		cube_array[i] = glm::vec3(x, y, z);
+	}
 }

@@ -51,13 +51,6 @@ glm::mat4 Camera::GetProjection() const
 	return projection_;
 }
 
-glm::mat4 Camera::MakeViewMat() const
-{
-	//glm::mat4 view = glm::lookAt(position_, position_ + direction_, up_);
-	glm::mat4 view = lookAt(position_, position_ + direction_, up_);
-	return view;
-}
-
 glm::mat4 lookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
 {
 	glm::vec3 zAxis = glm::normalize(position - target);
@@ -81,6 +74,13 @@ glm::mat4 lookAt(const glm::vec3& position, const glm::vec3& target, const glm::
 	rotation[2][2] = zAxis.z;
 
 	return rotation * translation;
+}
+
+glm::mat4 Camera::MakeViewMat() const
+{
+	glm::mat4 view = glm::lookAt(position_, position_ + direction_, up_);
+	//glm::mat4 view = lookAt(position_, position_ + direction_, up_);
+	return view;
 }
 
 void Camera::TakeInput(const CameraInput input)
@@ -138,12 +138,12 @@ void Camera::TakeInput(const CameraInput input)
 
 void Camera::MoveForward()
 {
-	position_ += xzDirection_ * transSpeed_;
+	position_ += direction_ * transSpeed_;
 }
 
 void Camera::MoveBack()
 {
-	position_ -= xzDirection_ * transSpeed_;
+	position_ -= direction_ * transSpeed_;
 }
 
 void Camera::MoveRight()

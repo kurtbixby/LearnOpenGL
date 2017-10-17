@@ -35,6 +35,24 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="makefile" />
+    <None Include="Shaders\BasicColor.frag" />
+    <None Include="Shaders\BasicColor.vert" />
+    <None Include="Shaders\Colors.frag" />
+    <None Include="Shaders\Colors.vert" />
+    <None Include="Shaders\Container.frag" />
+    <None Include="Shaders\Container.vert" />
+    <None Include="Shaders\ControlMix.frag" />
+    <None Include="Shaders\First.frag" />
+    <None Include="Shaders\First.vert" />
+    <None Include="Shaders\FlippedTextureMix.frag" />
+    <None Include="Shaders\GroovyContainer.frag" />
+    <None Include="Shaders\Light.frag" />
+    <None Include="Shaders\Linked.frag" />
+    <None Include="Shaders\Linked.vert" />
+    <None Include="Shaders\SpacesMatrices.vert" />
+    <None Include="Shaders\TextureMix.frag" />
+    <None Include="Shaders\Transform.vert" />
+    <None Include="Shaders\Uniform.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />
