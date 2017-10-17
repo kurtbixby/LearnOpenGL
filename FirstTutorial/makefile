@@ -4,7 +4,7 @@ IDIR = ./include
 LDFLAGS = -Wall
 LDLIBS = -lglfw -lboost_system
 CFLAGS = -Wall -c -I$(IDIR)
-OBJ = main.o glad.o
+OBJ = main.o glad.o Camera.o
 EXECUTABLE = gltutorial
 FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 
@@ -15,6 +15,9 @@ opengltutorial: $(OBJ)
 
 main.o: main.cpp stb_image.h Shader.h
 	$(CXX) $(CFLAGS) main.cpp
+
+Camera.o: Camera.cpp Camera.h
+	$(CXX) $(CFLAGS) Camera.cpp
 
 glad.o: glad.c
 	$(CC) $(CFLAGS) glad.c

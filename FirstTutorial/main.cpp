@@ -3,7 +3,11 @@
 #include <iostream>
 #include <algorithm>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "Shader.h"
+#include "Camera.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -15,7 +19,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-void process_input(GLFWwindow* window);
+void process_input(GLFWwindow* window, Camera& cam);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void check_shader_compilation(unsigned int shader);
 void check_shader_program_linking(unsigned int program);
@@ -182,11 +186,17 @@ int main()
 		cube_locations[i] = glm::vec3(x, y, z);
 	}
 
+	float startTime = glfwGetTime();
+	float radius = 4.0f;
+	glm::vec3 startingPosition = glm::vec3(0.0f, 0.0f, 10.0f);
+
+	Camera cam = Camera();
+
     // main loop
     while (!glfwWindowShouldClose(window))
     {
         // process any input
-        process_input(window);
+        process_input(window, cam);
 
         // render section of main loop
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state setter
@@ -204,13 +214,29 @@ int main()
 
 		shader.SetFloat("mixture", texture_mix);
 
+		// Creates mat4 with 1.0 on the diagonals
 		glm::mat4 projection(1.0f);
+		// Vertical FOV, aspect ratio, near plane, far plane
 		projection = glm::perspective(glm::radians(45.0f), WIDTH / static_cast<float>(HEIGHT), 0.1f, 100.0f);
 		shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 
-		glm::mat4 view(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		// float currentTime = glfwGetTime();
+
+		// glm::vec3 offset = glm::vec3(sin(currentTime - startTime) * radius, 0.0f, cos(currentTime - startTime) * radius);
+
+		// glm::vec3 cameraPos = startingPosition + offset;
+		// glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
+		// glm::vec3 toCamera = glm::normalize(cameraPos - cameraTarget);
+
+		// glm::vec3 up(0.0f, 1.0f, 0.0f);
+		// glm::vec3 cameraRight = glm::normalize(glm::cross(up, toCamera));
+		// glm::vec3 cameraUp = glm::cross(toCamera, cameraRight);
+
+		// glm::mat4 view(1.0f);
+		// view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+		glm::mat4 view = cam.MakeViewMat();
 		shader.SetMatrix4fv("view", glm::value_ptr(view));
+
 
 		for (int i = 0; i < cubes; i++)
 		{
@@ -235,7 +261,7 @@ int main()
     return 0;
 }
 
-void process_input(GLFWwindow* window)
+void process_input(GLFWwindow* window, Camera& cam)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
@@ -248,6 +274,30 @@ void process_input(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
 		texture_mix = std::max(texture_mix - mix_increment, mix_min);
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		cam.MoveForward();
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		cam.MoveBack();
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		cam.MoveRight();
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		cam.MoveLeft();
+	}
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		cam.RotateRight();
+	}
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		cam.RotateLeft();
 	}
 }
 
