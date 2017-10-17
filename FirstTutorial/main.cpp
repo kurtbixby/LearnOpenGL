@@ -70,7 +70,7 @@ int main()
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/SpacesMatrices.vert").make_preferred();
 	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/ControlMix.frag").make_preferred();
-    Shader shader = Shader(vertex_shader_path.c_str(), fragment_shader_path.c_str());
+    Shader shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
     // vertex data
 	float vertices[] = {
@@ -160,8 +160,8 @@ int main()
 	// Texture Work
 	boost::filesystem::path texture0_path = boost::filesystem::path("resources/container.jpg").make_preferred();
 	boost::filesystem::path texture1_path = boost::filesystem::path("resources/awesomeface.png").make_preferred();
-	unsigned int texture0 = load_texture(texture0_path.c_str(), GL_RGB, GL_CLAMP_TO_EDGE);
-	unsigned int texture1 = load_texture(texture1_path.c_str(), GL_RGBA);
+	unsigned int texture0 = load_texture(texture0_path.string().c_str(), GL_RGB, GL_CLAMP_TO_EDGE);
+	unsigned int texture1 = load_texture(texture1_path.string().c_str(), GL_RGBA);
 
 	// End Texture Work
 

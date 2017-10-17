@@ -26,6 +26,8 @@ public:
 
 	glm::mat4 MakeViewMat();
 private:
+	void Init(const glm::vec3 position, const glm::vec3 target, const glm::vec3 up);
+
 	glm::vec3 position_;
 	glm::vec3 direction_;
 	glm::vec3 up_;

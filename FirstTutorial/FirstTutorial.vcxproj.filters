@@ -30,7 +30,10 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Packages\glad\src\glad.c">
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,53 +44,9 @@
     <ClInclude Include="stb_image.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="GroovyContainer.frag">
-      <Filter>Source Files\Shaders\Textures</Filter>
-    </None>
-    <None Include="ControlMix.frag">
-      <Filter>Source Files\Shaders\Textures</Filter>
-    </None>
-    <None Include="Container.vert">
-      <Filter>Source Files\Shaders\Textures</Filter>
-    </None>
-    <None Include="Container.frag">
-      <Filter>Source Files\Shaders\Textures</Filter>
-    </None>
-    <None Include="TextureMix.frag">
-      <Filter>Source Files\Shaders\Textures</Filter>
-    </None>
-    <None Include="FlippedTextureMix.frag">
-      <Filter>Source Files\Shaders\Textures</Filter>
-    </None>
-    <None Include="Uniform.frag">
-      <Filter>Source Files\Shaders\Shaders</Filter>
-    </None>
-    <None Include="Colors.frag">
-      <Filter>Source Files\Shaders\Shaders</Filter>
-    </None>
-    <None Include="Colors.vert">
-      <Filter>Source Files\Shaders\Shaders</Filter>
-    </None>
-    <None Include="First.frag">
-      <Filter>Source Files\Shaders\Shaders</Filter>
-    </None>
-    <None Include="First.vert">
-      <Filter>Source Files\Shaders\Shaders</Filter>
-    </None>
-    <None Include="Linked.frag">
-      <Filter>Source Files\Shaders\Shaders</Filter>
-    </None>
-    <None Include="Linked.vert">
-      <Filter>Source Files\Shaders\Shaders</Filter>
-    </None>
-    <None Include="Transform.vert">
-      <Filter>Source Files\Shaders\Transformations</Filter>
-    </None>
-    <None Include="SpacesMatrices.vert">
-      <Filter>Source Files\Shaders\Transformations</Filter>
-    </None>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\wall.jpg">
@@ -99,5 +58,11 @@
     <Image Include="Resources\awesomeface.png">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="README.TXT" />
   </ItemGroup>
 </Project>
