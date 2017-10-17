@@ -21,6 +21,7 @@
 
 void process_input(GLFWwindow* window, Camera& cam);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 void check_shader_compilation(unsigned int shader);
 void check_shader_program_linking(unsigned int program);
 unsigned int create_shader(GLenum shader_type, const char* source);
@@ -34,6 +35,12 @@ float texture_mix = 0.5f;
 float mix_increment = 0.01f;
 float mix_min = 0.0f;
 float mix_max = 1.0f;
+
+float current_x = WIDTH / 2.0f;
+float current_y = HEIGHT / 2.0f;
+
+float last_x = current_x;
+float last_y = current_y;
 
 int main()
 {
@@ -57,6 +64,8 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
 
     // glad load all opengl fxn pointers
     //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -220,28 +229,12 @@ int main()
 		projection = glm::perspective(glm::radians(45.0f), WIDTH / static_cast<float>(HEIGHT), 0.1f, 100.0f);
 		shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 
-		// float currentTime = glfwGetTime();
-
-		// glm::vec3 offset = glm::vec3(sin(currentTime - startTime) * radius, 0.0f, cos(currentTime - startTime) * radius);
-
-		// glm::vec3 cameraPos = startingPosition + offset;
-		// glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
-		// glm::vec3 toCamera = glm::normalize(cameraPos - cameraTarget);
-
-		// glm::vec3 up(0.0f, 1.0f, 0.0f);
-		// glm::vec3 cameraRight = glm::normalize(glm::cross(up, toCamera));
-		// glm::vec3 cameraUp = glm::cross(toCamera, cameraRight);
-
-		// glm::mat4 view(1.0f);
-		// view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
 		glm::mat4 view = cam.MakeViewMat();
 		shader.SetMatrix4fv("view", glm::value_ptr(view));
-
 
 		for (int i = 0; i < cubes; i++)
 		{
 			glm::mat4 model(1.0f);
-			//model = glm::translate(model, glm::vec3(0.0, -0.5f, 0.0f));
 
 			model = glm::translate(model, cube_locations[i]);
 			model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
@@ -263,6 +256,7 @@ int main()
 
 void process_input(GLFWwindow* window, Camera& cam)
 {
+	CameraInput input = CameraInput();
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
@@ -277,33 +271,50 @@ void process_input(GLFWwindow* window, Camera& cam)
 	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		cam.MoveForward();
+		input.MoveForward = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		cam.MoveBack();
+		input.MoveBack = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		cam.MoveRight();
+		input.MoveRight = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		cam.MoveLeft();
+		input.MoveLeft = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 	{
-		cam.RotateRight();
+		input.RotateRight = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		cam.RotateLeft();
+		input.RotateLeft = 1;
 	}
+	
+	float x_delta = current_x - last_x;
+	float y_delta = last_y - current_y;
+
+	last_x = current_x;
+	last_y = current_y;
+
+	input.x_delta = x_delta;
+	input.y_delta = y_delta;
+
+	cam.TakeInput(input);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
     glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xPos, double yPos)
+{
+	current_x = xPos;
+	current_y = yPos;
 }
 
 unsigned int create_shader(const GLenum shader_type, const char* source)

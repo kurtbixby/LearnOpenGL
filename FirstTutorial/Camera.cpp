@@ -1,14 +1,15 @@
-#include "Camera.h"
-
 #define _USE_MATH_DEFINES
 #include <cmath>
+
+#include "Camera.h"
 #include <algorithm>
+#include <iostream>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-const float MAX_PITCH = 89.0f;
-const float MIN_PITCH = 89.0f;
+const float MAX_PITCH = M_PI;
+const float MIN_PITCH = -1 * M_PI;
 
 Camera::Camera(): Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f)) {}
 
@@ -24,8 +25,52 @@ Camera::Camera(const glm::vec3 position, const glm::vec3 target, const glm::vec3
 
 	pitchSpeed_ = 0.1f;
 	yawSpeed_ = 0.1f;
-
 	transSpeed_ = 0.1f;
+
+	pitchSensitivity_ = 0.003f;
+	yawSensitivity_ = 0.003f;
+}
+
+void Camera::TakeInput(CameraInput input)
+{
+	if (input.MoveForward)
+	{
+		MoveForward();
+	}
+	if (input.MoveBack)
+	{
+		MoveBack();
+	}
+	if (input.MoveRight)
+	{
+		MoveRight();
+	}
+	if (input.MoveLeft)
+	{
+		MoveLeft();
+	}
+	if (input.RotateRight)
+	{
+		RotateRight();
+	}
+	if (input.RotateLeft)
+	{
+		RotateLeft();
+	}
+	if (input.y_delta > 0)
+	{
+		pitch_ = std::min(MAX_PITCH, pitch_ + (input.y_delta * pitchSensitivity_));
+	}
+	else
+	{
+		pitch_ = std::max(MIN_PITCH, pitch_ + (input.y_delta * pitchSensitivity_));
+	}
+
+	std::cout << "Pitch: " << pitch_ << std::endl;
+	std::cout << "Delta: " << input.y_delta << std::endl;
+	yaw_ = yaw_ + (input.x_delta * yawSensitivity_);
+
+	UpdateDirection();
 }
 
 void Camera::MoveForward()
@@ -51,25 +96,21 @@ void Camera::MoveLeft()
 void Camera::RotateRight()
 {
 	yaw_ += yawSpeed_;
-	UpdateDirection();
 }
 
 void Camera::RotateLeft()
 {
 	yaw_ -= yawSpeed_;
-	UpdateDirection();
 }
 
 void Camera::LookUp()
 {
-	pitch_ = std::max(MAX_PITCH, pitch_ + pitchSpeed_);
-	UpdateDirection();
+	pitch_ = std::min(MAX_PITCH, pitch_ + pitchSpeed_);
 }
 
 void Camera::LookDown()
 {
 	pitch_ = std::max(MIN_PITCH, pitch_ - pitchSpeed_);
-	UpdateDirection();
 }
 
 void Camera::UpdateDirection()
