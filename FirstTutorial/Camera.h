@@ -34,6 +34,8 @@ public:
 	void SetAspectRatio(const float ratio);
 	glm::mat4 GetProjection() const;
 	glm::mat4 MakeViewMat() const;
+	glm::vec3 GetPosition() const;
+
 private:
 	glm::mat4 projection_;
 

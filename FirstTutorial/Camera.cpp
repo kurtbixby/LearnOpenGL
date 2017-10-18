@@ -8,8 +8,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-const float MAX_PITCH = M_PI_2;
-const float MIN_PITCH = -1 * M_PI_2;
+const float MAX_PITCH = M_PI_2 - .001;
+const float MIN_PITCH = -1 * MAX_PITCH;
 
 const float MIN_FOV = 0.1f;
 const float MAX_FOV = M_PI_4;
@@ -49,6 +49,11 @@ void Camera::SetAspectRatio(const float ratio)
 glm::mat4 Camera::GetProjection() const
 {
 	return projection_;
+}
+
+glm::vec3 Camera::GetPosition() const
+{
+	return position_;
 }
 
 glm::mat4 lookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)

@@ -55,56 +55,57 @@ int main()
 		return -1;
 	}
 
-	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/BasicColor.frag").make_preferred();
+	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Diffuse.vert").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Specular.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
+	boost::filesystem::path light_vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
 	boost::filesystem::path light_fragment_shader_path = boost::filesystem::path("Shaders/Light.frag").make_preferred();
-	Shader lamp_shader = Shader(vertex_shader_path.string().c_str(), light_fragment_shader_path.string().c_str());
+	Shader lamp_shader = Shader(light_vertex_shader_path.string().c_str(), light_fragment_shader_path.string().c_str());
 
     // vertex data
 	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
     // create a Vertex Buffer Object to hold the vertices
     // the ID of the VBO is 1
@@ -117,18 +118,18 @@ int main()
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
+	
 	// Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), static_cast<void*>(nullptr));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(nullptr));
     glEnableVertexAttribArray(0);
-	//// Texture
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	unsigned int lightVao;
 	glGenVertexArrays(1, &lightVao);
 	glBindVertexArray(lightVao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), static_cast<void*>(nullptr));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(nullptr));
 	glEnableVertexAttribArray(0);
 
 	// Texture Work
@@ -137,7 +138,7 @@ int main()
 	unsigned int texture0 = load_texture(texture0_path.string().c_str(), GL_RGB, GL_CLAMP_TO_EDGE);
 	unsigned int texture1 = load_texture(texture1_path.string().c_str(), GL_RGBA);
 
-	const unsigned int cubes = 1;
+	const unsigned int cubes = 10;
 	glm::vec3 cube_locations[cubes];
 	generate_cube_locations(cubes, cube_locations);
 
@@ -151,6 +152,8 @@ int main()
         // process any input
         process_input(window, cam);
 
+		glm::vec3 camPosition = cam.GetPosition();
+
         // render section of main loop
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state setter
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
@@ -158,12 +161,13 @@ int main()
 		glm::mat4 projection = cam.GetProjection();
 		glm::mat4 view = cam.MakeViewMat();
 
-		glBindVertexArray(vao);
 		standard_shader.Use();
 		standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 		standard_shader.SetMatrix4fv("view", glm::value_ptr(view));
 		standard_shader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		standard_shader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		standard_shader.SetVec3("lightPos", lightPos.x, lightPos.y, lightPos.z);
+		standard_shader.SetVec3("viewPos", camPosition.x, camPosition.y, camPosition.z);
 
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, texture0);
@@ -173,14 +177,19 @@ int main()
 		//standard_shader.SetInt("texture1", 1);
 
 		//standard_shader.SetFloat("mixture", texture_mix);
-		
+
+		glBindVertexArray(vao);
 		for (int i = 0; i < cubes; i++)
 		{
 			glm::mat4 model(1.0f);
 
-			//model = glm::translate(model, cube_locations[i]);
-			model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
+			model = glm::translate(model, cube_locations[i]);
+			//model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
 			standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
+
+			glm::mat4 normal(1.0f);
+			normal = glm::transpose(glm::inverse(model));
+			standard_shader.SetMatrix4fv("normal", glm::value_ptr(normal));
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
@@ -188,11 +197,11 @@ int main()
 		lamp_shader.Use();
 		lamp_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 		lamp_shader.SetMatrix4fv("view", glm::value_ptr(view));
-
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
 		lamp_shader.SetMatrix4fv("model", glm::value_ptr(model));
+
 		glBindVertexArray(lightVao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
