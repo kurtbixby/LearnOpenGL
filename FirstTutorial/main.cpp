@@ -55,8 +55,8 @@ int main()
 		return -1;
 	}
 
-	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Diffuse.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Specular.frag").make_preferred();
+	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/ViewLighting.vert").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/ViewLighting.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path light_vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
@@ -145,7 +145,15 @@ int main()
 	Camera cam = Camera();
 	cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
 
-	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+	glm::vec3 lightPos(12.0f, 10.0f, 20.0f);
+
+	double lightDeltaTheta = M_PI_4 / 100.0f;
+	glm::mat3 lightMultiplication(1.0f);
+	lightMultiplication[0][0] = cos(lightDeltaTheta);
+	lightMultiplication[0][2] = -sin(lightDeltaTheta);
+	lightMultiplication[2][0] = sin(lightDeltaTheta);
+	lightMultiplication[2][2] = cos(lightDeltaTheta);
+
     // main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -160,6 +168,7 @@ int main()
 
 		glm::mat4 projection = cam.GetProjection();
 		glm::mat4 view = cam.MakeViewMat();
+		lightPos = lightMultiplication * lightPos;
 
 		standard_shader.Use();
 		standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
@@ -188,12 +197,15 @@ int main()
 			standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
 			glm::mat4 normal(1.0f);
-			normal = glm::transpose(glm::inverse(model));
+			// Do the transpose on main CPU rather than GPU, expensive operation
+			// Everything is done in view space
+			normal = glm::transpose(glm::inverse(view * model));
 			standard_shader.SetMatrix4fv("normal", glm::value_ptr(normal));
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+		// Draws the light source
 		lamp_shader.Use();
 		lamp_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 		lamp_shader.SetMatrix4fv("view", glm::value_ptr(view));

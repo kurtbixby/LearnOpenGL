@@ -124,6 +124,12 @@
     <None Include="Shaders\Specular.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\ViewLighting.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\ViewLighting.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />

@@ -57,6 +57,8 @@
     <None Include="Shaders\TextureMix.frag" />
     <None Include="Shaders\Transform.vert" />
     <None Include="Shaders\Uniform.frag" />
+    <None Include="Shaders\ViewLighting.frag" />
+    <None Include="Shaders\ViewLighting.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />
