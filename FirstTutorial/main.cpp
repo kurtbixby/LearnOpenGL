@@ -56,7 +56,7 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/ViewLighting.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/ViewLighting.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Materials.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path light_vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
@@ -132,21 +132,23 @@ int main()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(nullptr));
 	glEnableVertexAttribArray(0);
 
-	// Texture Work
+	// Texture Loading
 	boost::filesystem::path texture0_path = boost::filesystem::path("resources/container.jpg").make_preferred();
 	boost::filesystem::path texture1_path = boost::filesystem::path("resources/awesomeface.png").make_preferred();
 	unsigned int texture0 = load_texture(texture0_path.string().c_str(), GL_RGB, GL_CLAMP_TO_EDGE);
 	unsigned int texture1 = load_texture(texture1_path.string().c_str(), GL_RGBA);
 
+	// Cube generation
 	const unsigned int cubes = 10;
 	glm::vec3 cube_locations[cubes];
 	generate_cube_locations(cubes, cube_locations);
 
+	// Camera initialization
 	Camera cam = Camera();
 	cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
 
+	// For the moving light
 	glm::vec3 lightPos(12.0f, 10.0f, 20.0f);
-
 	double lightDeltaTheta = M_PI_4 / 100.0f;
 	glm::mat3 lightMultiplication(1.0f);
 	lightMultiplication[0][0] = cos(lightDeltaTheta);
@@ -170,21 +172,40 @@ int main()
 		glm::mat4 view = cam.MakeViewMat();
 		lightPos = lightMultiplication * lightPos;
 
+		glm::vec3 lightColor;
+		double time = glfwGetTime();
+		lightColor.x = sin(time * 2.0f);
+		lightColor.y = sin(time * 0.7f);
+		lightColor.z = sin(time * 1.3f);
+
+		glm::vec3 diffuse = lightColor * 0.5f;
+		glm::vec3 ambient = diffuse * 0.2f;
+
 		standard_shader.Use();
 		standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 		standard_shader.SetMatrix4fv("view", glm::value_ptr(view));
-		standard_shader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		standard_shader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		standard_shader.SetVec3("lightPos", lightPos.x, lightPos.y, lightPos.z);
+		//standard_shader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		//standard_shader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+
+		standard_shader.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+		standard_shader.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+		standard_shader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
+		standard_shader.SetFloat("material.shininess", 32.0f);
+
+		standard_shader.SetVec3("light.position", lightPos.x, lightPos.y, lightPos.z);
+		standard_shader.SetVec3("light.ambient", ambient.x, ambient.y, ambient.z);
+		standard_shader.SetVec3("light.diffuse", diffuse.x, diffuse.y, diffuse.z);
+		standard_shader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
 		standard_shader.SetVec3("viewPos", camPosition.x, camPosition.y, camPosition.z);
 
+		// Texture area
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, texture0);
 		//standard_shader.SetInt("texture0", 0);
 		//glActiveTexture(GL_TEXTURE1);
 		//glBindTexture(GL_TEXTURE_2D, texture1);
 		//standard_shader.SetInt("texture1", 1);
-
 		//standard_shader.SetFloat("mixture", texture_mix);
 
 		glBindVertexArray(vao);
@@ -196,9 +217,9 @@ int main()
 			//model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
 			standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
-			glm::mat4 normal(1.0f);
 			// Do the transpose on main CPU rather than GPU, expensive operation
 			// Everything is done in view space
+			glm::mat4 normal(1.0f);
 			normal = glm::transpose(glm::inverse(view * model));
 			standard_shader.SetMatrix4fv("normal", glm::value_ptr(normal));
 

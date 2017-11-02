@@ -52,6 +52,7 @@
     <None Include="Shaders\Light.frag" />
     <None Include="Shaders\Linked.frag" />
     <None Include="Shaders\Linked.vert" />
+    <None Include="Shaders\Materials.frag" />
     <None Include="Shaders\SpacesMatrices.vert" />
     <None Include="Shaders\Specular.frag" />
     <None Include="Shaders\TextureMix.frag" />
