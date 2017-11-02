@@ -3,7 +3,9 @@ CXX = clang++
 IDIR = ./include
 LDFLAGS = -Wall
 LDLIBS = -lglfw -lboost_system
-CFLAGS = -Wall -c -I$(IDIR)
+CFLAGS = 
+CXXFLAGS = -std=c++11
+CPPFLAGS = -Wall -c -I$(IDIR)
 OBJ = main.o glad.o Camera.o
 EXECUTABLE = gltutorial
 FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
@@ -14,13 +16,13 @@ opengltutorial: $(OBJ)
 	$(CXX) $(LDFLAGS) $(LDLIBS) $(FRAMEWORKS) $(OBJ) -o $(EXECUTABLE)
 
 main.o: main.cpp stb_image.h Shader.h
-	$(CXX) $(CFLAGS) main.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) main.cpp
 
 Camera.o: Camera.cpp Camera.h
-	$(CXX) $(CFLAGS) Camera.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) Camera.cpp
 
 glad.o: glad.c
-	$(CC) $(CFLAGS) glad.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) glad.c
 
 clean:
 		$(RM) *.o $(EXECUTABLE)

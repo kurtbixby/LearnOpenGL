@@ -23,7 +23,7 @@ public:
 	void SetFloat(const std::string& name, const float value) const;
     void SetFloat4(const std::string& name, const float value1, const float value2, const float value3, const float value4) const;
 	void SetMatrix4fv(const std::string&name, const float* values) const;
-	void Shader::SetVec3(const std::string& name, const float v0, const float v1, const float v2) const;
+	void SetVec3(const std::string& name, const float v0, const float v1, const float v2) const;
 
 private:
     // Shader Program ID
