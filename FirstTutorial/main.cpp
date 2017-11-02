@@ -56,7 +56,7 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/DiffuseMap.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/DiffuseMap.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/SpecularMap.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path light_vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
@@ -136,8 +136,10 @@ int main()
 	glEnableVertexAttribArray(0);
 
 	// Texture Loading
-	boost::filesystem::path diffuse_texture_path = boost::filesystem::path("resources/container2.png").make_preferred();
+	boost::filesystem::path diffuse_texture_path = boost::filesystem::path("resources/container2_diffuse.png").make_preferred();
 	unsigned int diffuse_texture = load_texture(diffuse_texture_path.string().c_str(), GL_RGBA);
+    boost::filesystem::path specular_texture_path = boost::filesystem::path("resources/container2_specular.png").make_preferred();
+    unsigned int specular_texture = load_texture(specular_texture_path.string().c_str(), GL_RGBA);
     // boost::filesystem::path texture1_path = boost::filesystem::path("resources/awesomeface.png").make_preferred();
 	// unsigned int texture1 = load_texture(texture1_path.string().c_str(), GL_RGBA);
 
@@ -174,7 +176,7 @@ int main()
 		glm::mat4 projection = cam.GetProjection();
 		glm::mat4 view = cam.MakeViewMat();
         // Uncomment to have the light orbit
-		// lightPos = lightMultiplication * lightPos;
+		lightPos = lightMultiplication * lightPos;
 
 		glm::vec3 lightColor(1.0f);
         // Uncomment for changing color
@@ -194,7 +196,7 @@ int main()
 
 		// standard_shader.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
 		// standard_shader.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-		standard_shader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
+		// standard_shader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
 		standard_shader.SetFloat("material.shininess", 32.0f);
 
 		standard_shader.SetVec3("light.position", lightPos.x, lightPos.y, lightPos.z);
@@ -208,9 +210,9 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuse_texture);
 		standard_shader.SetInt("material.diffuse", 0);
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, texture1);
-		//standard_shader.SetInt("texture1", 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specular_texture);
+		standard_shader.SetInt("material.specular", 1);
 		//standard_shader.SetFloat("mixture", texture_mix);
 
 		glBindVertexArray(vao);
