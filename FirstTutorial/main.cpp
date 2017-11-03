@@ -56,7 +56,7 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/DiffuseMap.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/SpecularMap.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/PointLight.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path light_vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
@@ -153,8 +153,8 @@ int main()
 	cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
 
 	// For the moving light
-	glm::vec3 lightPos(12.0f, 10.0f, 20.0f);
-	double lightDeltaTheta = M_PI_4 / 100.0f;
+	glm::vec3 lightDirection(-12.0f, -10.0f, 20.0f);
+	double lightDeltaTheta = M_PI_4 / 1000.0f;
 	glm::mat3 lightMultiplication(1.0f);
 	lightMultiplication[0][0] = cos(lightDeltaTheta);
 	lightMultiplication[0][2] = -sin(lightDeltaTheta);
@@ -176,17 +176,21 @@ int main()
 		glm::mat4 projection = cam.GetProjection();
 		glm::mat4 view = cam.MakeViewMat();
         // Uncomment to have the light orbit
-		lightPos = lightMultiplication * lightPos;
+		// lightDirection = lightMultiplication * lightDirection;
 
-		glm::vec3 lightColor(1.0f);
+		glm::vec3 redLight(1.0f, 0.0f, 0.0f);
+        glm::vec3 greenLight(0.0f, 1.0f, 0.0f);
+        glm::vec3 blueLight(0.0f, 0.0f, 1.0f);
         // Uncomment for changing color
 		// double time = glfwGetTime();
 		// lightColor.x = sin(time * 2.0f);
 		// lightColor.y = sin(time * 0.7f);
 		// lightColor.z = sin(time * 1.3f);
 
-		glm::vec3 diffuse = lightColor * 0.5f;
-		glm::vec3 ambient = diffuse * 0.2f;
+		glm::vec3 redDiffuse = redLight * 0.5f;
+		glm::vec3 redAmbient = redLight * 0.2f;
+        glm::vec3 greenDiffuse = greenLight * 0.5f;
+        glm::vec3 greenAmbient = greenLight * 0.2f;
 
 		standard_shader.Use();
 		standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
@@ -199,10 +203,19 @@ int main()
 		// standard_shader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
 		standard_shader.SetFloat("material.shininess", 32.0f);
 
-		standard_shader.SetVec3("light.position", lightPos.x, lightPos.y, lightPos.z);
-		standard_shader.SetVec3("light.ambient", ambient.x, ambient.y, ambient.z);
-		standard_shader.SetVec3("light.diffuse", diffuse.x, diffuse.y, diffuse.z);
+		standard_shader.SetVec3("light.direction", lightDirection.x, lightDirection.y, lightDirection.z);
+		standard_shader.SetVec3("light.ambient", redAmbient.x, redAmbient.y, redAmbient.z);
+		standard_shader.SetVec3("light.diffuse", redDiffuse.x, redDiffuse.y, redDiffuse.z);
 		standard_shader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+
+        standard_shader.SetVec3("pointLight.position", 0.0f, 0.0f, 0.0f);
+        standard_shader.SetVec3("pointLight.ambient", greenAmbient.x, greenAmbient.y, greenAmbient.z);
+        standard_shader.SetVec3("pointLight.diffuse", greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
+        standard_shader.SetVec3("pointLight.specular", 1.0f, 1.0f, 1.0f);
+        standard_shader.SetFloat("pointLight.constant",  1.0f);
+        standard_shader.SetFloat("pointLight.linear",    0.09f);
+        standard_shader.SetFloat("pointLight.quadratic", 0.032f);
 
 		standard_shader.SetVec3("viewPos", camPosition.x, camPosition.y, camPosition.z);
 
@@ -234,13 +247,13 @@ int main()
 		}
 
 		// Draws the light source
-		lamp_shader.Use();
-		lamp_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
-		lamp_shader.SetMatrix4fv("view", glm::value_ptr(view));
-		glm::mat4 model(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-		lamp_shader.SetMatrix4fv("model", glm::value_ptr(model));
+		// lamp_shader.Use();
+		// lamp_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
+		// lamp_shader.SetMatrix4fv("view", glm::value_ptr(view));
+		// glm::mat4 model(1.0f);
+		// model = glm::translate(model, lightPos);
+		// model = glm::scale(model, glm::vec3(0.2f));
+		// lamp_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
 		glBindVertexArray(lightVao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
