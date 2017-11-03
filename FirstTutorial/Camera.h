@@ -35,6 +35,7 @@ public:
 	glm::mat4 GetProjection() const;
 	glm::mat4 MakeViewMat() const;
 	glm::vec3 GetPosition() const;
+	glm::vec3 GetDirection() const;
 
 private:
 	glm::mat4 projection_;

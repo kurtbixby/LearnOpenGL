@@ -26,6 +26,18 @@ struct PointLight {
 	float quadratic;
 };
 
+struct SpotLight {
+	vec3 position;
+	vec3 direction;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	float innerCutoff;
+	float outerCutoff;
+};
+
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
@@ -35,6 +47,7 @@ out vec4 FragColor;
 uniform Material material;
 uniform Light light;
 uniform PointLight pointLight;
+uniform SpotLight spotLight;
 
 uniform mat4 view;
 
@@ -79,6 +92,38 @@ vec3 point_lighting(vec3 diffuseValue, vec3 specularValue)
 		return result;
 }
 
+vec3 spot_lighting(vec3 diffuseValue, vec3 specularValue)
+{
+	vec3 result = vec3(0.0f);
+
+	vec3 viewLightPos = vec3(view * vec4(spotLight.position, 1.0f));
+	vec3 lightDir = normalize(viewLightPos - FragPos);
+
+	float foo = dot(-lightDir, normalize(vec3(view * vec4(spotLight.direction, 0.0f))));
+	if (foo > spotLight.outerCutoff)
+	{
+		float intensity = 1.0f;
+		if (foo < spotLight.innerCutoff)
+		{
+			intensity = (foo - spotLight.outerCutoff) / (spotLight.innerCutoff - spotLight.outerCutoff);
+		}
+
+		vec3 ambient = spotLight.ambient * diffuseValue;
+
+		vec3 norm = normalize(Normal);
+		float diff = max(dot(norm, lightDir), 0.0f);
+		vec3 diffuse = spotLight.diffuse * diff * diffuseValue;
+
+		vec3 viewDir = normalize(-FragPos);
+		vec3 reflectDir = reflect(-lightDir, norm);
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
+		vec3 specular = spotLight.specular * spec * specularValue;
+
+		result = intensity * (ambient + diffuse + specular);
+	}
+	return result;
+}
+
 void main()
 {
 	vec3 diffuseValue = vec3(texture(material.diffuse, TexCoords));
@@ -90,7 +135,9 @@ void main()
 	// Point Light
 	vec3 point = point_lighting(diffuseValue, specularValue);
 
-	vec3 result = global + point;
+	vec3 spot = spot_lighting(diffuseValue, specularValue);
+
+	vec3 result = global + point + spot;
 
 	FragColor = vec4(result, 1.0f);
 }

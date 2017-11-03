@@ -56,7 +56,7 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/DiffuseMap.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/PointLight.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/SoftSpotLight.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path light_vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
@@ -168,6 +168,7 @@ int main()
         process_input(window, cam);
 
 		glm::vec3 camPosition = cam.GetPosition();
+        glm::vec3 camDirection = cam.GetDirection();
 
         // render section of main loop
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state setter
@@ -180,7 +181,7 @@ int main()
 
 		glm::vec3 redLight(1.0f, 0.0f, 0.0f);
         glm::vec3 greenLight(0.0f, 1.0f, 0.0f);
-        glm::vec3 blueLight(0.0f, 0.0f, 1.0f);
+        glm::vec3 blueLight(1.0f, 1.0f, 1.0f);
         // Uncomment for changing color
 		// double time = glfwGetTime();
 		// lightColor.x = sin(time * 2.0f);
@@ -191,23 +192,17 @@ int main()
 		glm::vec3 redAmbient = redLight * 0.2f;
         glm::vec3 greenDiffuse = greenLight * 0.5f;
         glm::vec3 greenAmbient = greenLight * 0.2f;
+        glm::vec3 blueDiffuse = blueLight * 0.5f;
+        glm::vec3 blueAmbient = blueLight * 0.2f;
 
 		standard_shader.Use();
 		standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
 		standard_shader.SetMatrix4fv("view", glm::value_ptr(view));
-		//standard_shader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		//standard_shader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
-
-		// standard_shader.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-		// standard_shader.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-		// standard_shader.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
-		standard_shader.SetFloat("material.shininess", 32.0f);
 
 		standard_shader.SetVec3("light.direction", lightDirection.x, lightDirection.y, lightDirection.z);
 		standard_shader.SetVec3("light.ambient", redAmbient.x, redAmbient.y, redAmbient.z);
 		standard_shader.SetVec3("light.diffuse", redDiffuse.x, redDiffuse.y, redDiffuse.z);
 		standard_shader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
 
         standard_shader.SetVec3("pointLight.position", 0.0f, 0.0f, 0.0f);
         standard_shader.SetVec3("pointLight.ambient", greenAmbient.x, greenAmbient.y, greenAmbient.z);
@@ -216,6 +211,14 @@ int main()
         standard_shader.SetFloat("pointLight.constant",  1.0f);
         standard_shader.SetFloat("pointLight.linear",    0.09f);
         standard_shader.SetFloat("pointLight.quadratic", 0.032f);
+
+        standard_shader.SetVec3("spotLight.position", camPosition.x, camPosition.y, camPosition.z);
+        standard_shader.SetVec3("spotLight.direction", camDirection.x, camDirection.y, camDirection.z);
+        standard_shader.SetVec3("spotLight.ambient", blueAmbient.x, blueAmbient.y, blueAmbient.z);
+        standard_shader.SetVec3("spotLight.diffuse", blueDiffuse.x, blueDiffuse.y, blueDiffuse.z);
+        standard_shader.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        standard_shader.SetFloat("spotLight.innerCutoff", cos(glm::radians(10.0f)));
+        standard_shader.SetFloat("spotLight.outerCutoff", cos(glm::radians(15.0f)));
 
 		standard_shader.SetVec3("viewPos", camPosition.x, camPosition.y, camPosition.z);
 
@@ -226,7 +229,7 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specular_texture);
 		standard_shader.SetInt("material.specular", 1);
-		//standard_shader.SetFloat("mixture", texture_mix);
+        standard_shader.SetFloat("material.shininess", 32.0f);
 
 		glBindVertexArray(vao);
 		for (int i = 0; i < cubes; i++)

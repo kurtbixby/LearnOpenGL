@@ -56,6 +56,11 @@ glm::vec3 Camera::GetPosition() const
 	return position_;
 }
 
+glm::vec3 Camera::GetDirection() const
+{
+	return direction_;
+}
+
 glm::mat4 lookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
 {
 	glm::vec3 zAxis = glm::normalize(position - target);
