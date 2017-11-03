@@ -12,7 +12,7 @@ struct Light {
 	vec3 diffuse;
 	vec3 specular;
 };
-#define NUM_DIR_LIGHTS 1
+#define MAX_DIR_LIGHTS 1
 
 // Make PointLight contain a Light?
 struct PointLight {
@@ -26,7 +26,7 @@ struct PointLight {
 	float linear;
 	float quadratic;
 };
-#define NUM_POINT_LIGHTS 1
+#define MAX_POINT_LIGHTS 4
 
 struct SpotLight {
 	vec3 position;
@@ -39,7 +39,7 @@ struct SpotLight {
 	float innerCutoff;
 	float outerCutoff;
 };
-#define NUM_SPOT_LIGHTS 1
+#define MAX_SPOT_LIGHTS 1
 
 in vec3 Normal;
 in vec3 FragPos;
@@ -48,9 +48,12 @@ in vec2 TexCoords;
 out vec4 FragColor;
 
 uniform Material material;
-uniform Light lights[NUM_DIR_LIGHTS];
-uniform PointLight pointLights[NUM_POINT_LIGHTS];
-uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
+uniform Light lights[MAX_DIR_LIGHTS];
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
+uniform int DIR_LIGHTS;
+uniform int POINT_LIGHTS;
+uniform int SPOT_LIGHTS;
 
 uniform mat4 view;
 
@@ -136,21 +139,21 @@ void main()
 
 	// Global Light
 	vec3 global = vec3(0.0f);
-	for (i = 0; i < NUM_DIR_LIGHTS; i++)
+	for (i = 0; i < DIR_LIGHTS; i++)
 	{
 		global += global_lighting(lights[i], diffuseValue, specularValue);
 	}
 
 	// Point Light
 	vec3 point = vec3(0.0f);
-	for (i = 0; i < NUM_POINT_LIGHTS; i++)
+	for (i = 0; i < POINT_LIGHTS; i++)
 	{
 		point += point_lighting(pointLights[i], diffuseValue, specularValue);
 	}
 
 	// Spot Light
 	vec3 spot = vec3(0.0f);
-	for (i = 0; i < NUM_SPOT_LIGHTS; i++)
+	for (i = 0; i < SPOT_LIGHTS; i++)
 	{
 		spot += spot_lighting(spotLights[i], diffuseValue, specularValue);
 	}
