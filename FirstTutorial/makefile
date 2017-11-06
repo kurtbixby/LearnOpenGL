@@ -15,7 +15,7 @@ all: opengltutorial
 opengltutorial: $(OBJ)
 	$(CXX) $(LDFLAGS) $(LDLIBS) $(FRAMEWORKS) $(OBJ) -o $(EXECUTABLE)
 
-main.o: main.cpp stb_image.h Shader.h
+main.o: main.cpp stb_image.h Shader.h Lights.h Structs.h Mesh.h
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) main.cpp
 
 Camera.o: Camera.cpp Camera.h
