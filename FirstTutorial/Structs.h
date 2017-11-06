@@ -4,6 +4,9 @@
 #include <string>
 #include <glm/glm.hpp>
 
+#define MAX_DIFFUSE_TEX 3
+#define MAX_SPECULAR_TEX 3
+
 struct Vertex
 {
 	glm::vec3 Position;
@@ -11,10 +14,16 @@ struct Vertex
 	glm::vec2 TexCoords;
 };
 
+enum TextureType
+{
+	Diffuse,
+	Specular
+};
+
 struct Texture
 {
 	unsigned int id;
-	std::string type;
+	TextureType type;
 };
 
 // Keep this separate to keep Vertex as POD
