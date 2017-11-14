@@ -11,12 +11,18 @@
 #include "Camera.h"
 #include "Lights.h"
 #include "Structs.h"
+#include "Model.h"
 
+#ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#endif
 
+#ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
+#endif
 #include <boost/filesystem.hpp>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -29,7 +35,7 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void check_shader_compilation(unsigned int shader);
 void check_shader_program_linking(unsigned int program);
 unsigned int create_shader(GLenum shader_type, const char* source);
-unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type = GL_REPEAT);
+// unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type = GL_REPEAT);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 void send_direction_light(const Shader& shader, const Light& light, const int index);
@@ -61,143 +67,92 @@ int main()
 		return -1;
 	}
 
-	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/DiffuseMap.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/MultipleLights.frag").make_preferred();
+	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/MultipleTextures.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
-	boost::filesystem::path light_vertex_shader_path = boost::filesystem::path("Shaders/BasicColor.vert").make_preferred();
-	boost::filesystem::path light_fragment_shader_path = boost::filesystem::path("Shaders/Light.frag").make_preferred();
-	Shader lamp_shader = Shader(light_vertex_shader_path.string().c_str(), light_fragment_shader_path.string().c_str());
-
     // vertex data
-	// float vertices[] = {
-	//     // positions          // normals           // texture coords
-	//     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-	//      0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-	//      0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-	//      0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-	//     -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-	//     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+ //    Vertex vertices[] = {
+ //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
+ //        create_vertex(  0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f ),
+ //        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
+ //        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
+ //        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f ),
+ //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
 
-	//     -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-	//      0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-	//      0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-	//      0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-	//     -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-	//     -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+ //        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f ),
+ //        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f ),
+ //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f ),
+ //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f ),
+ //        create_vertex( -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f ),
+ //        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f ),
 
-	//     -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-	//     -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-	//     -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	//     -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	//     -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-	//     -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+ //        create_vertex( -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
+ //        create_vertex( -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f ),
+ //        create_vertex( -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
+ //        create_vertex( -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
+ //        create_vertex( -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f ),
+ //        create_vertex( -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
 
-	//      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-	//      0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-	//      0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	//      0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	//      0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-	//      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+ //        create_vertex(  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
+ //        create_vertex(  0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f ),
+ //        create_vertex(  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
+ //        create_vertex(  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
+ //        create_vertex(  0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f ),
+ //        create_vertex(  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
 
-	//     -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-	//      0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-	//      0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-	//      0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-	//     -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-	//     -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+ //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f ),
+ //        create_vertex(  0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f ),
+ //        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f ),
+ //        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f ),
+ //        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f ),
+ //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f ),
 
-	//     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-	//      0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-	//      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-	//      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-	//     -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-	//     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-	// };
+ //        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f ),
+ //        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f ),
+ //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f ),
+ //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f ),
+ //        create_vertex( -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f ),
+ //        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f ),
+ //    };
 
-    Vertex vertices[] = {
-        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
-        create_vertex(  0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f ),
-        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
-        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
-        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f ),
-        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
+ //    // create a Vertex Buffer Object to hold the vertices
+ //    // the ID of the VBO is 1
+ //    unsigned int vbo;
+ //    glGenBuffers(1, &vbo);
 
-        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f ),
-        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f ),
-        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f ),
-        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f ),
-        create_vertex( -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f ),
-        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f ),
-
-        create_vertex( -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
-        create_vertex( -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f ),
-        create_vertex( -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
-        create_vertex( -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
-        create_vertex( -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f ),
-        create_vertex( -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
-
-        create_vertex(  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
-        create_vertex(  0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f ),
-        create_vertex(  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
-        create_vertex(  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
-        create_vertex(  0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f ),
-        create_vertex(  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
-
-        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f ),
-        create_vertex(  0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f ),
-        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f ),
-        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f ),
-        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f ),
-        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f ),
-
-        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f ),
-        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f ),
-        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f ),
-        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f ),
-        create_vertex( -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f ),
-        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f ),
-    };
-
-    // create a Vertex Buffer Object to hold the vertices
-    // the ID of the VBO is 1
-    unsigned int vbo;
-    glGenBuffers(1, &vbo);
-
-	// Create Vertex Array and related buffers
-	unsigned int vao;
-	glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
+	// // Create Vertex Array and related buffers
+	// unsigned int vao;
+	// glGenVertexArrays(1, &vao);
+ //    glBindVertexArray(vao);
+ //    glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
+ //    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
 	
-	// Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
-    glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Normal)));
-	glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, TexCoords)));
-    glEnableVertexAttribArray(2);
+	// // Position
+ //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
+ //    glEnableVertexAttribArray(0);
+	// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Normal)));
+	// glEnableVertexAttribArray(1);
+ //    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, TexCoords)));
+ //    glEnableVertexAttribArray(2);
 
-	unsigned int lightVao;
-	glGenVertexArrays(1, &lightVao);
-	glBindVertexArray(lightVao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
-	glEnableVertexAttribArray(0);
+	// unsigned int lightVao;
+	// glGenVertexArrays(1, &lightVao);
+	// glBindVertexArray(lightVao);
+	// glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
+	// glEnableVertexAttribArray(0);
 
-	// Texture Loading
-	boost::filesystem::path diffuse_texture_path = boost::filesystem::path("resources/container2_diffuse.png").make_preferred();
-	unsigned int diffuse_texture = load_texture(diffuse_texture_path.string().c_str(), GL_RGBA);
-    boost::filesystem::path specular_texture_path = boost::filesystem::path("resources/container2_specular.png").make_preferred();
-    unsigned int specular_texture = load_texture(specular_texture_path.string().c_str(), GL_RGBA);
-    // boost::filesystem::path texture1_path = boost::filesystem::path("resources/awesomeface.png").make_preferred();
-	// unsigned int texture1 = load_texture(texture1_path.string().c_str(), GL_RGBA);
+	// // Texture Loading
+	// boost::filesystem::path diffuse_texture_path = boost::filesystem::path("resources/container2_diffuse.png").make_preferred();
+	// unsigned int diffuse_texture = load_texture(diffuse_texture_path.string().c_str(), GL_RGBA);
+ //    boost::filesystem::path specular_texture_path = boost::filesystem::path("resources/container2_specular.png").make_preferred();
+ //    unsigned int specular_texture = load_texture(specular_texture_path.string().c_str(), GL_RGBA);
 
-	// Cube generation
-	const unsigned int cubes = 10;
-	glm::vec3 cube_locations[cubes];
-	generate_cube_locations(cubes, cube_locations);
+	// // Cube generation
+	// const unsigned int cubes = 10;
+	// glm::vec3 cube_locations[cubes];
+	// generate_cube_locations(cubes, cube_locations);
 
 	// Camera initialization
 	Camera cam = Camera();
@@ -215,7 +170,6 @@ int main()
     Light lights[MAX_DIR_LIGHTS];
     PointLight pointLights[MAX_POINT_LIGHTS];
     SpotLight spotLights[MAX_SPOT_LIGHTS];
-    
 
     // main loop
     while (!glfwWindowShouldClose(window))
@@ -231,7 +185,7 @@ int main()
         glm::vec3 camDirection = cam.GetDirection();
 
         // render section of main loop
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state setter
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // state setter
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
 
 		glm::mat4 projection = cam.GetProjection();
@@ -261,23 +215,23 @@ int main()
         lights[DIR_LIGHTS].specular = glm::vec3(1.0f);
         DIR_LIGHTS++;
 
-        pointLights[POINT_LIGHTS].position = glm::vec3(0.0f);
-        pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-        pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-        pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-        pointLights[POINT_LIGHTS].constant = 1.0f;
-        pointLights[POINT_LIGHTS].linear = 0.09f;
-        pointLights[POINT_LIGHTS].quadratic = 0.032f;
-        POINT_LIGHTS++;
+        // pointLights[POINT_LIGHTS].position = glm::vec3(0.0f);
+        // pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
+        // pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
+        // pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
+        // pointLights[POINT_LIGHTS].constant = 1.0f;
+        // pointLights[POINT_LIGHTS].linear = 0.09f;
+        // pointLights[POINT_LIGHTS].quadratic = 0.032f;
+        // POINT_LIGHTS++;
 
-        pointLights[POINT_LIGHTS].position = glm::vec3(-5.0f);
-        pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-        pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-        pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-        pointLights[POINT_LIGHTS].constant = 1.0f;
-        pointLights[POINT_LIGHTS].linear = 0.09f;
-        pointLights[POINT_LIGHTS].quadratic = 0.032f;
-        POINT_LIGHTS++;
+        // pointLights[POINT_LIGHTS].position = glm::vec3(-5.0f);
+        // pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
+        // pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
+        // pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
+        // pointLights[POINT_LIGHTS].constant = 1.0f;
+        // pointLights[POINT_LIGHTS].linear = 0.09f;
+        // pointLights[POINT_LIGHTS].quadratic = 0.032f;
+        // POINT_LIGHTS++;
 
         spotLights[SPOT_LIGHTS].position = glm::vec3(camPosition.x, camPosition.y, camPosition.z);
         spotLights[SPOT_LIGHTS].direction = glm::vec3(camDirection.x, camDirection.y, camDirection.z);
@@ -314,39 +268,44 @@ int main()
             send_spot_light(standard_shader, *light, i);
         }
 
+        Model crysis = Model("Resources/nanosuit/nanosuit.obj");
+        crysis.Draw(standard_shader);
+
 		// Texture area
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuse_texture);
-		standard_shader.SetInt("material.diffuse", 0);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specular_texture);
-		standard_shader.SetInt("material.specular", 1);
-        standard_shader.SetFloat("material.shininess", 32.0f);
 
-		glBindVertexArray(vao);
-		for (int i = 0; i < cubes; i++)
-		{
-			glm::mat4 model(1.0f);
+		// glActiveTexture(GL_TEXTURE0);
+		// glBindTexture(GL_TEXTURE_2D, diffuse_texture);
+		// standard_shader.SetInt("material.diffuse", 0);
+		// glActiveTexture(GL_TEXTURE1);
+		// glBindTexture(GL_TEXTURE_2D, specular_texture);
+		// standard_shader.SetInt("material.specular", 1);
+  //       standard_shader.SetFloat("material.shininess", 32.0f);
 
-			model = glm::translate(model, cube_locations[i]);
-			//model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
-			standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
+		// glBindVertexArray(vao);
+		// for (int i = 0; i < cubes; i++)
+		// {
+		// 	glm::mat4 model(1.0f);
 
-			// Do the transpose on main CPU rather than GPU, expensive operation
-			// Everything is done in view space
-			glm::mat4 normal(1.0f);
-			normal = glm::transpose(glm::inverse(view * model));
-			standard_shader.SetMatrix4fv("normal", glm::value_ptr(normal));
+		// 	model = glm::translate(model, cube_locations[i]);
+		// 	//model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
+		// 	standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		// 	// Do the transpose on main CPU rather than GPU, expensive operation
+		// 	// Everything is done in view space
+		// 	glm::mat4 normal(1.0f);
+		// 	normal = glm::transpose(glm::inverse(view * model));
+		// 	standard_shader.SetMatrix4fv("normal", glm::value_ptr(normal));
 
-		glBindVertexArray(lightVao);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		// 	glDrawArrays(GL_TRIANGLES, 0, 36);
+		// }
+
+		// glBindVertexArray(lightVao);
+		// glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
         glfwPollEvents();
+        // break;
     }
 
     glfwTerminate();
@@ -474,48 +433,6 @@ unsigned int create_shader(const GLenum shader_type, const char* source)
     check_shader_compilation(shader);
 
     return shader;
-}
-
-unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type)
-{
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_type);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_type);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	int width, height, nr_channels;
-	unsigned char* data = stbi_load(texture_file, &width, &height, &nr_channels, 0);
-
-	if (data)
-	{
-
-		/*
-		* 1) OpenGL object type
-		* 2) Mipmap level
-		* 3) Format to store texture in
-		* 4) Texture width
-		* 5) Texture height
-		* 6) Legacy stuff [what exactly?]
-		* 7) Format of source texture
-		* 8) Datatype of source texture
-		* 9) Actual texture data
-		*/
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, source_format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-
-	stbi_image_free(data);
-
-	return texture;
 }
 
 void check_shader_compilation(const unsigned int shader)

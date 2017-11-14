@@ -6,6 +6,8 @@
 #include "Structs.h"
 #include "Shader.h"
 
+using namespace std;
+
 class Mesh
 {
 	public:
@@ -38,24 +40,27 @@ void Mesh::Draw(Shader shader)
 	{
 		std::string texName = "material.";
 		Texture tex = textures_[i];
-		glActivateTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, tex);
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, tex.id);
 		switch(tex.type)
 		{
-			case TextureType.Diffuse:
+			case TextureType::Diffuse:
 				texName.append("diffuse[").append(std::to_string(diffuseTexs)).append("]");
 				shader.SetInt(texName, i);
 				diffuseTexs += 1;
 				break;
-			case TextureType.Specular:
-				texName.append("specular[").append(std::to_string(diffuseTexs)).append("]");
+			case TextureType::Specular:
+				texName.append("specular[").append(std::to_string(specularTexs)).append("]");
 				shader.SetInt(texName, i);
 				specularTexs += 1;
 				break;
 		}
 	}
-	glActivateTexture(GL_TEXTURE0);
-	glBindVertexArray(vao);
+	shader.SetInt("DIFFUSE_TEXS", diffuseTexs);
+	shader.SetInt("SPECULAR_TEXS", specularTexs);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(vao_);
 	glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
@@ -67,8 +72,8 @@ void Mesh::initializeMesh()
 	glGenBuffers(1, &ebo_);
 
 	glBindVertexArray(vao_);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+	glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(Vertex), &vertices_[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));

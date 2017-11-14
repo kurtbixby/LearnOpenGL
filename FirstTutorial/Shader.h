@@ -61,8 +61,10 @@ inline void Shader::SetBool(const std::string& name, const bool value) const
 
 inline void Shader::SetInt(const std::string& name, const int value) const
 {
-    std::cout << "Int:" << name << " " << value << std::endl;
-    glUniform1i(glGetUniformLocation(id_, name.c_str()), value);
+    std::cout << "Set Int:" << name << " " << value << std::endl;
+    int location_result = glGetUniformLocation(id_, name.c_str());
+    std::cout << name << " location: " << location_result << std::endl;
+    glUniform1i(location_result, value);
 }
 
 inline void Shader::SetFloat(const std::string& name, const float value) const
