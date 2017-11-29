@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <assimp/types.h>
+#include <filesystem/path.hpp>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -35,6 +36,11 @@ struct Texture
 	aiString path;
 };
 
+Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY);
+Texture load_texture(std::string directory, std::string filename, TextureType texType);
+unsigned int texture_from_file(const char* fileName, std::string directory);
+unsigned int load_texture(const char* texture_file, const GLenum source_format = GL_RGBA, const GLenum wrap_type = GL_REPEAT);
+
 // Keep this separate to keep Vertex as POD
 inline Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY)
 {
@@ -56,7 +62,23 @@ inline Vertex create_vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texC
 	return v;
 }
 
-inline unsigned int load_texture(const char* texture_file, const GLenum source_format = GL_RGBA, const GLenum wrap_type = GL_REPEAT)
+inline Texture load_texture(std::string directory, std::string filename, TextureType texType)
+{
+	Texture texture;
+	texture.id = texture_from_file(filename.c_str(), directory);
+	texture.type = texType;
+	texture.path = filename;
+
+	return texture;
+}
+
+inline unsigned int texture_from_file(const char* fileName, std::string directory)
+{
+	boost::filesystem::path texturePath = boost::filesystem::path(directory).append(fileName).make_preferred();
+	return load_texture(texturePath.string().c_str());
+}
+
+inline unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type)
 {
 	std::cout << "LOADING: " << texture_file << std::endl;
 	unsigned int texture;

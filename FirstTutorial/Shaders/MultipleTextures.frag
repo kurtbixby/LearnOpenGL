@@ -140,8 +140,17 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 
 void main()
 {
-	vec3 diffuseValue = vec3(texture(material.diffuse[0], TexCoords));
-	vec3 specularValue = vec3(texture(material.specular[0], TexCoords));
+	vec3 diffuseValue = vec3(0.0f);
+	if (DIFFUSE_TEXS > 0)
+	{
+		diffuseValue = vec3(texture(material.diffuse[0], TexCoords));
+	}
+
+	vec3 specularValue = vec3(0.0f);
+	if (SPECULAR_TEXS > 0)
+	{
+		specularValue = vec3(texture(material.specular[0], TexCoords));
+	}
 
 	int i = 0;
 

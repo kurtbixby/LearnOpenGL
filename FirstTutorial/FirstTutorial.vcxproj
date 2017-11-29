@@ -25,16 +25,40 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Lights.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Structs.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\awesomeface.png" />
     <Image Include="Resources\container.jpg" />
+    <Image Include="Resources\container2_diffuse.png" />
+    <Image Include="Resources\container2_specular.png" />
+    <Image Include="Resources\nanosuit\arm_dif.png" />
+    <Image Include="Resources\nanosuit\arm_showroom_ddn.png" />
+    <Image Include="Resources\nanosuit\arm_showroom_spec.png" />
+    <Image Include="Resources\nanosuit\body_dif.png" />
+    <Image Include="Resources\nanosuit\body_showroom_ddn.png" />
+    <Image Include="Resources\nanosuit\body_showroom_spec.png" />
+    <Image Include="Resources\nanosuit\glass_ddn.png" />
+    <Image Include="Resources\nanosuit\glass_dif.png" />
+    <Image Include="Resources\nanosuit\hand_dif.png" />
+    <Image Include="Resources\nanosuit\hand_showroom_ddn.png" />
+    <Image Include="Resources\nanosuit\hand_showroom_spec.png" />
+    <Image Include="Resources\nanosuit\helmet_diff.png" />
+    <Image Include="Resources\nanosuit\helmet_showroom_ddn.png" />
+    <Image Include="Resources\nanosuit\helmet_showroom_spec.png" />
+    <Image Include="Resources\nanosuit\leg_dif.png" />
+    <Image Include="Resources\nanosuit\leg_showroom_ddn.png" />
+    <Image Include="Resources\nanosuit\leg_showroom_spec.png" />
     <Image Include="Resources\wall.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="makefile" />
+    <None Include="Resources\nanosuit\nanosuit.blend" />
+    <None Include="Resources\nanosuit\nanosuit.mtl" />
     <None Include="Shaders\Ambient.frag" />
     <None Include="Shaders\BasicColor.frag" />
     <None Include="Shaders\BasicColor.vert" />
@@ -45,16 +69,27 @@
     <None Include="Shaders\ControlMix.frag" />
     <None Include="Shaders\Diffuse.frag" />
     <None Include="Shaders\Diffuse.vert" />
+    <None Include="Shaders\DiffuseMap.frag" />
+    <None Include="Shaders\DiffuseMap.vert" />
+    <None Include="Shaders\DirectionalLight.frag" />
     <None Include="Shaders\First.frag" />
     <None Include="Shaders\First.vert" />
     <None Include="Shaders\FlippedTextureMix.frag" />
     <None Include="Shaders\GroovyContainer.frag" />
+    <None Include="Shaders\InverseSpecularMap.frag" />
     <None Include="Shaders\Light.frag" />
     <None Include="Shaders\Linked.frag" />
     <None Include="Shaders\Linked.vert" />
     <None Include="Shaders\Materials.frag" />
+    <None Include="Shaders\MultipleLights.frag" />
+    <None Include="Shaders\MultipleTextures.frag" />
+    <None Include="Shaders\MultipleTextures.vert" />
+    <None Include="Shaders\PointLight.frag" />
+    <None Include="Shaders\SoftSpotLight.frag" />
     <None Include="Shaders\SpacesMatrices.vert" />
     <None Include="Shaders\Specular.frag" />
+    <None Include="Shaders\SpecularMap.frag" />
+    <None Include="Shaders\SpotLight.frag" />
     <None Include="Shaders\TextureMix.frag" />
     <None Include="Shaders\Transform.vert" />
     <None Include="Shaders\Uniform.frag" />
@@ -63,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />
+    <Text Include="Resources\nanosuit\LICENSE.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6ACAE42F-7262-4006-BC2B-DE8777D0DE74}</ProjectGuid>
@@ -123,10 +159,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_65_1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_65_1\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp.lib;opengl32.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_65_1\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

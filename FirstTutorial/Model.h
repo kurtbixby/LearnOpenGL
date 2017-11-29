@@ -16,26 +16,33 @@
 
 #include "Mesh.h"
 #include "Shader.h"
+#include <unordered_map>
 
 class Model
 {
 	public:
-		Model(std::string path)
+		//static void Init();
+
+		Model(boost::filesystem::path path)
 		{
 			loadModel(path);
 		}
 		void Draw(Shader shader);
 	private:
+		static std::unordered_map<string, Texture> loaded_textures_;
+
 		std::vector<Mesh> meshes_;
 		std::string directory_;
 
-		void loadModel(std::string path);
+		void loadModel(boost::filesystem::path path);
         void processNode(aiNode* node, const aiScene* scene);
         Mesh processMesh(aiMesh* mesh, const aiScene* scene);
         std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType texType);
 
         static unsigned int TextureFromFile(const char* fileName, std::string directory);
 };
+
+unordered_map<string, Texture> Model::loaded_textures_ = unordered_map<string, Texture>();
 
 void Model::Draw(Shader shader)
 {
@@ -45,17 +52,18 @@ void Model::Draw(Shader shader)
 	}
 }
 
-void Model::loadModel(std::string path)
+void Model::loadModel(boost::filesystem::path path)
 {
+	std::string path_string = path.string();
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(path_string, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) 
     {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         return;
     }
-    directory_ = path.substr(0, path.find_last_of('/'));
+    directory_ = path.parent_path().string();
 
     processNode(scene->mRootNode, scene);
 }
@@ -114,7 +122,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-	    std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Diffuse);
+	    vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Diffuse);
 	    textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 	    vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::Specular);
 	    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
@@ -131,13 +139,28 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
 		aiString str;
         mat->GetTexture(type, i, &str);
 
-        // Check for already loaded texture
+		boost::filesystem::path texturePath = boost::filesystem::path(directory_).append(str.C_Str()).make_preferred();
+		string pathString = texturePath.string();
 
-        Texture texture;
-        texture.id = TextureFromFile(str.C_Str(), directory_);
-        texture.type = texType;
-        texture.path = str;
-        textures.push_back(texture);
+		auto texture_iterator = loaded_textures_.find(pathString);
+		if (texture_iterator == loaded_textures_.end())
+		{
+			// Not loaded
+			std::cout << pathString << " not loaded" << std::endl;
+			Texture texture;
+			texture.id = TextureFromFile(str.C_Str(), directory_);
+			texture.type = texType;
+			texture.path = str;
+
+			loaded_textures_.emplace(pathString, texture);
+
+			textures.push_back(texture);
+		}
+		else
+		{
+			std::cout << pathString << " already loaded" << std::endl;
+			textures.push_back(texture_iterator->second);
+		}
 	}
 
 	return textures;

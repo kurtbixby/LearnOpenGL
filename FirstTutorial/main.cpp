@@ -37,6 +37,8 @@ void check_shader_program_linking(unsigned int program);
 unsigned int create_shader(GLenum shader_type, const char* source);
 // unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type = GL_REPEAT);
 
+Mesh create_box();
+
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 void send_direction_light(const Shader& shader, const Light& light, const int index);
 void send_point_light(const Shader& shader, const PointLight& pointLight, const int index);
@@ -57,6 +59,8 @@ float last_x = current_x;
 float last_y = current_y;
 
 float y_offset = 0.0f;
+
+unordered_map<string, Model> loaded_models_ = unordered_map<string, Model>();
 
 int main()
 {
@@ -154,6 +158,8 @@ int main()
 	// glm::vec3 cube_locations[cubes];
 	// generate_cube_locations(cubes, cube_locations);
 
+	//Model::Init();
+
 	// Camera initialization
 	Camera cam = Camera();
 	cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
@@ -170,7 +176,7 @@ int main()
     Light lights[MAX_DIR_LIGHTS];
     PointLight pointLights[MAX_POINT_LIGHTS];
     SpotLight spotLights[MAX_SPOT_LIGHTS];
-
+	
     // main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -185,7 +191,7 @@ int main()
         glm::vec3 camDirection = cam.GetDirection();
 
         // render section of main loop
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // state setter
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // state setter
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
 
 		glm::mat4 projection = cam.GetProjection();
@@ -196,6 +202,8 @@ int main()
 		glm::vec3 redLight(1.0f, 0.0f, 0.0f);
         glm::vec3 greenLight(0.0f, 1.0f, 0.0f);
         glm::vec3 blueLight(1.0f, 1.0f, 1.0f);
+
+		glm::vec3 whiteLight(1.0f, 1.0f, 1.0f);
         // Uncomment for changing color
 		// double time = glfwGetTime();
 		// lightColor.x = sin(time * 2.0f);
@@ -209,29 +217,32 @@ int main()
         glm::vec3 blueDiffuse = blueLight * 0.5f;
         glm::vec3 blueAmbient = blueLight * 0.2f;
 
+		glm::vec3 whiteDiffuse = whiteLight * 0.5f;
+		glm::vec3 whiteAmbient = whiteLight * 0.2f;
+
         lights[DIR_LIGHTS].direction = glm::vec3(lightDirection.x, lightDirection.y, lightDirection.z);
-        lights[DIR_LIGHTS].ambient = glm::vec3(redAmbient.x, redAmbient.y, redAmbient.z);
-        lights[DIR_LIGHTS].diffuse = glm::vec3(redDiffuse.x, redDiffuse.y, redDiffuse.z);
+        lights[DIR_LIGHTS].ambient = glm::vec3(whiteAmbient.x, whiteAmbient.y, whiteAmbient.z);
+        lights[DIR_LIGHTS].diffuse = glm::vec3(whiteDiffuse.x, whiteDiffuse.y, whiteDiffuse.z);
         lights[DIR_LIGHTS].specular = glm::vec3(1.0f);
         DIR_LIGHTS++;
 
-        // pointLights[POINT_LIGHTS].position = glm::vec3(0.0f);
-        // pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-        // pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-        // pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-        // pointLights[POINT_LIGHTS].constant = 1.0f;
-        // pointLights[POINT_LIGHTS].linear = 0.09f;
-        // pointLights[POINT_LIGHTS].quadratic = 0.032f;
-        // POINT_LIGHTS++;
+        pointLights[POINT_LIGHTS].position = glm::vec3(0.0f);
+        pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
+        pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
+        pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
+        pointLights[POINT_LIGHTS].constant = 1.0f;
+        pointLights[POINT_LIGHTS].linear = 0.09f;
+        pointLights[POINT_LIGHTS].quadratic = 0.032f;
+        POINT_LIGHTS++;
 
-        // pointLights[POINT_LIGHTS].position = glm::vec3(-5.0f);
-        // pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-        // pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-        // pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-        // pointLights[POINT_LIGHTS].constant = 1.0f;
-        // pointLights[POINT_LIGHTS].linear = 0.09f;
-        // pointLights[POINT_LIGHTS].quadratic = 0.032f;
-        // POINT_LIGHTS++;
+        pointLights[POINT_LIGHTS].position = glm::vec3(-5.0f);
+        pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
+        pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
+        pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
+        pointLights[POINT_LIGHTS].constant = 1.0f;
+        pointLights[POINT_LIGHTS].linear = 0.09f;
+        pointLights[POINT_LIGHTS].quadratic = 0.032f;
+        POINT_LIGHTS++;
 
         spotLights[SPOT_LIGHTS].position = glm::vec3(camPosition.x, camPosition.y, camPosition.z);
         spotLights[SPOT_LIGHTS].direction = glm::vec3(camDirection.x, camDirection.y, camDirection.z);
@@ -245,7 +256,7 @@ int main()
         standard_shader.Use();
         standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
         standard_shader.SetMatrix4fv("view", glm::value_ptr(view));
-		standard_shader.SetVec3("viewPos", camPosition.x, camPosition.y, camPosition.z);
+		//standard_shader.SetVec3("viewPos", camPosition.x, camPosition.y, camPosition.z);
         standard_shader.SetInt("DIR_LIGHTS", std::min(MAX_DIR_LIGHTS, DIR_LIGHTS));
         standard_shader.SetInt("POINT_LIGHTS", std::min(MAX_POINT_LIGHTS, POINT_LIGHTS));
         standard_shader.SetInt("SPOT_LIGHTS", std::min(MAX_SPOT_LIGHTS, SPOT_LIGHTS));
@@ -267,10 +278,31 @@ int main()
             SpotLight* light = &spotLights[i];
             send_spot_light(standard_shader, *light, i);
         }
+		glm::mat4 model(1.0f);
+		standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
-        Model crysis = Model("Resources/nanosuit/nanosuit.obj");
-        crysis.Draw(standard_shader);
+		boost::filesystem::path model_path = boost::filesystem::path("Resources/nanosuit/nanosuit.obj").make_preferred();
+		string model_path_string = model_path.string();
 
+		auto models_iterator = loaded_models_.find(model_path_string);
+		if (models_iterator != loaded_models_.end())
+		{
+			cout << model_path_string << " already loaded" << endl;
+			models_iterator->second.Draw(standard_shader);
+		}
+		else
+		{
+			cout << model_path_string << " not loaded" << endl;
+			Model model = Model(model_path);
+			loaded_models_.emplace(model_path_string, model);
+			model.Draw(standard_shader);
+		}
+
+		/*Model crysis = Model(model_path);
+        crysis.Draw(standard_shader);*/
+
+		/*Mesh box = create_box();
+		box.Draw(standard_shader);*/
 		// Texture area
 
 		// glActiveTexture(GL_TEXTURE0);
@@ -526,4 +558,89 @@ void send_spot_light(const Shader& shader, const SpotLight& spotLight, const int
     shader.SetVec3((lightName + std::string(".specular")).c_str(), spotLight.specular.x, spotLight.specular.y, spotLight.specular.z);
     shader.SetFloat((lightName + std::string(".innerCutoff")).c_str(), spotLight.innerCutoff);
     shader.SetFloat((lightName + std::string(".outerCutoff")).c_str(), spotLight.outerCutoff);
+}
+
+Mesh create_box()
+{
+	float vertices[] = {
+		// positions          // normals           // texture coords
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+	};
+
+	int length = sizeof(vertices) / sizeof(vertices[0]);
+
+	std::vector<Vertex> vertexes;
+
+	for (int i = 0; i < length; i += 8)
+	{
+		glm::vec3 pos = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+		glm::vec3 norm = glm::vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+		glm::vec2 coords = glm::vec2(vertices[i + 6], vertices[i + 7]);
+
+		vertexes.push_back(create_vertex(pos, norm, coords));
+	}
+
+	std::vector<unsigned int> indices = {
+		0, 1, 2,
+		3, 4, 5,
+		6, 7, 8,
+		9, 10, 11,
+		12, 13, 14,
+		15, 16, 17,
+		18, 19, 20,
+		21, 22, 23,
+		24, 25, 26,
+		27, 28, 29,
+		30, 31, 32,
+		33, 34, 35
+	};
+
+	std::vector<Texture> textures;
+	Texture diffTex = load_texture("Resources", "container2_diffuse.png", TextureType::Diffuse);
+	Texture specTex = load_texture("Resources", "container2_specular.png", TextureType::Specular);
+
+	textures.push_back(diffTex);
+	textures.push_back(specTex);
+
+	return Mesh(vertexes, indices, textures);
 }
