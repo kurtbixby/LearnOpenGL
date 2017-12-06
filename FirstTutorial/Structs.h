@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <assimp/types.h>
-#include <filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
