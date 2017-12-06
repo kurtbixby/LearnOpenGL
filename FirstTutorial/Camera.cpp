@@ -188,9 +188,8 @@ void Camera::LookDown()
 
 void Camera::UpdateProjection()
 {
-	projection_ = glm::perspective(fov_, aspectRatio_, 0.1f, 100.0f);
+	projection_ = glm::perspective(fov_, aspectRatio_, 1.0f, 100.0f);
 }
-
 
 void Camera::UpdateDirection()
 {

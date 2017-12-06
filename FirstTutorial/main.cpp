@@ -38,6 +38,8 @@ unsigned int create_shader(GLenum shader_type, const char* source);
 // unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type = GL_REPEAT);
 
 Mesh create_box();
+Mesh create_plane();
+std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transform);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 void send_direction_light(const Shader& shader, const Light& light, const int index);
@@ -72,7 +74,7 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/MultipleTextures.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Depth.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
     // vertex data
@@ -192,6 +194,7 @@ int main()
 
         // render section of main loop
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // state setter
+        // glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
 
 		glm::mat4 projection = cam.GetProjection();
@@ -278,61 +281,43 @@ int main()
             SpotLight* light = &spotLights[i];
             send_spot_light(standard_shader, *light, i);
         }
-		glm::mat4 model(1.0f);
-		standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
-		boost::filesystem::path model_path = boost::filesystem::path("Resources/nanosuit/nanosuit.obj").make_preferred();
-		string model_path_string = model_path.string();
+        std::vector<Mesh> meshes = std::vector<Mesh>();
+        meshes.push_back(create_box());
+        meshes.push_back(create_plane());
 
-		auto models_iterator = loaded_models_.find(model_path_string);
-		if (models_iterator != loaded_models_.end())
-		{
-			cout << model_path_string << " already loaded" << endl;
-			models_iterator->second.Draw(standard_shader);
-		}
-		else
-		{
-			cout << model_path_string << " not loaded" << endl;
-			Model model = Model(model_path);
-			loaded_models_.emplace(model_path_string, model);
-			model.Draw(standard_shader);
-		}
+        std::vector<std::pair<int, glm::vec3>> objects = std::vector<std::pair<int, glm::vec3>>();
+        objects.push_back(create_object(0, glm::vec3(-1.0f, 0.0f, -1.0f)));
+        objects.push_back(create_object(0, glm::vec3(2.0f, 0.0f, 0.0f)));
+        objects.push_back(create_object(1, glm::vec3(0.0f)));
 
-		/*Model crysis = Model(model_path);
-        crysis.Draw(standard_shader);*/
+        for(int i = 0; i < objects.size(); i++)
+        {
+            Mesh mesh = meshes[objects[i].first];
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), objects[i].second);
+            standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
+            mesh.Draw(standard_shader);
+        }
 
-		/*Mesh box = create_box();
-		box.Draw(standard_shader);*/
-		// Texture area
+        // Crysis path
+		// standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
 
-		// glActiveTexture(GL_TEXTURE0);
-		// glBindTexture(GL_TEXTURE_2D, diffuse_texture);
-		// standard_shader.SetInt("material.diffuse", 0);
-		// glActiveTexture(GL_TEXTURE1);
-		// glBindTexture(GL_TEXTURE_2D, specular_texture);
-		// standard_shader.SetInt("material.specular", 1);
-  //       standard_shader.SetFloat("material.shininess", 32.0f);
+		// boost::filesystem::path model_path = boost::filesystem::path("Resources/nanosuit/nanosuit.obj").make_preferred();
+		// string model_path_string = model_path.string();
 
-		// glBindVertexArray(vao);
-		// for (int i = 0; i < cubes; i++)
+		// auto models_iterator = loaded_models_.find(model_path_string);
+		// if (models_iterator != loaded_models_.end())
 		// {
-		// 	glm::mat4 model(1.0f);
-
-		// 	model = glm::translate(model, cube_locations[i]);
-		// 	//model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(50.0f) + i, glm::vec3(0.5f, 1.0f, 0.0f));
-		// 	standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
-
-		// 	// Do the transpose on main CPU rather than GPU, expensive operation
-		// 	// Everything is done in view space
-		// 	glm::mat4 normal(1.0f);
-		// 	normal = glm::transpose(glm::inverse(view * model));
-		// 	standard_shader.SetMatrix4fv("normal", glm::value_ptr(normal));
-
-		// 	glDrawArrays(GL_TRIANGLES, 0, 36);
+		// 	cout << model_path_string << " already loaded" << endl;
+		// 	models_iterator->second.Draw(standard_shader);
 		// }
-
-		// glBindVertexArray(lightVao);
-		// glDrawArrays(GL_TRIANGLES, 0, 36);
+		// else
+		// {
+		// 	cout << model_path_string << " not loaded" << endl;
+		// 	Model model = Model(model_path);
+		// 	loaded_models_.emplace(model_path_string, model);
+		// 	model.Draw(standard_shader);
+		// }
 
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
@@ -379,6 +364,7 @@ int create_window(GLFWwindow** foo)
 	}
 
 	glEnable(GL_DEPTH_TEST);
+    // glDepthFunc(GL_GREATER);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	*foo = window;
@@ -643,4 +629,48 @@ Mesh create_box()
 	textures.push_back(specTex);
 
 	return Mesh(vertexes, indices, textures);
+}
+
+Mesh create_plane()
+{
+    float vertices[] = {
+        // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+         5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
+        -5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,
+
+         5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,
+         5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 2.0f                                
+    };
+
+    int length = sizeof(vertices) / sizeof(vertices[0]);
+
+    std::vector<Vertex> vertexes;
+
+    for (int i = 0; i < length; i += 8)
+    {
+        glm::vec3 pos = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+        glm::vec3 norm = glm::vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+        glm::vec2 coords = glm::vec2(vertices[i + 6], vertices[i + 7]);
+
+        vertexes.push_back(create_vertex(pos, norm, coords));
+    }
+
+    std::vector<unsigned int> indices = {
+        0, 1, 2,
+        3, 4, 5
+    };
+
+    std::vector<Texture> textures;
+    Texture diffTex = load_texture("Resources", "awesomeface.png", TextureType::Diffuse);
+
+    textures.push_back(diffTex);
+
+    return Mesh(vertexes, indices, textures);
+}
+
+std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transform)
+{
+    return std::pair<int, glm::vec3>(mesh, transform);
 }
