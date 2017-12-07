@@ -74,8 +74,10 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Depth.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/MultipleTextures.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+    boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
+    Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
 
     // vertex data
  //    Vertex vertices[] = {
@@ -286,18 +288,69 @@ int main()
         meshes.push_back(create_box());
         meshes.push_back(create_plane());
 
-        std::vector<std::pair<int, glm::vec3>> objects = std::vector<std::pair<int, glm::vec3>>();
-        objects.push_back(create_object(0, glm::vec3(-1.0f, 0.0f, -1.0f)));
-        objects.push_back(create_object(0, glm::vec3(2.0f, 0.0f, 0.0f)));
-        objects.push_back(create_object(1, glm::vec3(0.0f)));
+        std::vector<Object> objects = std::vector<Object>();
+        objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false));
+        objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, true));
+        objects.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, true));
+
+        std::vector<Object> stenciled = std::vector<Object>();
 
         for(int i = 0; i < objects.size(); i++)
         {
-            Mesh mesh = meshes[objects[i].first];
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), objects[i].second);
+            Object& object = objects[i];
+            if (object.Outlined_)
+            {
+                stenciled.push_back(object);
+                continue;
+            }
+            else
+            {
+                Mesh mesh = meshes[object.Mesh_];
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
+                model = glm::scale(model, object.Scale_);
+                standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
+                mesh.Draw(standard_shader);
+            }
+        }
+
+        glEnable(GL_STENCIL_TEST);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glClear(GL_STENCIL_BUFFER_BIT);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+        // First pass
+        for (int i = 0; i < stenciled.size(); i++)
+        {
+            Object& object = stenciled[i];
+
+            Mesh mesh = meshes[object.Mesh_];
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
+            model = glm::scale(model, object.Scale_);
             standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
             mesh.Draw(standard_shader);
         }
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+        // Outline pass
+        outline_shader.Use();
+        outline_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
+        outline_shader.SetMatrix4fv("view", glm::value_ptr(view));
+        for (int i = 0; i < stenciled.size(); i++)
+        {
+            Object& object = stenciled[i];
+
+            Mesh mesh = meshes[object.Mesh_];
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
+            model = glm::scale(model, object.Scale_ * 1.1f);
+            outline_shader.SetMatrix4fv("model", glm::value_ptr(model));
+            mesh.Draw(outline_shader);
+        }
+        glEnable(GL_DEPTH_TEST);
+        glStencilMask(0xFF);
+        glDisable(GL_STENCIL_TEST);
 
         // Crysis path
 		// standard_shader.SetMatrix4fv("model", glm::value_ptr(model));

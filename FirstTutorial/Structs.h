@@ -36,6 +36,24 @@ struct Texture
 	aiString path;
 };
 
+class Object
+{
+	public:
+		glm::vec3 Transform_;
+		int Mesh_;
+		glm::vec3 Scale_;
+		bool Outlined_;
+
+		Object() : Object(glm::vec3(1.0f), -1, 1.0f, false) {};
+		Object(const glm::vec3 transform, const int mesh, const float scale, const bool outline)
+		{
+			Transform_ = transform;
+			Mesh_ = mesh;
+			Scale_ = glm::vec3(scale);
+			Outlined_ = outline;
+		}
+};
+
 Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY);
 Texture load_texture(std::string directory, std::string filename, TextureType texType);
 unsigned int texture_from_file(const char* fileName, std::string directory);
