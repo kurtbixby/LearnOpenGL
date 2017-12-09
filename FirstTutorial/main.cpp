@@ -319,6 +319,7 @@ int main()
 
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0xFF);
+        
         // First pass
         for (int i = 0; i < stenciled.size(); i++)
         {

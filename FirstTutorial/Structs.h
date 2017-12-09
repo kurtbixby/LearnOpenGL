@@ -126,7 +126,7 @@ inline unsigned int load_texture(const char* texture_file, const GLenum source_f
 		* 8) Datatype of source texture
 		* 9) Actual texture data
 		*/
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, source_format, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, source_format, width, height, 0, source_format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
