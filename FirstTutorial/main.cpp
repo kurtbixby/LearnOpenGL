@@ -12,6 +12,7 @@
 #include "Lights.h"
 #include "Structs.h"
 #include "Model.h"
+#include "Object.h"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -39,6 +40,7 @@ unsigned int create_shader(GLenum shader_type, const char* source);
 
 Mesh create_box();
 Mesh create_plane();
+Mesh create_quad();
 std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transform);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
@@ -287,11 +289,18 @@ int main()
         std::vector<Mesh> meshes = std::vector<Mesh>();
         meshes.push_back(create_box());
         meshes.push_back(create_plane());
+        meshes.push_back(create_quad());
 
+        // sort by Z position relative to camera in direction of "front", back to front
         std::vector<Object> objects = std::vector<Object>();
-        objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false));
+        objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
         objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, true));
         objects.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, true));
+        objects.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true));
+        objects.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true));
+        objects.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true));
+        objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true));
+        objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true));
 
         std::vector<Object> stenciled = std::vector<Object>();
 
@@ -309,7 +318,7 @@ int main()
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
                 model = glm::scale(model, object.Scale_);
                 standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
-                mesh.Draw(standard_shader);
+                object.Draw(standard_shader, mesh);
             }
         }
 
@@ -319,6 +328,7 @@ int main()
 
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0xFF);
+        glDisable(GL_DEPTH_TEST);
         
         // First pass
         for (int i = 0; i < stenciled.size(); i++)
@@ -334,7 +344,6 @@ int main()
 
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
-        glDisable(GL_DEPTH_TEST);
         // Outline pass
         outline_shader.Use();
         outline_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
@@ -418,6 +427,7 @@ int create_window(GLFWwindow** foo)
 	}
 
 	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     // glDepthFunc(GL_GREATER);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -604,12 +614,12 @@ Mesh create_box()
 {
 	float vertices[] = {
 		// positions          // normals           // texture coords
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
 		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
 		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
 		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 		0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
@@ -625,12 +635,12 @@ Mesh create_box()
 		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
 		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
 
 		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
@@ -639,12 +649,12 @@ Mesh create_box()
 		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
 		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f
 	};
 
 	int length = sizeof(vertices) / sizeof(vertices[0]);
@@ -689,13 +699,13 @@ Mesh create_plane()
 {
     float vertices[] = {
         // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
-         5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
-        -5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
         -5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,
+        -5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+         5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
 
          5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,
-         5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 2.0f                                
+         5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 2.0f,
+        -5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f                            
     };
 
     int length = sizeof(vertices) / sizeof(vertices[0]);
@@ -722,6 +732,30 @@ Mesh create_plane()
     textures.push_back(diffTex);
 
     return Mesh(vertexes, indices, textures);
+}
+
+Mesh create_quad()
+{
+    std::vector<Vertex> vertices = {
+        create_vertex( -0.5f, -0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f ),
+        create_vertex(  0.5f, -0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
+        create_vertex(  0.5f,  0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f ),
+        create_vertex(  0.5f,  0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f ),
+        create_vertex( -0.5f,  0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
+        create_vertex( -0.5f, -0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f )
+    };
+
+    std::vector<unsigned int> indices = {
+        0, 1, 2,
+        3, 4, 5
+    };
+
+    std::vector<Texture> textures;
+    Texture diffTex = load_texture("Resources", "grass.png", TextureType::Diffuse);
+
+    textures.push_back(diffTex);
+
+    return Mesh(vertices, indices, textures);
 }
 
 std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transform)

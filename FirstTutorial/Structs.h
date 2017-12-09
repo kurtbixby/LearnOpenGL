@@ -13,6 +13,8 @@
 #include "stb_image.h"
 #endif
 
+#include "Shader.h"
+
 #define MAX_DIFFUSE_TEX 3
 #define MAX_SPECULAR_TEX 3
 
@@ -34,24 +36,6 @@ struct Texture
 	unsigned int id;
 	TextureType type;
 	aiString path;
-};
-
-class Object
-{
-	public:
-		glm::vec3 Transform_;
-		int Mesh_;
-		glm::vec3 Scale_;
-		bool Outlined_;
-
-		Object() : Object(glm::vec3(1.0f), -1, 1.0f, false) {};
-		Object(const glm::vec3 transform, const int mesh, const float scale, const bool outline)
-		{
-			Transform_ = transform;
-			Mesh_ = mesh;
-			Scale_ = glm::vec3(scale);
-			Outlined_ = outline;
-		}
 };
 
 Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY);
