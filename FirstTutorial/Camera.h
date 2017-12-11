@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <vector>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Object.h"
@@ -38,7 +40,7 @@ public:
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetDirection() const;
 
-	bool SortObject(const Object& objA, const Object& objB);
+	bool SortObjects(std::vector<Object>& objs);
 
 private:
 	glm::mat4 projection_;
@@ -70,6 +72,7 @@ private:
 	void RotateLeft();
 	void LookUp();
 	void LookDown();
+	bool ObjectComparison(const Object& objA, const Object& objB);
 };
 
 #endif

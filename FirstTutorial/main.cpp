@@ -72,95 +72,10 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Transparency.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
     boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
     Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
-
-    // vertex data
- //    Vertex vertices[] = {
- //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
- //        create_vertex(  0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f ),
- //        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
- //        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
- //        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f ),
- //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
-
- //        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f ),
- //        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f ),
- //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f ),
- //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f ),
- //        create_vertex( -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f ),
- //        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f ),
-
- //        create_vertex( -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
- //        create_vertex( -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f ),
- //        create_vertex( -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
- //        create_vertex( -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
- //        create_vertex( -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f ),
- //        create_vertex( -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
-
- //        create_vertex(  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
- //        create_vertex(  0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f ),
- //        create_vertex(  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
- //        create_vertex(  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f ),
- //        create_vertex(  0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f ),
- //        create_vertex(  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f ),
-
- //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f ),
- //        create_vertex(  0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f ),
- //        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f ),
- //        create_vertex(  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f ),
- //        create_vertex( -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f ),
- //        create_vertex( -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f ),
-
- //        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f ),
- //        create_vertex(  0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f ),
- //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f ),
- //        create_vertex(  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f ),
- //        create_vertex( -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f ),
- //        create_vertex( -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f ),
- //    };
-
- //    // create a Vertex Buffer Object to hold the vertices
- //    // the ID of the VBO is 1
- //    unsigned int vbo;
- //    glGenBuffers(1, &vbo);
-
-	// // Create Vertex Array and related buffers
-	// unsigned int vao;
-	// glGenVertexArrays(1, &vao);
- //    glBindVertexArray(vao);
- //    glBindBuffer(GL_ARRAY_BUFFER, vbo); // sets VBO to the current GL buffer array
- //    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends data from to the buffer
-	
-	// // Position
- //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
- //    glEnableVertexAttribArray(0);
-	// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Normal)));
-	// glEnableVertexAttribArray(1);
- //    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, TexCoords)));
- //    glEnableVertexAttribArray(2);
-
-	// unsigned int lightVao;
-	// glGenVertexArrays(1, &lightVao);
-	// glBindVertexArray(lightVao);
-	// glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
-	// glEnableVertexAttribArray(0);
-
-	// // Texture Loading
-	// boost::filesystem::path diffuse_texture_path = boost::filesystem::path("resources/container2_diffuse.png").make_preferred();
-	// unsigned int diffuse_texture = load_texture(diffuse_texture_path.string().c_str(), GL_RGBA);
- //    boost::filesystem::path specular_texture_path = boost::filesystem::path("resources/container2_specular.png").make_preferred();
- //    unsigned int specular_texture = load_texture(specular_texture_path.string().c_str(), GL_RGBA);
-
-	// // Cube generation
-	// const unsigned int cubes = 10;
-	// glm::vec3 cube_locations[cubes];
-	// generate_cube_locations(cubes, cube_locations);
-
-	//Model::Init();
 
 	// Camera initialization
 	Camera cam = Camera();
@@ -289,13 +204,13 @@ int main()
 
         std::vector<Object> objects = std::vector<Object>();
         objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
-        objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, true));
-        objects.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, true));
-        objects.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true));
-        objects.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true));
-        objects.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true));
-        objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true));
-        objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true));
+        objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, false));
+        objects.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, false));
+        objects.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true, true));
 
         // For partially transparent
         // sort by Z position relative to camera in direction of "front", back to front
@@ -303,14 +218,20 @@ int main()
 
         // Implementation: subtract camera position and sort by dot product of resultant and cam.direction
         // Optimization: sort only during movement
+        cam.SortObjects(objects);
 
-
+        std::vector<Object> transparent = std::vector<Object>();
         std::vector<Object> stenciled = std::vector<Object>();
 
         for(int i = 0; i < objects.size(); i++)
         {
             Object& object = objects[i];
-            if (object.Outlined_)
+            if (object.IsTransparent_)
+            {
+                transparent.push_back(object);
+                continue;
+            }
+            else if (object.Outlined_)
             {
                 stenciled.push_back(object);
                 continue;
@@ -323,6 +244,17 @@ int main()
                 standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
                 object.Draw(standard_shader, mesh);
             }
+        }
+
+        for (int i = 0; i < transparent.size(); i++)
+        {
+            Object& object = transparent[i];
+
+            Mesh mesh = meshes[object.Mesh_];
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
+            model = glm::scale(model, object.Scale_);
+            standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
+            object.Draw(standard_shader, mesh);
         }
 
         glEnable(GL_STENCIL_TEST);
@@ -430,6 +362,9 @@ int create_window(GLFWwindow** foo)
 
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
     // glDepthFunc(GL_GREATER);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -753,7 +688,7 @@ Mesh create_quad()
     };
 
     std::vector<Texture> textures;
-    Texture diffTex = load_texture("Resources", "grass.png", TextureType::Diffuse);
+    Texture diffTex = load_texture("Resources", "blending_transparent_window.png", TextureType::Diffuse);
 
     textures.push_back(diffTex);
 

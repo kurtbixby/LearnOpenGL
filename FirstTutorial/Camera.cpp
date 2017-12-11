@@ -2,12 +2,15 @@
 #include <cmath>
 
 #include "Camera.h"
-#include "Object.h"
+
 #include <algorithm>
 #include <iostream>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "Object.h"
 
 const float MAX_PITCH = M_PI_2 - .001;
 const float MIN_PITCH = -1 * MAX_PITCH;
@@ -204,7 +207,19 @@ void Camera::UpdateDirection()
 	right_ = glm::normalize(glm::cross(direction_, up_));
 }
 
-bool Camera::SortObject(const Object& objA, const Object& objB)
+bool Camera::SortObjects(std::vector<Object>& objs)
+{
+	// Sort requires a static, 2 argument function
+	// Lambdas are static, but this one captures the proper "this" variable
+	// Member functions are called used an implicit "this"
+	std::sort(objs.begin(), objs.end(), [this](const Object& a, const Object& b)
+		{
+			return ObjectComparison(a, b);
+		}
+	);
+}
+
+bool Camera::ObjectComparison(const Object& objA, const Object& objB)
 {
 	glm::vec3 aRelative = objA.Transform_ - position_;
 	glm::vec3 bRelative = objB.Transform_ - position_;
