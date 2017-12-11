@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "Camera.h"
+#include "Object.h"
 #include <algorithm>
 #include <iostream>
 
@@ -201,4 +202,15 @@ void Camera::UpdateDirection()
 
 	direction_ = glm::normalize(direction_);
 	right_ = glm::normalize(glm::cross(direction_, up_));
+}
+
+bool Camera::SortObject(const Object& objA, const Object& objB)
+{
+	glm::vec3 aRelative = objA.Transform_ - position_;
+	glm::vec3 bRelative = objB.Transform_ - position_;
+
+	float aDot = glm::dot(aRelative, direction_);
+	float bDot = glm::dot(bRelative, direction_);
+
+	return aDot > bDot;
 }

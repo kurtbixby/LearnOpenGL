@@ -12,12 +12,8 @@
 #include "Lights.h"
 #include "Structs.h"
 #include "Model.h"
+#include "Mesh.h"
 #include "Object.h"
-
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#endif
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -301,8 +297,11 @@ int main()
         objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true));
         objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true));
 
+        // For partially transparent
         // sort by Z position relative to camera in direction of "front", back to front
         // project object position onto infinite "front" vector
+
+        // Implementation: subtract camera position and sort by dot product of resultant and cam.direction
         // Optimization: sort only during movement
 
 

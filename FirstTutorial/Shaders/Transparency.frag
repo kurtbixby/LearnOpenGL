@@ -7,6 +7,8 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 1
 
+#define DISCARD_THRESHOLD 0.01f
+
 struct Material {
 	sampler2D diffuse[MAX_DIFFUSE_TEXS];
 	sampler2D specular[MAX_SPECULAR_TEXS];
@@ -144,7 +146,7 @@ void main()
 	if (DIFFUSE_TEXS > 0)
 	{
 		rawDiffuseValue = texture(material.diffuse[0], TexCoords);
-		if (rawDiffuseValue.a < 0.1)
+		if (rawDiffuseValue.a < DISCARD_THRESHOLD)
 		{
 			discard;
 		}
@@ -154,7 +156,7 @@ void main()
 	if (SPECULAR_TEXS > 0)
 	{
 		rawSpecularValue = texture(material.specular[0], TexCoords);
-		if (rawSpecularValue.a < 0.1)
+		if (rawSpecularValue.a < DISCARD_THRESHOLD)
 		{
 			discard;
 		}

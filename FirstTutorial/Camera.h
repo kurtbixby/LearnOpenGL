@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Object.h"
 
 struct CameraInput
 {
@@ -36,6 +37,8 @@ public:
 	glm::mat4 MakeViewMat() const;
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetDirection() const;
+
+	bool SortObject(const Object& objA, const Object& objB);
 
 private:
 	glm::mat4 projection_;
