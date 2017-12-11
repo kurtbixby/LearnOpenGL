@@ -76,7 +76,7 @@ int main()
 	}
 
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/MultipleTextures.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Transparency.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
     boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
     Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
@@ -291,7 +291,6 @@ int main()
         meshes.push_back(create_plane());
         meshes.push_back(create_quad());
 
-        // sort by Z position relative to camera in direction of "front", back to front
         std::vector<Object> objects = std::vector<Object>();
         objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
         objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, true));
@@ -301,6 +300,11 @@ int main()
         objects.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true));
         objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true));
         objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true));
+
+        // sort by Z position relative to camera in direction of "front", back to front
+        // project object position onto infinite "front" vector
+        // Optimization: sort only during movement
+
 
         std::vector<Object> stenciled = std::vector<Object>();
 
@@ -325,10 +329,8 @@ int main()
         glEnable(GL_STENCIL_TEST);
         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glClear(GL_STENCIL_BUFFER_BIT);
-
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0xFF);
-        glDisable(GL_DEPTH_TEST);
         
         // First pass
         for (int i = 0; i < stenciled.size(); i++)
@@ -342,8 +344,10 @@ int main()
             mesh.Draw(standard_shader);
         }
 
+        glClear(GL_DEPTH_BUFFER_BIT);
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
+
         // Outline pass
         outline_shader.Use();
         outline_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
@@ -358,7 +362,6 @@ int main()
             outline_shader.SetMatrix4fv("model", glm::value_ptr(model));
             mesh.Draw(outline_shader);
         }
-        glEnable(GL_DEPTH_TEST);
         glStencilMask(0xFF);
         glDisable(GL_STENCIL_TEST);
 
