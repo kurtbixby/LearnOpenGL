@@ -1,6 +1,3 @@
-#ifndef SHADER_CPP
-#define SHADER_CPP
-
 #include "Shader.h"
 
 #include <glad/glad.h>
@@ -78,5 +75,3 @@ unsigned int Shader::CompileShader(const GLchar* shader_path, const GLenum shade
 
     return shader_id;
 }
-
-#endif

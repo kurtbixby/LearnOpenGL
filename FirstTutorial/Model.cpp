@@ -1,6 +1,3 @@
-#ifndef MODEL_CPP
-#define MODEL_CPP
-
 #include "Model.h"
 
 #include <string>
@@ -150,5 +147,3 @@ unsigned int Model::TextureFromFile(const char* fileName, std::string directory)
 	boost::filesystem::path texturePath = boost::filesystem::path(directory).append(fileName).make_preferred();
 	return load_texture(texturePath.string().c_str());
 }
-
-#endif

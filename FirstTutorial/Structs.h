@@ -31,6 +31,27 @@ struct Texture
 	aiString path;
 };
 
+enum class FBAttachment
+{
+	Color,
+	// Depth,
+	// Stencil,
+	DepthStencil
+};
+
+enum class RenderTargetType
+{
+	None,
+	Texture,
+	Renderbuffer
+};
+
+struct RenderTarget
+{
+	unsigned int TargetName;
+	RenderTargetType TargetType;
+};
+
 Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY);
 Vertex create_vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texCoords);
 Texture load_texture(std::string directory, std::string filename, TextureType texType);

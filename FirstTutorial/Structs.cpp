@@ -1,6 +1,3 @@
-#ifndef STRUCTS_CPP
-#define STRUCTS_CPP
-
 #include "Structs.h"
 
 #include <glad/glad.h>
@@ -52,5 +49,3 @@ unsigned int load_texture(const char* texture_file, const GLenum source_format, 
 
 	return texture;
 }
-
-#endif

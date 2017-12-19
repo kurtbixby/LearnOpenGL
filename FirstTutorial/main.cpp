@@ -14,6 +14,7 @@
 #include "Model.h"
 #include "Mesh.h"
 #include "Object.h"
+#include "Framebuffer.h"
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -32,7 +33,6 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void check_shader_compilation(unsigned int shader);
 void check_shader_program_linking(unsigned int program);
 unsigned int create_shader(GLenum shader_type, const char* source);
-// unsigned int load_texture(const char* texture_file, const GLenum source_format, const GLenum wrap_type = GL_REPEAT);
 
 Mesh create_box();
 Mesh create_plane();
@@ -97,12 +97,12 @@ int main()
     // main loop
     while (!glfwWindowShouldClose(window))
     {
+        // process any input
+        process_input(window, cam);
+
         int DIR_LIGHTS = 0;
         int POINT_LIGHTS = 0;
         int SPOT_LIGHTS = 0;
-
-        // process any input
-        process_input(window, cam);
 
 		glm::vec3 camPosition = cam.GetPosition();
         glm::vec3 camDirection = cam.GetDirection();

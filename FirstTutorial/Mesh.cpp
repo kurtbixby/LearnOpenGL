@@ -1,6 +1,3 @@
-#ifndef MESH_CPP
-#define MESH_CPP
-
 #include "Mesh.h"
 
 #include <vector>
@@ -74,5 +71,3 @@ void Mesh::initializeMesh()
 
     glBindVertexArray(0);
 }
-
-#endif

@@ -6,7 +6,7 @@ LDLIBS = -lglfw -lboost_filesystem -lboost_system -lassimp
 CFLAGS = 
 CXXFLAGS = -std=c++11
 CPPFLAGS = -Wall -c -I$(IDIR)
-OBJ = main.o glad.o Camera.o Structs.o Mesh.o Shader.o Model.o
+OBJ = main.o glad.o Camera.o Structs.o Mesh.o Shader.o Model.o Framebuffer.o
 EXECUTABLE = gltutorial
 FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 
@@ -35,6 +35,9 @@ Shader.o: Shader.cpp Shader.h
 
 Model.o: Model.cpp Model.h Mesh.h Shader.h Structs.h
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) Model.cpp
+
+Framebuffer.o: Framebuffer.cpp Framebuffer.h Structs.h
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) Framebuffer.cpp
 
 clean:
 	$(RM) *.o $(EXECUTABLE)
