@@ -40,4 +40,27 @@ struct SpotLight {
 	float outerCutoff;
 };
 
+struct ColorConstants
+{
+	inline static glm::vec3 RedLight()
+	{
+		return glm::vec3(1.0f, 0.0f, 0.0f);
+	}
+
+	inline static glm::vec3 GreenLight()
+	{
+		return glm::vec3(0.0f, 1.0f, 0.0f);
+	}
+
+	inline static glm::vec3 BlueLight()
+	{
+		return glm::vec3(0.0f, 0.0f, 1.0f);
+	}
+
+	inline static glm::vec3 WhiteLight()
+	{
+		return glm::vec3(1.0f, 1.0f, 1.0f);
+	}
+};
+
 #endif

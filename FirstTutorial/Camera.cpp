@@ -3,7 +3,6 @@
 
 #include "Camera.h"
 
-#include <algorithm>
 #include <iostream>
 #include <vector>
 
@@ -205,27 +204,4 @@ void Camera::UpdateDirection()
 
 	direction_ = glm::normalize(direction_);
 	right_ = glm::normalize(glm::cross(direction_, up_));
-}
-
-bool Camera::SortObjects(std::vector<Object>& objs)
-{
-	// Sort requires a static, 2 argument function
-	// Lambdas are static, but this one captures the proper "this" variable
-	// Member functions are called used an implicit "this"
-	std::sort(objs.begin(), objs.end(), [this](const Object& a, const Object& b)
-		{
-			return ObjectComparison(a, b);
-		}
-	);
-}
-
-bool Camera::ObjectComparison(const Object& objA, const Object& objB)
-{
-	glm::vec3 aRelative = objA.Transform_ - position_;
-	glm::vec3 bRelative = objB.Transform_ - position_;
-
-	float aDot = glm::dot(aRelative, direction_);
-	float bDot = glm::dot(bRelative, direction_);
-
-	return aDot > bDot;
 }

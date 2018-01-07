@@ -7,14 +7,16 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "Shader.h"
 #include "Camera.h"
-#include "Lights.h"
-#include "Structs.h"
-#include "Model.h"
-#include "Mesh.h"
-#include "Object.h"
 #include "Framebuffer.h"
+#include "Lights.h"
+#include "Mesh.h"
+#include "Model.h"
+#include "Object.h"
+#include "Scene.h"
+#include "SceneGraph.h"
+#include "Shader.h"
+#include "Structs.h"
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -26,13 +28,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 int create_window(GLFWwindow** foo);
-void process_input(GLFWwindow* window, Camera& cam);
+Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void check_shader_compilation(unsigned int shader);
 void check_shader_program_linking(unsigned int program);
-unsigned int create_shader(GLenum shader_type, const char* source);
 
 Mesh create_box();
 Mesh create_plane();
@@ -40,9 +41,7 @@ Mesh create_quad();
 std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transform);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
-void send_direction_light(const Shader& shader, const Light& light, const int index);
-void send_point_light(const Shader& shader, const PointLight& pointLight, const int index);
-void send_spot_light(const Shader& shader, const SpotLight& spotLight, const int index);
+Scene load_scene();
 
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
@@ -70,231 +69,23 @@ int main()
 		std::cout << "Error creating window" << std::endl;
 		return -1;
 	}
-
-	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
-    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
-    boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
-    Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
-
-	// Camera initialization
-	Camera cam = Camera();
-	cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
-
-	// For the moving light
-	glm::vec3 lightDirection(-12.0f, -10.0f, 20.0f);
-	double lightDeltaTheta = M_PI_4 / 1000.0f;
-	glm::mat3 lightMultiplication(1.0f);
-	lightMultiplication[0][0] = cos(lightDeltaTheta);
-	lightMultiplication[0][2] = -sin(lightDeltaTheta);
-	lightMultiplication[2][0] = sin(lightDeltaTheta);
-	lightMultiplication[2][2] = cos(lightDeltaTheta);
-
-    Light lights[MAX_DIR_LIGHTS];
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    SpotLight spotLights[MAX_SPOT_LIGHTS];
 	
+	Scene scene = load_scene();
+
     // main loop
     while (!glfwWindowShouldClose(window))
     {
         // process any input
-        process_input(window, cam);
+        Input input = get_input(window);
 
-        int DIR_LIGHTS = 0;
-        int POINT_LIGHTS = 0;
-        int SPOT_LIGHTS = 0;
-
-		glm::vec3 camPosition = cam.GetPosition();
-        glm::vec3 camDirection = cam.GetDirection();
+        scene.TakeInput(input);
 
         // render section of main loop
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // state setter
         // glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
 
-		glm::mat4 projection = cam.GetProjection();
-		glm::mat4 view = cam.MakeViewMat();
-        // Uncomment to have the light orbit
-		// lightDirection = lightMultiplication * lightDirection;
-
-		glm::vec3 redLight(1.0f, 0.0f, 0.0f);
-        glm::vec3 greenLight(0.0f, 1.0f, 0.0f);
-        glm::vec3 blueLight(1.0f, 1.0f, 1.0f);
-
-		glm::vec3 whiteLight(1.0f, 1.0f, 1.0f);
-        // Uncomment for changing color
-		// double time = glfwGetTime();
-		// lightColor.x = sin(time * 2.0f);
-		// lightColor.y = sin(time * 0.7f);
-		// lightColor.z = sin(time * 1.3f);
-
-		glm::vec3 redDiffuse = redLight * 0.5f;
-		glm::vec3 redAmbient = redLight * 0.2f;
-        glm::vec3 greenDiffuse = greenLight * 0.5f;
-        glm::vec3 greenAmbient = greenLight * 0.2f;
-        glm::vec3 blueDiffuse = blueLight * 0.5f;
-        glm::vec3 blueAmbient = blueLight * 0.2f;
-
-		glm::vec3 whiteDiffuse = whiteLight * 0.5f;
-		glm::vec3 whiteAmbient = whiteLight * 0.2f;
-
-        lights[DIR_LIGHTS].direction = glm::vec3(lightDirection.x, lightDirection.y, lightDirection.z);
-        lights[DIR_LIGHTS].ambient = glm::vec3(whiteAmbient.x, whiteAmbient.y, whiteAmbient.z);
-        lights[DIR_LIGHTS].diffuse = glm::vec3(whiteDiffuse.x, whiteDiffuse.y, whiteDiffuse.z);
-        lights[DIR_LIGHTS].specular = glm::vec3(1.0f);
-        DIR_LIGHTS++;
-
-        pointLights[POINT_LIGHTS].position = glm::vec3(0.0f);
-        pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-        pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-        pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-        pointLights[POINT_LIGHTS].constant = 1.0f;
-        pointLights[POINT_LIGHTS].linear = 0.09f;
-        pointLights[POINT_LIGHTS].quadratic = 0.032f;
-        POINT_LIGHTS++;
-
-        pointLights[POINT_LIGHTS].position = glm::vec3(-5.0f);
-        pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-        pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-        pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-        pointLights[POINT_LIGHTS].constant = 1.0f;
-        pointLights[POINT_LIGHTS].linear = 0.09f;
-        pointLights[POINT_LIGHTS].quadratic = 0.032f;
-        POINT_LIGHTS++;
-
-        spotLights[SPOT_LIGHTS].position = glm::vec3(camPosition.x, camPosition.y, camPosition.z);
-        spotLights[SPOT_LIGHTS].direction = glm::vec3(camDirection.x, camDirection.y, camDirection.z);
-        spotLights[SPOT_LIGHTS].ambient = glm::vec3(blueAmbient.x, blueAmbient.y, blueAmbient.z);
-        spotLights[SPOT_LIGHTS].diffuse = glm::vec3(blueDiffuse.x, blueDiffuse.y, blueDiffuse.z);
-        spotLights[SPOT_LIGHTS].specular = glm::vec3(1.0f);
-        spotLights[SPOT_LIGHTS].innerCutoff = cos(glm::radians(10.0f));
-        spotLights[SPOT_LIGHTS].outerCutoff = cos(glm::radians(15.0f));
-        SPOT_LIGHTS++;
-
-        standard_shader.Use();
-        standard_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
-        standard_shader.SetMatrix4fv("view", glm::value_ptr(view));
-		//standard_shader.SetVec3("viewPos", camPosition.x, camPosition.y, camPosition.z);
-        standard_shader.SetInt("DIR_LIGHTS", std::min(MAX_DIR_LIGHTS, DIR_LIGHTS));
-        standard_shader.SetInt("POINT_LIGHTS", std::min(MAX_POINT_LIGHTS, POINT_LIGHTS));
-        standard_shader.SetInt("SPOT_LIGHTS", std::min(MAX_SPOT_LIGHTS, SPOT_LIGHTS));
-
-        for (int i = 0; i < DIR_LIGHTS; i++)
-        {
-            Light* light = &lights[i];
-            send_direction_light(standard_shader, *light, i);
-        }
-
-        for (int i = 0; i < POINT_LIGHTS; i++)
-        {
-            PointLight* light = &pointLights[i];
-            send_point_light(standard_shader, *light, i);
-        }
-
-        for (int i = 0; i < SPOT_LIGHTS; i++)
-        {
-            SpotLight* light = &spotLights[i];
-            send_spot_light(standard_shader, *light, i);
-        }
-
-        std::vector<Mesh> meshes = std::vector<Mesh>();
-        meshes.push_back(create_box());
-        meshes.push_back(create_plane());
-        meshes.push_back(create_quad());
-
-        std::vector<Object> objects = std::vector<Object>();
-        objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
-        objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, false));
-        objects.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, false));
-        objects.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true, true));
-
-        // For partially transparent
-        // sort by Z position relative to camera in direction of "front", back to front
-        // project object position onto infinite "front" vector
-
-        // Implementation: subtract camera position and sort by dot product of resultant and cam.direction
-        // Optimization: sort only during movement
-        cam.SortObjects(objects);
-
-        std::vector<Object> transparent = std::vector<Object>();
-        std::vector<Object> stenciled = std::vector<Object>();
-
-        for(int i = 0; i < objects.size(); i++)
-        {
-            Object& object = objects[i];
-            if (object.IsTransparent_)
-            {
-                transparent.push_back(object);
-                continue;
-            }
-            else if (object.Outlined_)
-            {
-                stenciled.push_back(object);
-                continue;
-            }
-            else
-            {
-                Mesh mesh = meshes[object.Mesh_];
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
-                model = glm::scale(model, object.Scale_);
-                standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
-                object.Draw(standard_shader, mesh);
-            }
-        }
-
-        for (int i = 0; i < transparent.size(); i++)
-        {
-            Object& object = transparent[i];
-
-            Mesh mesh = meshes[object.Mesh_];
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
-            model = glm::scale(model, object.Scale_);
-            standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
-            object.Draw(standard_shader, mesh);
-        }
-
-        glEnable(GL_STENCIL_TEST);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        glClear(GL_STENCIL_BUFFER_BIT);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
-        
-        // First pass
-        for (int i = 0; i < stenciled.size(); i++)
-        {
-            Object& object = stenciled[i];
-
-            Mesh mesh = meshes[object.Mesh_];
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
-            model = glm::scale(model, object.Scale_);
-            standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
-            mesh.Draw(standard_shader);
-        }
-
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
-
-        // Outline pass
-        outline_shader.Use();
-        outline_shader.SetMatrix4fv("projection", glm::value_ptr(projection));
-        outline_shader.SetMatrix4fv("view", glm::value_ptr(view));
-        for (int i = 0; i < stenciled.size(); i++)
-        {
-            Object& object = stenciled[i];
-
-            Mesh mesh = meshes[object.Mesh_];
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), object.Transform_);
-            model = glm::scale(model, object.Scale_ * 1.1f);
-            outline_shader.SetMatrix4fv("model", glm::value_ptr(model));
-            mesh.Draw(outline_shader);
-        }
-        glStencilMask(0xFF);
-        glDisable(GL_STENCIL_TEST);
+        scene.Render();
 
         // Crysis path
 		// standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
@@ -373,9 +164,9 @@ int create_window(GLFWwindow** foo)
 	return 0;
 }
 
-void process_input(GLFWwindow* window, Camera& cam)
+Input get_input(GLFWwindow* window)
 {
-	CameraInput input = CameraInput();
+	CameraInput cameraInput = CameraInput();
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
@@ -390,27 +181,27 @@ void process_input(GLFWwindow* window, Camera& cam)
 	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		input.MoveForward = 1;
+		cameraInput.MoveForward = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		input.MoveBack = 1;
+		cameraInput.MoveBack = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		input.MoveRight = 1;
+		cameraInput.MoveRight = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		input.MoveLeft = 1;
+		cameraInput.MoveLeft = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 	{
-		input.RotateRight = 1;
+		cameraInput.RotateRight = 1;
 	}
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		input.RotateLeft = 1;
+		cameraInput.RotateLeft = 1;
 	}
 	
 	float x_delta = current_x - last_x;
@@ -419,13 +210,16 @@ void process_input(GLFWwindow* window, Camera& cam)
 	last_x = current_x;
 	last_y = current_y;
 
-	input.x_delta = x_delta;
-	input.y_delta = y_delta;
+	cameraInput.x_delta = x_delta;
+	cameraInput.y_delta = y_delta;
 
-	input.y_offset = y_offset;
+	cameraInput.y_offset = y_offset;
 	y_offset = 0.0f;
 
-	cam.TakeInput(input);
+    Input input = Input();
+    input.cameraInput = cameraInput;
+
+    return input;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
@@ -442,16 +236,6 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
 {
 	y_offset += yOffset;
-}
-
-unsigned int create_shader(const GLenum shader_type, const char* source)
-{
-    const unsigned int shader = glCreateShader(shader_type);
-    glShaderSource(shader, 1, &source, nullptr);
-    glCompileShader(shader);
-    check_shader_compilation(shader);
-
-    return shader;
 }
 
 void check_shader_compilation(const unsigned int shader)
@@ -509,42 +293,6 @@ void generate_cube_locations(const unsigned number, glm::vec3* const cube_array)
 
 		cube_array[i] = glm::vec3(x, y, z);
 	}
-}
-
-void send_direction_light(const Shader& shader, const Light& light, const int index)
-{
-    std::string lightName = "lights[";
-    lightName.append(std::to_string(index)).append("]");
-    shader.SetVec3((lightName + std::string(".direction")).c_str(), light.direction.x, light.direction.y, light.direction.z);
-    shader.SetVec3((lightName + std::string(".ambient")).c_str(), light.ambient.x, light.ambient.y, light.ambient.z);
-    shader.SetVec3((lightName + std::string(".diffuse")).c_str(), light.diffuse.x, light.diffuse.y, light.diffuse.z);
-    shader.SetVec3((lightName + std::string(".specular")).c_str(), light.specular.x, light.specular.y, light.specular.z);
-}
-
-void send_point_light(const Shader& shader, const PointLight& pointLight, const int index)
-{
-    std::string lightName = "pointLights[";
-    lightName.append(std::to_string(index)).append("]");
-    shader.SetVec3((lightName + std::string(".position")).c_str(), pointLight.position.x, pointLight.position.y, pointLight.position.z);
-    shader.SetVec3((lightName + std::string(".ambient")).c_str(), pointLight.ambient.x, pointLight.ambient.y, pointLight.ambient.z);
-    shader.SetVec3((lightName + std::string(".diffuse")).c_str(), pointLight.diffuse.x, pointLight.diffuse.y, pointLight.diffuse.z);
-    shader.SetVec3((lightName + std::string(".specular")).c_str(), pointLight.specular.x, pointLight.specular.y, pointLight.specular.z);
-    shader.SetFloat((lightName + std::string(".constant")).c_str(),  pointLight.constant);
-    shader.SetFloat((lightName + std::string(".linear")).c_str(),    pointLight.linear);
-    shader.SetFloat((lightName + std::string(".quadratic")).c_str(), pointLight.quadratic);
-}
-
-void send_spot_light(const Shader& shader, const SpotLight& spotLight, const int index)
-{
-    std::string lightName = "spotLights[";
-    lightName.append(std::to_string(index)).append("]");
-    shader.SetVec3((lightName + std::string(".position")).c_str(), spotLight.position.x, spotLight.position.y, spotLight.position.z);
-    shader.SetVec3((lightName + std::string(".direction")).c_str(), spotLight.direction.x, spotLight.direction.y, spotLight.direction.z);
-    shader.SetVec3((lightName + std::string(".ambient")).c_str(), spotLight.ambient.x, spotLight.ambient.y, spotLight.ambient.z);
-    shader.SetVec3((lightName + std::string(".diffuse")).c_str(), spotLight.diffuse.x, spotLight.diffuse.y, spotLight.diffuse.z);
-    shader.SetVec3((lightName + std::string(".specular")).c_str(), spotLight.specular.x, spotLight.specular.y, spotLight.specular.z);
-    shader.SetFloat((lightName + std::string(".innerCutoff")).c_str(), spotLight.innerCutoff);
-    shader.SetFloat((lightName + std::string(".outerCutoff")).c_str(), spotLight.outerCutoff);
 }
 
 Mesh create_box()
@@ -699,3 +447,140 @@ std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transfo
 {
     return std::pair<int, glm::vec3>(mesh, transform);
 }
+
+Scene load_scene()
+{
+    SceneGraph graph = SceneGraph();
+
+    // Camera initialization
+    Camera cam = Camera();
+    cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
+    std::vector<Camera> cams = std::vector<Camera>();
+    cams.push_back(cam);
+
+    std::vector<Mesh> meshes = std::vector<Mesh>();
+    meshes.push_back(create_box());
+    meshes.push_back(create_plane());
+    meshes.push_back(create_quad());
+
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
+    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+    boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
+    Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
+
+    std::vector<Shader> shaders = std::vector<Shader>();
+    shaders.push_back(standard_shader);
+    shaders.push_back(outline_shader);
+
+    Scene scene = Scene(graph, cams, meshes, shaders);
+
+    return scene;
+}
+
+/*
+
+    // Light creation section
+
+    // For the moving light
+    glm::vec3 lightDirection(-12.0f, -10.0f, 20.0f);
+    double lightDeltaTheta = M_PI_4 / 1000.0f;
+    glm::mat3 lightMultiplication(1.0f);
+    lightMultiplication[0][0] = cos(lightDeltaTheta);
+    lightMultiplication[0][2] = -sin(lightDeltaTheta);
+    lightMultiplication[2][0] = sin(lightDeltaTheta);
+    lightMultiplication[2][2] = cos(lightDeltaTheta);
+
+    Light lights[MAX_DIR_LIGHTS];
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    SpotLight spotLights[MAX_SPOT_LIGHTS];
+
+    // Uncomment to have the light orbit
+    // lightDirection = lightMultiplication * lightDirection;
+
+    int DIR_LIGHTS = 0;
+    int POINT_LIGHTS = 0;
+    int SPOT_LIGHTS = 0;
+
+    glm::vec3 redLight(1.0f, 0.0f, 0.0f);
+    glm::vec3 greenLight(0.0f, 1.0f, 0.0f);
+    glm::vec3 blueLight(0.0f, 0.0f, 1.0f);
+
+    glm::vec3 whiteLight(1.0f, 1.0f, 1.0f);
+    // Uncomment for changing color
+    // double time = glfwGetTime();
+    // lightColor.x = sin(time * 2.0f);
+    // lightColor.y = sin(time * 0.7f);
+    // lightColor.z = sin(time * 1.3f);
+
+    glm::vec3 redDiffuse = redLight * 0.5f;
+    glm::vec3 redAmbient = redLight * 0.2f;
+    glm::vec3 greenDiffuse = greenLight * 0.5f;
+    glm::vec3 greenAmbient = greenLight * 0.2f;
+    glm::vec3 blueDiffuse = blueLight * 0.5f;
+    glm::vec3 blueAmbient = blueLight * 0.2f;
+
+    glm::vec3 whiteDiffuse = whiteLight * 0.5f;
+    glm::vec3 whiteAmbient = whiteLight * 0.2f;
+
+    lights[DIR_LIGHTS].direction = glm::vec3(lightDirection.x, lightDirection.y, lightDirection.z);
+    lights[DIR_LIGHTS].ambient = glm::vec3(whiteAmbient.x, whiteAmbient.y, whiteAmbient.z);
+    lights[DIR_LIGHTS].diffuse = glm::vec3(whiteDiffuse.x, whiteDiffuse.y, whiteDiffuse.z);
+    lights[DIR_LIGHTS].specular = glm::vec3(1.0f);
+    DIR_LIGHTS++;
+
+    pointLights[POINT_LIGHTS].position = glm::vec3(0.0f);
+    pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
+    pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
+    pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
+    pointLights[POINT_LIGHTS].constant = 1.0f;
+    pointLights[POINT_LIGHTS].linear = 0.09f;
+    pointLights[POINT_LIGHTS].quadratic = 0.032f;
+    POINT_LIGHTS++;
+
+    pointLights[POINT_LIGHTS].position = glm::vec3(-5.0f);
+    pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
+    pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
+    pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
+    pointLights[POINT_LIGHTS].constant = 1.0f;
+    pointLights[POINT_LIGHTS].linear = 0.09f;
+    pointLights[POINT_LIGHTS].quadratic = 0.032f;
+    POINT_LIGHTS++;
+
+    spotLights[SPOT_LIGHTS].position = glm::vec3(camPosition.x, camPosition.y, camPosition.z);
+    spotLights[SPOT_LIGHTS].direction = glm::vec3(camDirection.x, camDirection.y, camDirection.z);
+    spotLights[SPOT_LIGHTS].ambient = glm::vec3(blueAmbient.x, blueAmbient.y, blueAmbient.z);
+    spotLights[SPOT_LIGHTS].diffuse = glm::vec3(blueDiffuse.x, blueDiffuse.y, blueDiffuse.z);
+    spotLights[SPOT_LIGHTS].specular = glm::vec3(1.0f);
+    spotLights[SPOT_LIGHTS].innerCutoff = cos(glm::radians(10.0f));
+    spotLights[SPOT_LIGHTS].outerCutoff = cos(glm::radians(15.0f));
+    SPOT_LIGHTS++;
+
+    // End light creation section
+
+*/
+
+/*// Primitives Creation
+
+        std::vector<Mesh> meshes = std::vector<Mesh>();
+        meshes.push_back(create_box());
+        meshes.push_back(create_plane());
+        meshes.push_back(create_quad());
+
+        // End Primitives Creation
+
+
+        // Scene Objects Creation
+
+        std::vector<Object> objects = std::vector<Object>();
+        objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
+        objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, false));
+        objects.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, false));
+        objects.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true, true));
+        objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true, true));
+
+        // End Scene Objects Creation
+*/

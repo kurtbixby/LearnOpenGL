@@ -6,20 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Object.h"
-
-struct CameraInput
-{
-	unsigned char MoveForward : 1;
-	unsigned char MoveBack : 1;
-	unsigned char MoveLeft : 1;
-	unsigned char MoveRight : 1;
-	unsigned char RotateRight : 1;
-	unsigned char RotateLeft : 1;
-	unsigned char : 0;
-	float x_delta;
-	float y_delta;
-	float y_offset;
-};
+#include "Structs.h"
 
 // Don't mess with roll or y-axis translation
 class Camera
@@ -39,8 +26,6 @@ public:
 	glm::mat4 MakeViewMat() const;
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetDirection() const;
-
-	bool SortObjects(std::vector<Object>& objs);
 
 private:
 	glm::mat4 projection_;
@@ -72,7 +57,6 @@ private:
 	void RotateLeft();
 	void LookUp();
 	void LookDown();
-	bool ObjectComparison(const Object& objA, const Object& objB);
 };
 
 #endif

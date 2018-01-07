@@ -52,6 +52,25 @@ struct RenderTarget
 	RenderTargetType TargetType;
 };
 
+struct CameraInput
+{
+	unsigned char MoveForward : 1;
+	unsigned char MoveBack : 1;
+	unsigned char MoveLeft : 1;
+	unsigned char MoveRight : 1;
+	unsigned char RotateRight : 1;
+	unsigned char RotateLeft : 1;
+	unsigned char : 2;
+	float x_delta;
+	float y_delta;
+	float y_offset;
+};
+
+struct Input
+{
+	CameraInput cameraInput;
+};
+
 Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY);
 Vertex create_vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texCoords);
 Texture load_texture(std::string directory, std::string filename, TextureType texType);
