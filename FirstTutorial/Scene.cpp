@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "Scene.h"
 
 #include <algorithm>

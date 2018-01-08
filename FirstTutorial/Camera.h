@@ -1,11 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <vector>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Object.h"
 #include "Structs.h"
 
 // Don't mess with roll or y-axis translation

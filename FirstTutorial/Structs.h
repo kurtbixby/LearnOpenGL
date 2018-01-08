@@ -6,8 +6,6 @@
 #include <glad/glad.h>
 #include <assimp/types.h>
 
-#include "Shader.h"
-
 #define MAX_DIFFUSE_TEX 3
 #define MAX_SPECULAR_TEX 3
 

@@ -2,7 +2,6 @@
 #define STRUCTS_INLINE_H
 
 #include <string>
-#include <iostream>
 #include <glm/glm.hpp>
 #include <boost/filesystem.hpp>
 

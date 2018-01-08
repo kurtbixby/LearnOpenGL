@@ -9,10 +9,8 @@
 
 #include "Camera.h"
 #include "Framebuffer.h"
-#include "Lights.h"
 #include "Mesh.h"
 #include "Model.h"
-#include "Object.h"
 #include "Scene.h"
 #include "SceneGraph.h"
 #include "Shader.h"
@@ -25,7 +23,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 int create_window(GLFWwindow** foo);
 Input get_input(GLFWwindow* window);
@@ -477,110 +474,3 @@ Scene load_scene()
 
     return scene;
 }
-
-/*
-
-    // Light creation section
-
-    // For the moving light
-    glm::vec3 lightDirection(-12.0f, -10.0f, 20.0f);
-    double lightDeltaTheta = M_PI_4 / 1000.0f;
-    glm::mat3 lightMultiplication(1.0f);
-    lightMultiplication[0][0] = cos(lightDeltaTheta);
-    lightMultiplication[0][2] = -sin(lightDeltaTheta);
-    lightMultiplication[2][0] = sin(lightDeltaTheta);
-    lightMultiplication[2][2] = cos(lightDeltaTheta);
-
-    Light lights[MAX_DIR_LIGHTS];
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    SpotLight spotLights[MAX_SPOT_LIGHTS];
-
-    // Uncomment to have the light orbit
-    // lightDirection = lightMultiplication * lightDirection;
-
-    int DIR_LIGHTS = 0;
-    int POINT_LIGHTS = 0;
-    int SPOT_LIGHTS = 0;
-
-    glm::vec3 redLight(1.0f, 0.0f, 0.0f);
-    glm::vec3 greenLight(0.0f, 1.0f, 0.0f);
-    glm::vec3 blueLight(0.0f, 0.0f, 1.0f);
-
-    glm::vec3 whiteLight(1.0f, 1.0f, 1.0f);
-    // Uncomment for changing color
-    // double time = glfwGetTime();
-    // lightColor.x = sin(time * 2.0f);
-    // lightColor.y = sin(time * 0.7f);
-    // lightColor.z = sin(time * 1.3f);
-
-    glm::vec3 redDiffuse = redLight * 0.5f;
-    glm::vec3 redAmbient = redLight * 0.2f;
-    glm::vec3 greenDiffuse = greenLight * 0.5f;
-    glm::vec3 greenAmbient = greenLight * 0.2f;
-    glm::vec3 blueDiffuse = blueLight * 0.5f;
-    glm::vec3 blueAmbient = blueLight * 0.2f;
-
-    glm::vec3 whiteDiffuse = whiteLight * 0.5f;
-    glm::vec3 whiteAmbient = whiteLight * 0.2f;
-
-    lights[DIR_LIGHTS].direction = glm::vec3(lightDirection.x, lightDirection.y, lightDirection.z);
-    lights[DIR_LIGHTS].ambient = glm::vec3(whiteAmbient.x, whiteAmbient.y, whiteAmbient.z);
-    lights[DIR_LIGHTS].diffuse = glm::vec3(whiteDiffuse.x, whiteDiffuse.y, whiteDiffuse.z);
-    lights[DIR_LIGHTS].specular = glm::vec3(1.0f);
-    DIR_LIGHTS++;
-
-    pointLights[POINT_LIGHTS].position = glm::vec3(0.0f);
-    pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-    pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-    pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-    pointLights[POINT_LIGHTS].constant = 1.0f;
-    pointLights[POINT_LIGHTS].linear = 0.09f;
-    pointLights[POINT_LIGHTS].quadratic = 0.032f;
-    POINT_LIGHTS++;
-
-    pointLights[POINT_LIGHTS].position = glm::vec3(-5.0f);
-    pointLights[POINT_LIGHTS].ambient = glm::vec3(greenAmbient.x, greenAmbient.y, greenAmbient.z);
-    pointLights[POINT_LIGHTS].diffuse = glm::vec3(greenDiffuse.x, greenDiffuse.y, greenDiffuse.z);
-    pointLights[POINT_LIGHTS].specular = glm::vec3(1.0f);
-    pointLights[POINT_LIGHTS].constant = 1.0f;
-    pointLights[POINT_LIGHTS].linear = 0.09f;
-    pointLights[POINT_LIGHTS].quadratic = 0.032f;
-    POINT_LIGHTS++;
-
-    spotLights[SPOT_LIGHTS].position = glm::vec3(camPosition.x, camPosition.y, camPosition.z);
-    spotLights[SPOT_LIGHTS].direction = glm::vec3(camDirection.x, camDirection.y, camDirection.z);
-    spotLights[SPOT_LIGHTS].ambient = glm::vec3(blueAmbient.x, blueAmbient.y, blueAmbient.z);
-    spotLights[SPOT_LIGHTS].diffuse = glm::vec3(blueDiffuse.x, blueDiffuse.y, blueDiffuse.z);
-    spotLights[SPOT_LIGHTS].specular = glm::vec3(1.0f);
-    spotLights[SPOT_LIGHTS].innerCutoff = cos(glm::radians(10.0f));
-    spotLights[SPOT_LIGHTS].outerCutoff = cos(glm::radians(15.0f));
-    SPOT_LIGHTS++;
-
-    // End light creation section
-
-*/
-
-/*// Primitives Creation
-
-        std::vector<Mesh> meshes = std::vector<Mesh>();
-        meshes.push_back(create_box());
-        meshes.push_back(create_plane());
-        meshes.push_back(create_quad());
-
-        // End Primitives Creation
-
-
-        // Scene Objects Creation
-
-        std::vector<Object> objects = std::vector<Object>();
-        objects.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
-        objects.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, false));
-        objects.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, false));
-        objects.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true, true));
-        objects.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true, true));
-
-        // End Scene Objects Creation
-*/

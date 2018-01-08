@@ -1,15 +1,14 @@
+#define NOMINMAX
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "Camera.h"
 
 #include <iostream>
-#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include "Object.h"
 
 const float MAX_PITCH = M_PI_2 - .001;
 const float MIN_PITCH = -1 * MAX_PITCH;

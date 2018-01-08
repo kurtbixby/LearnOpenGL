@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 
 #include "Object.h"
-#include "Mesh.h"
 #include "Lights.h"
 #include "Camera.h"
 

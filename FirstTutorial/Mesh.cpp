@@ -1,7 +1,6 @@
 #include "Mesh.h"
 
 #include <vector>
-#include <unordered_set>
 
 #include "Structs.h"
 #include "Shader.h"

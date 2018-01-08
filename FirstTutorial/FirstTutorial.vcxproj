@@ -20,17 +20,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneGraph.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Structs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Object.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneGraph.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Structs.h" />
+    <ClInclude Include="Structs_Inline.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\awesomeface.png" />
@@ -67,6 +79,7 @@
     <None Include="Shaders\Container.frag" />
     <None Include="Shaders\Container.vert" />
     <None Include="Shaders\ControlMix.frag" />
+    <None Include="Shaders\Depth.frag" />
     <None Include="Shaders\Diffuse.frag" />
     <None Include="Shaders\Diffuse.vert" />
     <None Include="Shaders\DiffuseMap.frag" />
@@ -84,6 +97,7 @@
     <None Include="Shaders\MultipleLights.frag" />
     <None Include="Shaders\MultipleTextures.frag" />
     <None Include="Shaders\MultipleTextures.vert" />
+    <None Include="Shaders\Outline.frag" />
     <None Include="Shaders\PointLight.frag" />
     <None Include="Shaders\SoftSpotLight.frag" />
     <None Include="Shaders\SpacesMatrices.vert" />
@@ -92,6 +106,8 @@
     <None Include="Shaders\SpotLight.frag" />
     <None Include="Shaders\TextureMix.frag" />
     <None Include="Shaders\Transform.vert" />
+    <None Include="Shaders\Transparency.frag" />
+    <None Include="Shaders\Transparency_Blended.frag" />
     <None Include="Shaders\Uniform.frag" />
     <None Include="Shaders\ViewLighting.frag" />
     <None Include="Shaders\ViewLighting.vert" />
