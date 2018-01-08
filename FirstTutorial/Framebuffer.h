@@ -15,6 +15,8 @@ public:
 	void Use();
 	void Use(GLenum target);
 
+	static void UseDefault(GLenum target = GL_FRAMEBUFFER);
+
 	bool IsComplete();
 	RenderTarget RetrieveColorBuffer(unsigned int bufferNumber);
 	RenderTarget RetrieveDepthBuffer();

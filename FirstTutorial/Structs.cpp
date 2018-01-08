@@ -1,6 +1,7 @@
 #include "Structs.h"
 
 #include <glad/glad.h>
+#include <iostream>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION

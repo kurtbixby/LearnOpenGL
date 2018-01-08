@@ -38,6 +38,11 @@ void Framebuffer::Use(GLenum target)
     glBindFramebuffer(target_, fbo_);
 }
 
+void Framebuffer::UseDefault(GLenum target)
+{
+	glBindFramebuffer(target, 0);
+}
+
 bool Framebuffer::IsComplete()
 {
     glBindFramebuffer(target_, fbo_);

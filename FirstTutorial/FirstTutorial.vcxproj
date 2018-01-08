@@ -99,6 +99,8 @@
     <None Include="Shaders\MultipleTextures.vert" />
     <None Include="Shaders\Outline.frag" />
     <None Include="Shaders\PointLight.frag" />
+    <None Include="Shaders\Screen.frag" />
+    <None Include="Shaders\Screen.vert" />
     <None Include="Shaders\SoftSpotLight.frag" />
     <None Include="Shaders\SpacesMatrices.vert" />
     <None Include="Shaders\Specular.frag" />

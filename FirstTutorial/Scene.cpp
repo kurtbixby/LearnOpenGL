@@ -35,6 +35,11 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Mesh> meshe
 
 void Scene::Render()
 {
+	// render section of main loop
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
+	// glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+
     Camera& cam = cams_[0];
 
     glm::mat4 projection = cam.GetProjection();
@@ -171,3 +176,23 @@ void Scene::TakeInput(const Input& input)
 {
     cams_[0].TakeInput(input.cameraInput);
 }
+
+// Crysis path
+// standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
+
+// boost::filesystem::path model_path = boost::filesystem::path("Resources/nanosuit/nanosuit.obj").make_preferred();
+// string model_path_string = model_path.string();
+
+// auto models_iterator = loaded_models_.find(model_path_string);
+// if (models_iterator != loaded_models_.end())
+// {
+// 	cout << model_path_string << " already loaded" << endl;
+// 	models_iterator->second.Draw(standard_shader);
+// }
+// else
+// {
+// 	cout << model_path_string << " not loaded" << endl;
+// 	Model model = Model(model_path);
+// 	loaded_models_.emplace(model_path_string, model);
+// 	model.Draw(standard_shader);
+// }

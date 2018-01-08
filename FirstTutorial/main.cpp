@@ -69,40 +69,66 @@ int main()
 	
 	Scene scene = load_scene();
 
+	// Create standard shader
+	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Screen.frag").make_preferred();
+	Shader screenShader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+
+	// Create intermediary framebuffer
+	Framebuffer fbuffer = Framebuffer();
+	fbuffer.AddTextureAttachment(FBAttachment::Color);
+	fbuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+
     // main loop
     while (!glfwWindowShouldClose(window))
     {
         // process any input
         Input input = get_input(window);
-
         scene.TakeInput(input);
 
-        // render section of main loop
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // state setter
-        // glClearDepth(1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+		fbuffer.Use();
 
+		glEnable(GL_DEPTH_TEST);
         scene.Render();
+		glDisable(GL_DEPTH_TEST);
 
-        // Crysis path
-		// standard_shader.SetMatrix4fv("model", glm::value_ptr(model));
+		Framebuffer::UseDefault();
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-		// boost::filesystem::path model_path = boost::filesystem::path("Resources/nanosuit/nanosuit.obj").make_preferred();
-		// string model_path_string = model_path.string();
+		screenShader.Use();
 
-		// auto models_iterator = loaded_models_.find(model_path_string);
-		// if (models_iterator != loaded_models_.end())
-		// {
-		// 	cout << model_path_string << " already loaded" << endl;
-		// 	models_iterator->second.Draw(standard_shader);
-		// }
-		// else
-		// {
-		// 	cout << model_path_string << " not loaded" << endl;
-		// 	Model model = Model(model_path);
-		// 	loaded_models_.emplace(model_path_string, model);
-		// 	model.Draw(standard_shader);
-		// }
+		float quadVertices[] = {
+			// positions   // texCoords
+			-1.0f,  1.0f,  0.0f, 1.0f,
+			-1.0f, -1.0f,  0.0f, 0.0f,
+			1.0f, -1.0f,  1.0f, 0.0f,
+
+			-1.0f,  1.0f,  0.0f, 1.0f,
+			1.0f, -1.0f,  1.0f, 0.0f,
+			1.0f,  1.0f,  1.0f, 1.0f
+		};
+
+		// Create Quad VAO
+		unsigned int quadVAO;
+		glGenVertexArrays(1, &quadVAO);
+		unsigned int quadVBO;
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices[0], GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(0));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
+		glBindVertexArray(0);
+
+		// bind VAO
+		glBindVertexArray(quadVAO);
+		// bind fb texture
+		glBindTexture(GL_TEXTURE_2D, fbuffer.RetrieveColorBuffer(0).TargetName);
+		// draw triangles
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
