@@ -24,6 +24,7 @@ public:
     void SetFloat4(const std::string& name, const float value1, const float value2, const float value3, const float value4) const;
 	void SetMatrix4fv(const std::string&name, const float* values) const;
 	void SetVec3(const std::string& name, const float v0, const float v1, const float v2) const;
+	void SetFloats(const std::string& name, int count, const float* value) const;
 
     void AddDirectionLight(const Light& light, const int index);
     void AddPointLight(const PointLight& pointLight, const int index);
@@ -72,6 +73,11 @@ inline void Shader::SetMatrix4fv(const std::string&name, const float* value) con
 inline void Shader::SetVec3(const std::string& name, const float v0, const float v1, const float v2) const
 {
 	glUniform3f(glGetUniformLocation(id_, name.c_str()), v0, v1, v2);
+}
+
+inline void Shader::SetFloats(const std::string& name, int count, const float* value) const
+{
+	glUniform1fv(glGetUniformLocation(id_, name.c_str()), count, value);
 }
 
 #endif // SHADER_H

@@ -71,13 +71,25 @@ int main()
 
 	// Create standard shader
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Screen.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Kernel.frag").make_preferred();
 	Shader screenShader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	// Create intermediary framebuffer
 	Framebuffer fbuffer = Framebuffer();
 	fbuffer.AddTextureAttachment(FBAttachment::Color);
 	fbuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+
+	/*float kernel[9] = {
+		1, 1, 1,
+		1, -8, 1,
+		1, 1, 1
+	};*/
+
+	float kernel[9] = {
+		0, 0, 0,
+		0, 1, 0,
+		0, 0, 0
+	};
 
     // main loop
     while (!glfwWindowShouldClose(window))
@@ -127,6 +139,8 @@ int main()
 		glBindVertexArray(quadVAO);
 		// bind fb texture
 		glBindTexture(GL_TEXTURE_2D, fbuffer.RetrieveColorBuffer(0).TargetName);
+		screenShader.SetFloats("kernel", 9, &kernel[0]);
+
 		// draw triangles
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 

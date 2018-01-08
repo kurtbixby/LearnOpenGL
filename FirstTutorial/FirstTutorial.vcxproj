@@ -90,6 +90,7 @@
     <None Include="Shaders\FlippedTextureMix.frag" />
     <None Include="Shaders\GroovyContainer.frag" />
     <None Include="Shaders\InverseSpecularMap.frag" />
+    <None Include="Shaders\Kernel.frag" />
     <None Include="Shaders\Light.frag" />
     <None Include="Shaders\Linked.frag" />
     <None Include="Shaders\Linked.vert" />
