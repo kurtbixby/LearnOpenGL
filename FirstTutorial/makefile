@@ -6,7 +6,7 @@ LDLIBS = -lglfw -lboost_filesystem -lboost_system -lassimp
 CFLAGS = 
 CXXFLAGS = -std=c++11
 CPPFLAGS = -Wall -c -I$(IDIR)
-OBJ = main.o glad.o Camera.o Structs.o Mesh.o Shader.o Model.o Framebuffer.o SceneGraph.o Scene.o
+OBJ = main.o glad.o Camera.o Structs.o Mesh.o Shader.o Model.o Framebuffer.o SceneGraph.o Scene.o Cubemap.o
 EXECUTABLE = gltutorial
 FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 
@@ -44,6 +44,9 @@ SceneGraph.o: SceneGraph.h SceneGraph.cpp
 
 Scene.o: Scene.h Scene.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) Scene.cpp
+
+Cubemap.o: Cubemap.h Cubemap.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) Cubemap.cpp
 
 clean:
 	$(RM) *.o $(EXECUTABLE)
