@@ -79,12 +79,39 @@ int main()
 	fbuffer.AddTextureAttachment(FBAttachment::Color);
 	fbuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
 
+	// Create Screen Quad VAO
+	float quadVertices[] = {
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+		1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	unsigned int quadVAO;
+	glGenVertexArrays(1, &quadVAO);
+	unsigned int quadVBO;
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices[0], GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(0));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
+	glBindVertexArray(0);
+
+	// Edge Detection?
 	/*float kernel[9] = {
 		1, 1, 1,
 		1, -8, 1,
 		1, 1, 1
 	};*/
 
+	// Identity
 	float kernel[9] = {
 		0, 0, 0,
 		0, 1, 0,
@@ -98,50 +125,31 @@ int main()
         Input input = get_input(window);
         scene.TakeInput(input);
 
+		// Enable texture framebuffer
 		fbuffer.Use();
 
+		// (Re)enable depth for main scene
 		glEnable(GL_DEPTH_TEST);
         scene.Render();
+		// Disable depth for screen quad
 		glDisable(GL_DEPTH_TEST);
 
+		// Reenable default framebuffer
 		Framebuffer::UseDefault();
+		// Reset clears
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// Enable screen shader
 		screenShader.Use();
 
-		float quadVertices[] = {
-			// positions   // texCoords
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			-1.0f, -1.0f,  0.0f, 0.0f,
-			1.0f, -1.0f,  1.0f, 0.0f,
-
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			1.0f, -1.0f,  1.0f, 0.0f,
-			1.0f,  1.0f,  1.0f, 1.0f
-		};
-
-		// Create Quad VAO
-		unsigned int quadVAO;
-		glGenVertexArrays(1, &quadVAO);
-		unsigned int quadVBO;
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(0));
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
-		glBindVertexArray(0);
-
-		// bind VAO
+		// bind screen quad
 		glBindVertexArray(quadVAO);
 		// bind fb texture
 		glBindTexture(GL_TEXTURE_2D, fbuffer.RetrieveColorBuffer(0).TargetName);
+		// send kernel to shader
 		screenShader.SetFloats("kernel", 9, &kernel[0]);
-
-		// draw triangles
+		// draw screen quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // buffer swap and poll for new events
@@ -505,12 +513,18 @@ Scene load_scene()
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
     boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
     Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
+	boost::filesystem::path skybox_vertex_shader_path = boost::filesystem::path("Shaders/Skybox.vert").make_preferred();
+	boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
+	Shader skybox_shader = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
 
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
     shaders.push_back(outline_shader);
+	shaders.push_back(skybox_shader);
 
-    Scene scene = Scene(graph, cams, meshes, shaders);
+	Cubemap skybox = Cubemap();
+
+    Scene scene = Scene(graph, cams, meshes, shaders, skybox);
 
     return scene;
 }

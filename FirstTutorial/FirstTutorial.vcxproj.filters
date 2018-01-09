@@ -54,6 +54,9 @@
     <ClCompile Include="Structs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Cubemap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cubemap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -158,6 +164,30 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\nanosuit\leg_showroom_spec.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\blending_transparent_window.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\grass.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\skybox\back.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\skybox\bottom.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\skybox\front.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\skybox\left.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\skybox\right.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\skybox\top.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -291,6 +321,12 @@
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Kernel.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Skybox.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Skybox.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

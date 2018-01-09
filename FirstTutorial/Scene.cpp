@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Camera.h"
+#include "Cubemap.h"
 #include "Lights.h"
 #include "Mesh.h"
 #include "Object.h"
@@ -20,14 +21,16 @@
 Scene::Scene()
 {
 	graph_ = SceneGraph();
+	skybox_ = Cubemap();
 	cams_ = std::vector<Camera>();
 	meshes_ = std::vector<Mesh>();
 	shaders_ = std::vector<Shader>();
 }
 
-Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Mesh> meshes, std::vector<Shader> shaders)
+Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Mesh> meshes, std::vector<Shader> shaders, Cubemap skybox)
 {
 	graph_ = graph;
+	skybox_ = skybox;
 	cams_ = cams;
 	meshes_ = meshes;
 	shaders_ = shaders;
@@ -47,6 +50,18 @@ void Scene::Render()
 
 	Shader& standardShader = shaders_[0];
 	Shader& outlineShader = shaders_[1];
+	Shader& skyboxShader = shaders_[2];
+
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL);
+	skyboxShader.Use();
+
+	skyboxShader.SetMatrix4fv("projection", glm::value_ptr(projection));
+	skyboxShader.SetMatrix4fv("view", glm::value_ptr(glm::mat4(glm::mat3(view))));
+
+	skybox_.Draw();
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 
 	standardShader.Use();
     standardShader.SetMatrix4fv("projection", glm::value_ptr(projection));

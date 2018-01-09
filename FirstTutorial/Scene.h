@@ -4,6 +4,7 @@
 #define MAX_CAMERAS 1
 
 #include "Camera.h"
+#include "Cubemap.h"
 #include "Object.h"
 #include "SceneGraph.h"
 #include "Structs.h"
@@ -13,7 +14,7 @@ class Scene
 {
 public:
 	Scene();
-	Scene(SceneGraph graph, std::vector<Camera>, std::vector<Mesh> meshes_, std::vector<Shader> shaders_);
+	Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Mesh> meshes, std::vector<Shader> shaders, Cubemap skybox);
 
 	void LoadCameras(std::vector<Camera>);
 	void LoadMeshes(std::vector<Mesh>);
@@ -24,6 +25,7 @@ public:
 	
 private:
 	SceneGraph graph_;
+	Cubemap skybox_;
 
 	std::vector<Camera> cams_;
 	std::vector<Mesh> meshes_;

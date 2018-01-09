@@ -28,6 +28,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneGraph.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="Structs.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -40,15 +41,18 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneGraph.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Cubemap.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="Structs_Inline.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\awesomeface.png" />
+    <Image Include="Resources\blending_transparent_window.png" />
     <Image Include="Resources\container.jpg" />
     <Image Include="Resources\container2_diffuse.png" />
     <Image Include="Resources\container2_specular.png" />
+    <Image Include="Resources\grass.png" />
     <Image Include="Resources\nanosuit\arm_dif.png" />
     <Image Include="Resources\nanosuit\arm_showroom_ddn.png" />
     <Image Include="Resources\nanosuit\arm_showroom_spec.png" />
@@ -66,6 +70,12 @@
     <Image Include="Resources\nanosuit\leg_dif.png" />
     <Image Include="Resources\nanosuit\leg_showroom_ddn.png" />
     <Image Include="Resources\nanosuit\leg_showroom_spec.png" />
+    <Image Include="Resources\skybox\back.jpg" />
+    <Image Include="Resources\skybox\bottom.jpg" />
+    <Image Include="Resources\skybox\front.jpg" />
+    <Image Include="Resources\skybox\left.jpg" />
+    <Image Include="Resources\skybox\right.jpg" />
+    <Image Include="Resources\skybox\top.jpg" />
     <Image Include="Resources\wall.jpg" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +112,8 @@
     <None Include="Shaders\PointLight.frag" />
     <None Include="Shaders\Screen.frag" />
     <None Include="Shaders\Screen.vert" />
+    <None Include="Shaders\Skybox.frag" />
+    <None Include="Shaders\Skybox.vert" />
     <None Include="Shaders\SoftSpotLight.frag" />
     <None Include="Shaders\SpacesMatrices.vert" />
     <None Include="Shaders\Specular.frag" />
