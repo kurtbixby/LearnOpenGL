@@ -75,18 +75,13 @@ Cubemap::Cubemap(std::vector<std::string> textureFiles)
 
 void Cubemap::Activate()
 {
-	glBindVertexArray(vao_);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texId_);
-}
-
-void Cubemap::Deactivate()
-{
-	glBindVertexArray(0);
 }
 
 void Cubemap::Draw()
 {
 	Activate();
+	glBindVertexArray(vao_);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-	Deactivate();
+	glBindVertexArray(0);
 }

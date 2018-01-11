@@ -29,13 +29,10 @@ Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
-void check_shader_compilation(unsigned int shader);
-void check_shader_program_linking(unsigned int program);
 
 Mesh create_box();
 Mesh create_plane();
 Mesh create_quad();
-std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transform);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 Scene load_scene();
@@ -283,40 +280,6 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
 	y_offset += yOffset;
 }
 
-void check_shader_compilation(const unsigned int shader)
-{
-    const int logSize = 512;
-    int success;
-    char infoLog[logSize];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (success)
-    {
-        std::cout << "SHADER COMPILATION SUCCESSFUL" << std::endl;
-    }
-    if (!success)
-    {
-        glGetShaderInfoLog(shader, logSize, nullptr, infoLog);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-}
-
-void check_shader_program_linking(const unsigned int program)
-{
-    const int logSize = 512;
-    int success;
-    char infoLog[logSize];
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (success)
-    {
-        std::cout << "PROGRAM LINKING SUCCESSFUL" << std::endl;
-    }
-    if (!success)
-    {
-        glGetProgramInfoLog(program, logSize, nullptr, infoLog);
-        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-}
-
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array)
 {
 	const int random_parts = 2000;
@@ -488,11 +451,6 @@ Mesh create_quad()
     return Mesh(vertices, indices, textures);
 }
 
-std::pair<int, glm::vec3> create_object(const int mesh, const glm::vec3& transform)
-{
-    return std::pair<int, glm::vec3>(mesh, transform);
-}
-
 Scene load_scene()
 {
     SceneGraph graph = SceneGraph();
@@ -508,8 +466,8 @@ Scene load_scene()
     meshes.push_back(create_plane());
     meshes.push_back(create_quad());
 
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Reflection.vert").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Reflection.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
     boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
     Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());

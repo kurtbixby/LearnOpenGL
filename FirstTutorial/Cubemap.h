@@ -12,7 +12,6 @@ public:
 	Cubemap(std::vector<std::string> textureFiles);
 
 	void Activate();
-	void Deactivate();
 	void Draw();
 
 private:

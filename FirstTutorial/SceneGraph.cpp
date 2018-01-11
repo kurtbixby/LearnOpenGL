@@ -10,6 +10,9 @@
 
 SceneGraph::SceneGraph()
 {
+    camPosition_ = glm::vec3(0.0f);
+    camDirection_ = glm::vec3(0.0f, 0.0f, -1.0f);
+
     objects_ = std::vector<Object>();
     objects_.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
     objects_.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, false));
@@ -43,7 +46,6 @@ SceneGraph::SceneGraph()
     pLight.position = glm::vec3(-5.0f);
     pointLights_[1] = pLight;
 
-
 	spotLights_ = std::vector<SpotLight>(1);
 	SpotLight spLight;
     spLight.position = glm::vec3(camPosition_.x, camPosition_.y, camPosition_.z);
@@ -55,15 +57,19 @@ SceneGraph::SceneGraph()
     spLight.outerCutoff = cos(glm::radians(15.0f));
 
     spotLights_[0] = spLight;
-
-    camPosition_ = glm::vec3(0.0f);
-    camDirection_ = glm::vec3(0.0f, 0.0f, -1.0f);
 }
 
 void SceneGraph::UseCamera(const Camera& camera)
 {
     camPosition_ = camera.GetPosition();
     camDirection_ = camera.GetDirection();
+    // Hack
+    // Makes first spotlight paired to the camera
+    if (spotLights_.size() > 0)
+    {
+        spotLights_[0].position = camPosition_;
+        spotLights_[0].direction = camDirection_;
+    }
     SortObjects();
 }
 
