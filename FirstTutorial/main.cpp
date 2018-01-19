@@ -466,8 +466,8 @@ Scene load_scene()
     meshes.push_back(create_plane());
     meshes.push_back(create_quad());
 
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Reflection.vert").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Reflection.frag").make_preferred();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Refraction.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
     boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
     Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());

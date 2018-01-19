@@ -47,6 +47,7 @@ void Scene::Render()
 
     glm::mat4 projection = cam.GetProjection();
     glm::mat4 view = cam.MakeViewMat();
+	glm::vec3 position = cam.GetPosition();
 
 	Shader& standardShader = shaders_[0];
 	Shader& outlineShader = shaders_[1];

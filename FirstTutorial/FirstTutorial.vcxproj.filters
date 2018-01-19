@@ -329,6 +329,12 @@
     <None Include="Shaders\Skybox.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\Reflection.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Refraction.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />

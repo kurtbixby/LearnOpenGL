@@ -7,7 +7,7 @@
 #include "Structs.h"
 
 // Texture size has to change on Mac. Cause of skybox issue?
-Framebuffer::Framebuffer(): Framebuffer(1600, 1200, GL_FRAMEBUFFER) {}
+Framebuffer::Framebuffer(): Framebuffer(800, 600, GL_FRAMEBUFFER) {}
 
 Framebuffer::Framebuffer(unsigned int width, unsigned int height, GLenum target)
 {
