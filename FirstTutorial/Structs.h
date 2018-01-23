@@ -5,7 +5,6 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include <assimp/types.h>
 
 #define MAX_DIFFUSE_TEX 3
 #define MAX_SPECULAR_TEX 3
@@ -20,14 +19,15 @@ struct Vertex
 enum class TextureType
 {
 	Diffuse,
-	Specular
+	Specular,
+	Reflection
 };
 
 struct Texture
 {
 	unsigned int id;
 	TextureType type;
-	aiString path;
+	std::string path;
 };
 
 enum class FBAttachment

@@ -5,24 +5,23 @@
 #include "Structs.h"
 #include "Shader.h"
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
 {
 	vertices_ = vertices;
 	indices_ = indices;
-	textures_ = textures;
 
 	initializeMesh();
 }
 
-void Mesh::Draw(Shader shader)
+void Mesh::Draw(Shader shader, vector<Texture> textures)
 {
 	unsigned int diffuseTexs = 0;
 	unsigned int specularTexs = 0;
 
-	for (int i = 0; i < textures_.size(); i++)
+	for (int i = 0; i < textures.size(); i++)
 	{
 		std::string texName = "material.";
-		Texture tex = textures_[i];
+		Texture tex = textures[i];
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, tex.id);
 		switch(tex.type)

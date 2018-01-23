@@ -9,8 +9,8 @@
 
 #include "Camera.h"
 #include "Framebuffer.h"
-#include "Mesh.h"
 #include "Model.h"
+#include "Primitives.h"
 #include "Scene.h"
 #include "SceneGraph.h"
 #include "Shader.h"
@@ -23,16 +23,13 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "ModelLoader.h"
 
 int create_window(GLFWwindow** foo);
 Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
-
-Mesh create_box();
-Mesh create_plane();
-Mesh create_quad();
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 Scene load_scene();
@@ -53,7 +50,7 @@ float last_y = current_y;
 
 float y_offset = 0.0f;
 
-unordered_map<string, Model> loaded_models_ = unordered_map<string, Model>();
+//unordered_map<string, Model> loaded_models_ = unordered_map<string, Model>();
 
 int main()
 {
@@ -303,154 +300,6 @@ void generate_cube_locations(const unsigned number, glm::vec3* const cube_array)
 	}
 }
 
-Mesh create_box()
-{
-	float vertices[] = {
-		// positions          // normals           // texture coords
-        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f
-	};
-
-	int length = sizeof(vertices) / sizeof(vertices[0]);
-
-	std::vector<Vertex> vertexes;
-
-	for (int i = 0; i < length; i += 8)
-	{
-		glm::vec3 pos = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-		glm::vec3 norm = glm::vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-		glm::vec2 coords = glm::vec2(vertices[i + 6], vertices[i + 7]);
-
-		vertexes.push_back(create_vertex(pos, norm, coords));
-	}
-
-	std::vector<unsigned int> indices = {
-		0, 1, 2,
-		3, 4, 5,
-		6, 7, 8,
-		9, 10, 11,
-		12, 13, 14,
-		15, 16, 17,
-		18, 19, 20,
-		21, 22, 23,
-		24, 25, 26,
-		27, 28, 29,
-		30, 31, 32,
-		33, 34, 35
-	};
-
-	std::vector<Texture> textures;
-	Texture diffTex = load_texture("Resources", "container2_diffuse.png", TextureType::Diffuse);
-	Texture specTex = load_texture("Resources", "container2_specular.png", TextureType::Specular);
-
-	textures.push_back(diffTex);
-	textures.push_back(specTex);
-
-	return Mesh(vertexes, indices, textures);
-}
-
-Mesh create_plane()
-{
-    float vertices[] = {
-        // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
-        -5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,
-        -5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-         5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
-
-         5.0f, -0.5f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
-         5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 2.0f,
-        -5.0f, -0.5f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f                            
-    };
-
-    int length = sizeof(vertices) / sizeof(vertices[0]);
-
-    std::vector<Vertex> vertexes;
-
-    for (int i = 0; i < length; i += 8)
-    {
-        glm::vec3 pos = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-        glm::vec3 norm = glm::vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-        glm::vec2 coords = glm::vec2(vertices[i + 6], vertices[i + 7]);
-
-        vertexes.push_back(create_vertex(pos, norm, coords));
-    }
-
-    std::vector<unsigned int> indices = {
-        0, 1, 2,
-        3, 4, 5
-    };
-
-    std::vector<Texture> textures;
-    Texture diffTex = load_texture("Resources", "awesomeface.png", TextureType::Diffuse);
-
-    textures.push_back(diffTex);
-
-    return Mesh(vertexes, indices, textures);
-}
-
-Mesh create_quad()
-{
-    std::vector<Vertex> vertices = {
-        create_vertex( -0.5f, -0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f ),
-        create_vertex(  0.5f, -0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f ),
-        create_vertex(  0.5f,  0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f ),
-        create_vertex(  0.5f,  0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f ),
-        create_vertex( -0.5f,  0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f ),
-        create_vertex( -0.5f, -0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f )
-    };
-
-    std::vector<unsigned int> indices = {
-        0, 1, 2,
-        3, 4, 5
-    };
-
-    std::vector<Texture> textures;
-    Texture diffTex = load_texture("Resources", "blending_transparent_window.png", TextureType::Diffuse);
-
-    textures.push_back(diffTex);
-
-    return Mesh(vertices, indices, textures);
-}
-
 Scene load_scene()
 {
     SceneGraph graph = SceneGraph();
@@ -461,28 +310,37 @@ Scene load_scene()
     std::vector<Camera> cams = std::vector<Camera>();
     cams.push_back(cam);
 
-    std::vector<Mesh> meshes = std::vector<Mesh>();
-    meshes.push_back(create_box());
-    meshes.push_back(create_plane());
-    meshes.push_back(create_quad());
+    std::vector<Model> models = std::vector<Model>();
+	ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit").make_preferred());
+	Model crysis = crysisLoader.loadModel("nanosuit.obj");
+	models.push_back(create_box());
+	models.push_back(create_plane());
+	models.push_back(create_quad());
+	models.push_back(crysis);
 
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Refraction.frag").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/MultipleTextures.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+
+	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
+	Shader transparent_shader = Shader(vertex_shader_path.string().c_str(), transparent_fragment_shader_path.string().c_str());
+
     boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
     Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
+
 	boost::filesystem::path skybox_vertex_shader_path = boost::filesystem::path("Shaders/Skybox.vert").make_preferred();
 	boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
 	Shader skybox_shader = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
 
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
+	shaders.push_back(transparent_shader);
     shaders.push_back(outline_shader);
 	shaders.push_back(skybox_shader);
 
 	Cubemap skybox = Cubemap();
 
-    Scene scene = Scene(graph, cams, meshes, shaders, skybox);
+    Scene scene = Scene(graph, cams, models, shaders, skybox);
 
     return scene;
 }

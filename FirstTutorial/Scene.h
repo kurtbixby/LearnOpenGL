@@ -5,6 +5,7 @@
 
 #include "Camera.h"
 #include "Cubemap.h"
+#include "Model.h"
 #include "Object.h"
 #include "SceneGraph.h"
 #include "Structs.h"
@@ -14,10 +15,10 @@ class Scene
 {
 public:
 	Scene();
-	Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Mesh> meshes, std::vector<Shader> shaders, Cubemap skybox);
+	Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> models, std::vector<Shader> shaders, Cubemap skybox);
 
 	void LoadCameras(std::vector<Camera>);
-	void LoadMeshes(std::vector<Mesh>);
+	void LoadModels(std::vector<Model>);
 	void LoadShaders(std::vector<Shader>);
 
 	void Render();
@@ -28,8 +29,11 @@ private:
 	Cubemap skybox_;
 
 	std::vector<Camera> cams_;
-	std::vector<Mesh> meshes_;
+	std::vector<Model> models_;
 	std::vector<Shader> shaders_;
+
+	void RenderObjects(const vector<Object>& objects, const Shader& shader);
+	void SendLights(Shader& shader, int DIR_LIGHTS, std::vector<Light>& lights, int POINT_LIGHTS, std::vector<PointLight>& pointLights, int SPOT_LIGHTS, std::vector<SpotLight>& spotLights);
 };
 
 #endif
