@@ -78,10 +78,16 @@ void Cubemap::Activate()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texId_);
 }
 
+void Cubemap::Deactivate()
+{
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
 void Cubemap::Draw()
 {
 	Activate();
 	glBindVertexArray(vao_);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
+	Deactivate();
 }

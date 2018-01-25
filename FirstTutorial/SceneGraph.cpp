@@ -14,25 +14,25 @@ SceneGraph::SceneGraph()
     camDirection_ = glm::vec3(0.0f, 0.0f, -1.0f);
 
     objects_ = std::vector<Object>();
-    objects_.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
-    objects_.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, false));
-    objects_.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, false));
-    objects_.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true, true));
-    objects_.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true, true));
-    objects_.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true, true));
-    objects_.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true, true));
-    objects_.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true, true));
+    //objects_.push_back(Object(glm::vec3(0.0f), 1, 1.0f, false, true));
+    //objects_.push_back(Object(glm::vec3(-1.0f, 0.0f, -1.0f), 0, 1.0f, false));
+    //objects_.push_back(Object(glm::vec3(2.0f, 0.0f, 0.0f), 0, 1.0f, false));
+    //objects_.push_back(Object(glm::vec3(-1.5f,  0.0f, -0.48f), 2, 1.0f, false, true, true));
+    //objects_.push_back(Object(glm::vec3( 1.5f,  0.0f,  0.51f), 2, 1.0f, false, true, true));
+    //objects_.push_back(Object(glm::vec3( 0.0f,  0.0f,  0.7f), 2, 1.0f, false, true, true));
+    //objects_.push_back(Object(glm::vec3(-0.3f,  0.0f, -2.3f), 2, 1.0f, false, true, true));
+    //objects_.push_back(Object(glm::vec3( 0.5f,  0.0f, -0.6f), 2, 1.0f, false, true, true));
 	objects_.push_back(Object(glm::vec3(0.0f, 0.0f, -3.0f), 3, 1.0f, false));
 
-	lights_ = std::vector<Light>(1);
+	lights_ = std::vector<Light>();
 	Light dirLight;
 	dirLight.direction = glm::vec3(-12.0f, -10.0f, 20.0f);
 	dirLight.ambient = ColorConstants::WhiteLight() * 0.5f;
 	dirLight.diffuse = ColorConstants::WhiteLight() * 0.2f;
 	dirLight.specular = glm::vec3(1.0f);
-	lights_[0] = dirLight;
+	lights_.push_back(dirLight);
 
-	pointLights_ = std::vector<PointLight>(2);
+	pointLights_ = std::vector<PointLight>();
 	PointLight pLight;
     pLight.position = glm::vec3(0.0f);
     pLight.ambient = ColorConstants::GreenLight() * 0.5f;
@@ -41,13 +41,13 @@ SceneGraph::SceneGraph()
     pLight.constant = 1.0f;
     pLight.linear = 0.09f;
     pLight.quadratic = 0.032f;
-    pointLights_[0] = pLight;
+    //pointLights_.push_back(pLight);
 
     // pLight2 is the same as pLight1, but in a different location
     pLight.position = glm::vec3(-5.0f);
-    pointLights_[1] = pLight;
+    //pointLights_.push_back(pLight);
 
-	spotLights_ = std::vector<SpotLight>(1);
+	spotLights_ = std::vector<SpotLight>();
 	SpotLight spLight;
     spLight.position = glm::vec3(camPosition_.x, camPosition_.y, camPosition_.z);
     spLight.direction = glm::vec3(camDirection_.x, camDirection_.y, camDirection_.z);
@@ -57,7 +57,7 @@ SceneGraph::SceneGraph()
     spLight.innerCutoff = cos(glm::radians(10.0f));
     spLight.outerCutoff = cos(glm::radians(15.0f));
 
-    spotLights_[0] = spLight;
+    //spotLights_.push_back(spLight);
 }
 
 void SceneGraph::UseCamera(const Camera& camera)

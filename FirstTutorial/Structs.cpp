@@ -8,12 +8,25 @@
 #include "stb_image.h"
 #endif
 
-void load_texture_file(const char* texture_file, const GLenum source_format, const GLenum texture_type)
+void load_texture_file(const char* texture_file, const GLenum texture_type)
 {
 	std::cout << "LOADING: " << texture_file << std::endl;
 	int width, height, nr_channels;
 	unsigned char* data = stbi_load(texture_file, &width, &height, &nr_channels, 0);
 
+	GLenum source_format;
+	switch(nr_channels)
+	{
+	case 1:
+		source_format = GL_RED;
+		break;
+	case 3:
+		source_format = GL_RGB;
+		break;
+	default:
+		source_format = GL_RGBA;
+		break;
+	}
 	if (data)
 	{
 		/*

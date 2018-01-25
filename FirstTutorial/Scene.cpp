@@ -90,6 +90,9 @@ void Scene::Render()
 	glDepthFunc(GL_LEQUAL);
 	skyboxShader.Use();
 
+	glActiveTexture(GL_TEXTURE0 + 2);
+	skyboxShader.SetInt("skybox", 2);
+
 	skyboxShader.SetMatrix4fv("projection", glm::value_ptr(projection));
 	skyboxShader.SetMatrix4fv("view", glm::value_ptr(glm::mat4(glm::mat3(view))));
 
@@ -110,7 +113,15 @@ void Scene::Render()
     standardShader.SetMatrix4fv("projection", glm::value_ptr(projection));
     standardShader.SetMatrix4fv("view", glm::value_ptr(view));
 	SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
+
+	standardShader.SetInt("skybox", 20);
+	glActiveTexture(GL_TEXTURE0 + 20);
+	skybox_.Activate();
+
 	RenderObjects(regular, standardShader);
+
+	skybox_.Deactivate();
+	glActiveTexture(GL_TEXTURE0);
 
 	transparentShader.Use();
 	transparentShader.SetMatrix4fv("projection", glm::value_ptr(projection));

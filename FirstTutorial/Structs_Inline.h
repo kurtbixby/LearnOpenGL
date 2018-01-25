@@ -42,7 +42,7 @@ inline unsigned int texture_from_file(const char* fileName, std::string director
 	return load_texture(texturePath.string());
 }
 
-inline unsigned int load_texture(std::string texture_path, const GLenum source_format, const GLenum wrap_type)
+inline unsigned int load_texture(std::string texture_path, const GLenum wrap_type)
 {
 	const char* texture_file = texture_path.c_str();
 	unsigned int texture;
@@ -55,7 +55,9 @@ inline unsigned int load_texture(std::string texture_path, const GLenum source_f
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	load_texture_file(texture_file, source_format, GL_TEXTURE_2D);
+	load_texture_file(texture_file, GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return texture;
 }
@@ -76,8 +78,10 @@ inline unsigned int load_cubemap(std::vector<std::string> texturePaths)
 	for (int i = 0; i < 6; i++)
 	{
 		const char* texture_file = texturePaths[i].c_str();
-		load_texture_file(texture_file, GL_RGB, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
+		load_texture_file(texture_file, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
 	}
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	return cubemapTexId;
 }

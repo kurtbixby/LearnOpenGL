@@ -17,6 +17,7 @@ void Mesh::Draw(Shader shader, vector<Texture> textures)
 {
 	unsigned int diffuseTexs = 0;
 	unsigned int specularTexs = 0;
+	unsigned int reflectionMaps = 0;
 
 	for (int i = 0; i < textures.size(); i++)
 	{
@@ -36,10 +37,16 @@ void Mesh::Draw(Shader shader, vector<Texture> textures)
 				shader.SetInt(texName, i);
 				specularTexs += 1;
 				break;
+			case TextureType::Reflection:
+				texName.append("reflection[").append(std::to_string(reflectionMaps)).append("]");
+				shader.SetInt(texName, i);
+				reflectionMaps += 1;
+				break;
 		}
 	}
 	shader.SetInt("DIFFUSE_TEXS", diffuseTexs);
 	shader.SetInt("SPECULAR_TEXS", specularTexs);
+	shader.SetInt("REFLECTION_MAPS", reflectionMaps);
 
 	glBindVertexArray(vao_);
 	glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);

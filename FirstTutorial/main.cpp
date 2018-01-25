@@ -139,6 +139,8 @@ int main()
 
 		// bind screen quad
 		glBindVertexArray(quadVAO);
+
+		glActiveTexture(GL_TEXTURE0);
 		// bind fb texture
 		glBindTexture(GL_TEXTURE_2D, fbuffer.RetrieveColorBuffer(0).TargetName);
 		// send kernel to shader
@@ -150,6 +152,8 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
         // break;
+
+		glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     glfwTerminate();
@@ -311,7 +315,7 @@ Scene load_scene()
     cams.push_back(cam);
 
     std::vector<Model> models = std::vector<Model>();
-	ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit").make_preferred());
+	ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit_reflection").make_preferred());
 	Model crysis = crysisLoader.loadModel("nanosuit.obj");
 	models.push_back(create_box());
 	models.push_back(create_plane());
@@ -319,7 +323,7 @@ Scene load_scene()
 	models.push_back(crysis);
 
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/MultipleTextures.frag").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
