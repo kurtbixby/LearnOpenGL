@@ -17,6 +17,7 @@
 #include "SceneGraph.h"
 #include "Shader.h"
 #include "Structs.h"
+#include "UniformBlockBuffer.h"
 
 Scene::Scene()
 {
@@ -47,7 +48,12 @@ void Scene::Render()
 
     glm::mat4 projection = cam.GetProjection();
     glm::mat4 view = cam.MakeViewMat();
-	glm::vec3 position = cam.GetPosition();
+
+	const GLuint matrixBindIndex = 0;
+	UniformBlockBuffer<glm::mat4> matBuff = UniformBlockBuffer<glm::mat4>(2);
+	matBuff.FillBuffer(projection);
+	matBuff.FillBuffer(view);
+	matBuff.BindToIndex(matrixBindIndex);
 
 	Shader& standardShader = shaders_[0];
 	Shader& transparentShader = shaders_[1];
@@ -93,8 +99,7 @@ void Scene::Render()
 	glActiveTexture(GL_TEXTURE0 + 2);
 	skyboxShader.SetInt("skybox", 2);
 
-	skyboxShader.SetMatrix4fv("projection", glm::value_ptr(projection));
-	skyboxShader.SetMatrix4fv("view", glm::value_ptr(glm::mat4(glm::mat3(view))));
+	skyboxShader.BindUniformBlock("Matrices", matrixBindIndex);
 
 	skybox_.Draw();
 	glDepthFunc(GL_LESS);
@@ -104,15 +109,45 @@ void Scene::Render()
 	std::vector<PointLight> pointLights = graph_.RelevantPointLights();
 	std::vector<SpotLight> spotLights = graph_.RelevantSpotLights();
 
-	// Lights to shader section
-	int DIR_LIGHTS = lights.size();
-	int POINT_LIGHTS = pointLights.size();
-	int SPOT_LIGHTS = spotLights.size();
+	unsigned int DIR_LIGHTS = lights.size();
+	unsigned int POINT_LIGHTS = pointLights.size();
+	unsigned int SPOT_LIGHTS = spotLights.size();
+
+	const unsigned int dirLightBindIndex = 1;
+	UniformBlockBuffer<Light> dirLightBuff = UniformBlockBuffer<Light>(MAX_DIR_LIGHTS);
+	dirLightBuff.BindToIndex(dirLightBindIndex);
+	dirLightBuff.FillBuffer(*lights.data(), DIR_LIGHTS);
+
+	const unsigned int pointLightBindIndex = 2;
+	UniformBlockBuffer<PointLight> pointLightBuff = UniformBlockBuffer<PointLight>(MAX_POINT_LIGHTS);
+	pointLightBuff.BindToIndex(pointLightBindIndex);
+	pointLightBuff.FillBuffer(*pointLights.data(), POINT_LIGHTS);
+
+	const unsigned int spotLightBindIndex = 3;
+	UniformBlockBuffer<SpotLight> spotLightBuff = UniformBlockBuffer<SpotLight>(MAX_SPOT_LIGHTS);
+	spotLightBuff.BindToIndex(spotLightBindIndex);
+	spotLightBuff.FillBuffer(*spotLights.data(), SPOT_LIGHTS);
+
+	auto foo = lights.data();
+
+	const unsigned int lightMetaBindIndex = 4;
+	UniformBlockBuffer<unsigned int> lightMeta = UniformBlockBuffer<unsigned int>(1);
+	lightMeta.BindToIndex(lightMetaBindIndex);
+	lightMeta.FillBuffer(DIR_LIGHTS);
+	lightMeta.FillBuffer(POINT_LIGHTS);
+	lightMeta.FillBuffer(SPOT_LIGHTS);
+
+	/*std::copy(lights.begin(), lights.end(), scene_lighting.lights);
+	std::copy(pointLights.begin(), pointLights.end(), scene_lighting.pointLights);
+	std::copy(spotLights.begin(), spotLights.end(), scene_lighting.spotLights);*/
 
 	standardShader.Use();
-    standardShader.SetMatrix4fv("projection", glm::value_ptr(projection));
-    standardShader.SetMatrix4fv("view", glm::value_ptr(view));
-	SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
+	standardShader.BindUniformBlock("Matrices", matrixBindIndex);
+	standardShader.BindUniformBlock("DirLighting", dirLightBindIndex);
+	standardShader.BindUniformBlock("PointLighting", pointLightBindIndex);
+	standardShader.BindUniformBlock("SpotLighting", spotLightBindIndex);
+	standardShader.BindUniformBlock("LightingMetaData", lightMetaBindIndex);
+	//SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
 
 	standardShader.SetInt("skybox", 20);
 	glActiveTexture(GL_TEXTURE0 + 20);
@@ -124,8 +159,7 @@ void Scene::Render()
 	glActiveTexture(GL_TEXTURE0);
 
 	transparentShader.Use();
-	transparentShader.SetMatrix4fv("projection", glm::value_ptr(projection));
-	transparentShader.SetMatrix4fv("view", glm::value_ptr(view));
+	transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
 	SendLights(transparentShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
 	RenderObjects(transparent, transparentShader);
 
@@ -145,8 +179,7 @@ void Scene::Render()
 
     // Outline pass
     outlineShader.Use();
-    outlineShader.SetMatrix4fv("projection", glm::value_ptr(projection));
-    outlineShader.SetMatrix4fv("view", glm::value_ptr(view));
+	outlineShader.BindUniformBlock("Matrices", matrixBindIndex);
 	RenderObjects(stenciled, outlineShader);
 
     glStencilMask(0xFF);

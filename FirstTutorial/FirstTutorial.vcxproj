@@ -49,6 +49,7 @@
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="Structs_Inline.h" />
+    <ClInclude Include="UniformBlockBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\awesomeface.png" />
@@ -158,6 +159,7 @@
     <None Include="Shaders\Uniform.frag" />
     <None Include="Shaders\ViewLighting.frag" />
     <None Include="Shaders\ViewLighting.vert" />
+    <None Include="Shaders\SkyboxBuff.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />

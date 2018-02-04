@@ -110,6 +110,9 @@
     <ClInclude Include="ModelLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UniformBlockBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\wall.jpg">
@@ -421,6 +424,9 @@
     </None>
     <None Include="Resources\nanosuit_reflection\nanosuit.blend" />
     <None Include="Resources\nanosuit_reflection\nanosuit.mtl" />
+    <None Include="Shaders\SkyboxBuff.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />

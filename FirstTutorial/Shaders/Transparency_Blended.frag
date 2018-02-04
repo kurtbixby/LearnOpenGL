@@ -48,35 +48,64 @@ struct SpotLight {
 	float outerCutoff;
 };
 
-in vec3 Normal;
-in vec3 FragPos;
-in vec2 TexCoords;
-
 out vec4 FragColor;
 
+in VS_OUT
+{
+	vec3 Normal;
+	vec3 FragPos;
+	vec2 TexCoords;
+} fs_in;
+
+layout (std140) uniform Matrices
+{
+	mat4 projection;
+	mat4 view;
+};
+
+layout (std140) uniform DirLighting
+{
+	Light lights[MAX_DIR_LIGHTs];
+};
+
+layout (std140) uniform PointLighting
+{
+	PointLight pointLights[MAX_POINT_LIGHTS];
+};
+
+layout (std140) uniform SpotLighting
+{
+	SpotLight spotLights[MAX_SPOT_LIGHTS];
+};
+
+layout (std140) uniform LightingMetaData
+{
+	unsigned int DIR_LIGHTS;
+	unsigned int POINT_LIGHTS;
+	unsigned int SPOT_LIGHTS;
+};
+
 uniform Material material;
-uniform Light lights[MAX_DIR_LIGHTS];
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
-uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
-uniform int DIR_LIGHTS;
-uniform int POINT_LIGHTS;
-uniform int SPOT_LIGHTS;
+//uniform Light lights[MAX_DIR_LIGHTS];
+//uniform PointLight pointLights[MAX_POINT_LIGHTS];
+//uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
+//uniform int DIR_LIGHTS;
+//uniform int POINT_LIGHTS;
+//uniform int SPOT_LIGHTS;
 
 uniform int DIFFUSE_TEXS;
 uniform int SPECULAR_TEXS;
-
-uniform mat4 view;
 
 vec3 global_lighting(Light light, vec3 diffuseValue, vec3 specularValue)
 {
 	vec3 ambient = light.ambient * diffuseValue;
 
 	vec3 viewLightDir = normalize(-vec3(view * vec4(light.direction, 1.0f)));
-	vec3 norm = normalize(Normal);
+	vec3 norm = normalize(fs_in.Normal);
 	float diff = max(dot(norm, viewLightDir), 0.0f);
 	vec3 diffuse = light.diffuse * diff * diffuseValue;
 
-	vec3 viewDir = normalize(-FragPos);
+	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-viewLightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	vec3 specular = light.specular * spec * specularValue;
@@ -90,17 +119,17 @@ vec3 point_lighting(PointLight pointLight, vec3 diffuseValue, vec3 specularValue
 	vec3 ambient = pointLight.ambient * diffuseValue;
 
 	vec3 viewLightPos = vec3(view * vec4(pointLight.position, 1.0f));
-	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(viewLightPos - FragPos);
+	vec3 norm = normalize(fs_in.Normal);
+	vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
 	float diff = max(dot(norm, lightDir), 0.0f);
 	vec3 diffuse = pointLight.diffuse * diff * diffuseValue;
 
-	vec3 viewDir = normalize(-FragPos);
+	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	vec3 specular = pointLight.specular * spec * specularValue;
 
-	float distance = length(viewLightPos - FragPos);
+	float distance = length(viewLightPos - fs_in.FragPos);
 	float attenuation = 1.0f / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * (distance * distance));			
 
 	vec3 result = attenuation * (ambient + diffuse + specular);
@@ -113,7 +142,7 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 	vec3 result = vec3(0.0f);
 
 	vec3 viewLightPos = vec3(view * vec4(spotLight.position, 1.0f));
-	vec3 lightDir = normalize(viewLightPos - FragPos);
+	vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
 
 	float foo = dot(-lightDir, normalize(vec3(view * vec4(spotLight.direction, 0.0f))));
 	if (foo > spotLight.outerCutoff)
@@ -126,11 +155,11 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 
 		vec3 ambient = spotLight.ambient * diffuseValue;
 
-		vec3 norm = normalize(Normal);
+		vec3 norm = normalize(fs_in.Normal);
 		float diff = max(dot(norm, lightDir), 0.0f);
 		vec3 diffuse = spotLight.diffuse * diff * diffuseValue;
 
-		vec3 viewDir = normalize(-FragPos);
+		vec3 viewDir = normalize(-fs_in.FragPos);
 		vec3 reflectDir = reflect(-lightDir, norm);
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
 		vec3 specular = spotLight.specular * spec * specularValue;
@@ -145,7 +174,7 @@ void main()
 	vec4 rawDiffuseValue = vec4(0.0f);
 	if (DIFFUSE_TEXS > 0)
 	{
-		rawDiffuseValue = texture(material.diffuse[0], TexCoords);
+		rawDiffuseValue = texture(material.diffuse[0], fs_in.TexCoords);
 		if (rawDiffuseValue.a < DISCARD_THRESHOLD)
 		{
 			discard;
@@ -155,7 +184,7 @@ void main()
 	vec4 rawSpecularValue = vec4(0.0f);
 	if (SPECULAR_TEXS > 0)
 	{
-		rawSpecularValue = texture(material.specular[0], TexCoords);
+		rawSpecularValue = texture(material.specular[0], fs_in.TexCoords);
 		if (rawSpecularValue.a < DISCARD_THRESHOLD)
 		{
 			discard;

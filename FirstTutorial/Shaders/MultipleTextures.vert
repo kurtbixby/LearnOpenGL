@@ -3,18 +3,25 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNorm;
 layout (location = 2) in vec2 aTexCoords;
 
-out vec3 Normal;
-out vec3 FragPos;
-out vec2 TexCoords;
+out VS_OUT
+{
+	vec3 Normal;
+	vec3 FragPos;
+	vec2 TexCoords;
+} vs_out;
+
+layout (std140) uniform Matrices
+{
+	mat4 projection;
+	mat4 view;
+};
 
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
 
 void main()
 {
 	gl_Position = projection * view * model * vec4(aPos, 1.0f);
-	Normal = mat3(transpose(inverse(view * model))) * aNorm;
-	FragPos = vec3(view * model * vec4(aPos, 1.0f));
-	TexCoords = aTexCoords;
+	vs_out.Normal = mat3(transpose(inverse(view * model))) * aNorm;
+	vs_out.FragPos = vec3(view * model * vec4(aPos, 1.0f));
+	vs_out.TexCoords = aTexCoords;
 }

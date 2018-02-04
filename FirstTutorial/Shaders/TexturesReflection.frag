@@ -48,11 +48,20 @@ struct SpotLight {
 	float outerCutoff;
 };
 
-in vec3 Normal;
-in vec3 FragPos;
-in vec2 TexCoords;
-
 out vec4 FragColor;
+
+in VS_OUT
+{
+	vec3 Normal;
+	vec3 FragPos;
+	vec2 TexCoords;
+} fs_in;
+
+layout (std140) uniform Matrices
+{
+	mat4 projection;
+	mat4 view;
+};
 
 uniform Material material;
 uniform Light lights[MAX_DIR_LIGHTS];
@@ -68,18 +77,16 @@ uniform int REFLECTION_MAPS;
 
 uniform samplerCube skybox;
 
-uniform mat4 view;
-
 vec3 global_lighting(Light light, vec3 diffuseValue, vec3 specularValue)
 {
 	vec3 ambient = light.ambient * diffuseValue;
 
 	vec3 viewLightDir = normalize(-vec3(view * vec4(light.direction, 1.0f)));
-	vec3 norm = normalize(Normal);
+	vec3 norm = normalize(fs_in.Normal);
 	float diff = max(dot(norm, viewLightDir), 0.0f);
 	vec3 diffuse = light.diffuse * diff * diffuseValue;
 
-	vec3 viewDir = normalize(-FragPos);
+	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-viewLightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	vec3 specular = light.specular * spec * specularValue;
@@ -93,17 +100,17 @@ vec3 point_lighting(PointLight pointLight, vec3 diffuseValue, vec3 specularValue
 	vec3 ambient = pointLight.ambient * diffuseValue;
 
 	vec3 viewLightPos = vec3(view * vec4(pointLight.position, 1.0f));
-	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(viewLightPos - FragPos);
+	vec3 norm = normalize(fs_in.Normal);
+	vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
 	float diff = max(dot(norm, lightDir), 0.0f);
 	vec3 diffuse = pointLight.diffuse * diff * diffuseValue;
 
-	vec3 viewDir = normalize(-FragPos);
+	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	vec3 specular = pointLight.specular * spec * specularValue;
 
-	float distance = length(viewLightPos - FragPos);
+	float distance = length(viewLightPos - fs_in.FragPos);
 	float attenuation = 1.0f / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * (distance * distance));			
 
 	vec3 result = attenuation * (ambient + diffuse + specular);
@@ -116,7 +123,7 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 	vec3 result = vec3(0.0f);
 
 	vec3 viewLightPos = vec3(view * vec4(spotLight.position, 1.0f));
-	vec3 lightDir = normalize(viewLightPos - FragPos);
+	vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
 
 	float foo = dot(-lightDir, normalize(vec3(view * vec4(spotLight.direction, 0.0f))));
 	if (foo > spotLight.outerCutoff)
@@ -129,11 +136,11 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 
 		vec3 ambient = spotLight.ambient * diffuseValue;
 
-		vec3 norm = normalize(Normal);
+		vec3 norm = normalize(fs_in.Normal);
 		float diff = max(dot(norm, lightDir), 0.0f);
 		vec3 diffuse = spotLight.diffuse * diff * diffuseValue;
 
-		vec3 viewDir = normalize(-FragPos);
+		vec3 viewDir = normalize(-fs_in.FragPos);
 		vec3 reflectDir = reflect(-lightDir, norm);
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
 		vec3 specular = spotLight.specular * spec * specularValue;
@@ -145,14 +152,14 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 
 vec3 skybox_reflection()
 {	
-	vec3 incident = normalize(FragPos);
-	vec3 norm = normalize(Normal);
+	vec3 incident = normalize(fs_in.FragPos);
+	vec3 norm = normalize(fs_in.Normal);
 	vec3 reflected = reflect(incident, norm);
 	// this feels ugly and requires excess processing?
 	reflected = vec3(inverse(view) * vec4(reflected, 0.0f));
 
 	vec3 reflectionColor = texture(skybox, reflected).rgb;
-	vec3 reflectionIntensity = texture(material.reflection[0], TexCoords).rgb;
+	vec3 reflectionIntensity = texture(material.reflection[0], fs_in.TexCoords).rgb;
 	return reflectionColor * reflectionIntensity;
 } 
 
@@ -161,13 +168,13 @@ void main()
 	vec3 diffuseValue = vec3(0.0f);
 	if (DIFFUSE_TEXS > 0)
 	{
-		diffuseValue = vec3(texture(material.diffuse[0], TexCoords));
+		diffuseValue = vec3(texture(material.diffuse[0], fs_in.TexCoords));
 	}
 
 	vec3 specularValue = vec3(0.0f);
 	if (SPECULAR_TEXS > 0)
 	{
-		specularValue = vec3(texture(material.specular[0], TexCoords));
+		specularValue = vec3(texture(material.specular[0], fs_in.TexCoords));
 	}
 	
 	vec3 reflection = vec3(0.0f);
