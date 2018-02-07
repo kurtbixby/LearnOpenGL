@@ -24,6 +24,12 @@
 		90F8B9BB2027948D00EFAC5F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9BA2027948D00EFAC5F /* Cocoa.framework */; };
 		90F8B9BD2027953200EFAC5F /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9BC2027953200EFAC5F /* IOKit.framework */; };
 		90F8B9BF2027953700EFAC5F /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9BE2027953700EFAC5F /* CoreVideo.framework */; };
+		90F8B9C42027B7D100EFAC5F /* SceneLighting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90F8B9C32027B7D100EFAC5F /* SceneLighting.cpp */; };
+		90F8B9C82027BE9900EFAC5F /* Lights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90F8B9C72027BE9900EFAC5F /* Lights.cpp */; };
+		90F8B9CE202BB47A00EFAC5F /* libboost_filesystem.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9CB202BB47A00EFAC5F /* libboost_filesystem.dylib */; };
+		90F8B9CF202BB47A00EFAC5F /* libglfw.3.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9CC202BB47A00EFAC5F /* libglfw.3.2.dylib */; };
+		90F8B9D0202BB47A00EFAC5F /* libassimp.4.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9CD202BB47A00EFAC5F /* libassimp.4.0.1.dylib */; };
+		90F8B9D2202BB48F00EFAC5F /* libboost_system.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9D1202BB48F00EFAC5F /* libboost_system.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -76,6 +82,15 @@
 		90F8B9BA2027948D00EFAC5F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		90F8B9BC2027953200EFAC5F /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		90F8B9BE2027953700EFAC5F /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
+		90F8B9C12027A0A100EFAC5F /* IBufferable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IBufferable.h; sourceTree = "<group>"; };
+		90F8B9C22027B1C200EFAC5F /* SceneLighting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneLighting.h; sourceTree = "<group>"; };
+		90F8B9C32027B7D100EFAC5F /* SceneLighting.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SceneLighting.cpp; sourceTree = "<group>"; };
+		90F8B9C72027BE9900EFAC5F /* Lights.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Lights.cpp; sourceTree = "<group>"; };
+		90F8B9C9202BB43500EFAC5F /* assimp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = assimp; path = ../../../../../usr/local/Cellar/assimp/4.0.1/bin/assimp; sourceTree = "<group>"; };
+		90F8B9CB202BB47A00EFAC5F /* libboost_filesystem.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_filesystem.dylib; path = ../../../../../usr/local/Cellar/boost/1.65.1/lib/libboost_filesystem.dylib; sourceTree = "<group>"; };
+		90F8B9CC202BB47A00EFAC5F /* libglfw.3.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.2.dylib; path = ../../../../../usr/local/Cellar/glfw/3.2.1/lib/libglfw.3.2.dylib; sourceTree = "<group>"; };
+		90F8B9CD202BB47A00EFAC5F /* libassimp.4.0.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libassimp.4.0.1.dylib; path = ../../../../../usr/local/Cellar/assimp/4.0.1/lib/libassimp.4.0.1.dylib; sourceTree = "<group>"; };
+		90F8B9D1202BB48F00EFAC5F /* libboost_system.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_system.dylib; path = ../../../../../usr/local/Cellar/boost/1.65.1/lib/libboost_system.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +98,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				90F8B9D2202BB48F00EFAC5F /* libboost_system.dylib in Frameworks */,
+				90F8B9CE202BB47A00EFAC5F /* libboost_filesystem.dylib in Frameworks */,
+				90F8B9CF202BB47A00EFAC5F /* libglfw.3.2.dylib in Frameworks */,
+				90F8B9D0202BB47A00EFAC5F /* libassimp.4.0.1.dylib in Frameworks */,
 				90F8B9BF2027953700EFAC5F /* CoreVideo.framework in Frameworks */,
 				90F8B9BD2027953200EFAC5F /* IOKit.framework in Frameworks */,
 				90F8B9BB2027948D00EFAC5F /* Cocoa.framework in Frameworks */,
@@ -113,7 +132,6 @@
 		90743CFD20278FBF0041BE49 /* FirstTutorial */ = {
 			isa = PBXGroup;
 			children = (
-				90F8B9B62027931C00EFAC5F /* include */,
 				90F8B9A82027901200EFAC5F /* Camera.cpp */,
 				90F8B9952027901100EFAC5F /* Camera.h */,
 				90F8B9A72027901200EFAC5F /* Cubemap.cpp */,
@@ -121,7 +139,11 @@
 				90F8B99A2027901100EFAC5F /* Framebuffer.cpp */,
 				90F8B9942027901100EFAC5F /* Framebuffer.h */,
 				90F8B99D2027901200EFAC5F /* glad.c */,
+				90F8B9C12027A0A100EFAC5F /* IBufferable.h */,
+				90F8B9B62027931C00EFAC5F /* include */,
+				90F8B9C72027BE9900EFAC5F /* Lights.cpp */,
 				90F8B9A42027901200EFAC5F /* Lights.h */,
+				90743CFE20278FBF0041BE49 /* main.cpp */,
 				90F8B9A22027901200EFAC5F /* Mesh.cpp */,
 				90F8B9992027901100EFAC5F /* Mesh.h */,
 				90F8B98E2027901100EFAC5F /* Model.cpp */,
@@ -136,6 +158,8 @@
 				90F8B9A52027901200EFAC5F /* Scene.h */,
 				90F8B9912027901100EFAC5F /* SceneGraph.cpp */,
 				90F8B9A92027901300EFAC5F /* SceneGraph.h */,
+				90F8B9C32027B7D100EFAC5F /* SceneLighting.cpp */,
+				90F8B9C22027B1C200EFAC5F /* SceneLighting.h */,
 				90F8B98F2027901100EFAC5F /* Shader.cpp */,
 				90F8B9972027901100EFAC5F /* Shader.h */,
 				90F8B9922027901100EFAC5F /* Shaders */,
@@ -144,7 +168,6 @@
 				90F8B9982027901100EFAC5F /* Structs.cpp */,
 				90F8B9A12027901200EFAC5F /* Structs.h */,
 				90F8B98D2027901100EFAC5F /* UniformBlockBuffer.h */,
-				90743CFE20278FBF0041BE49 /* main.cpp */,
 			);
 			path = FirstTutorial;
 			sourceTree = "<group>";
@@ -152,6 +175,11 @@
 		90F8B9B72027948000EFAC5F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				90F8B9D1202BB48F00EFAC5F /* libboost_system.dylib */,
+				90F8B9CD202BB47A00EFAC5F /* libassimp.4.0.1.dylib */,
+				90F8B9CB202BB47A00EFAC5F /* libboost_filesystem.dylib */,
+				90F8B9CC202BB47A00EFAC5F /* libglfw.3.2.dylib */,
+				90F8B9C9202BB43500EFAC5F /* assimp */,
 				90F8B9BE2027953700EFAC5F /* CoreVideo.framework */,
 				90F8B9BC2027953200EFAC5F /* IOKit.framework */,
 				90F8B9BA2027948D00EFAC5F /* Cocoa.framework */,
@@ -217,6 +245,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				90F8B9C42027B7D100EFAC5F /* SceneLighting.cpp in Sources */,
 				90F8B9B52027901300EFAC5F /* Camera.cpp in Sources */,
 				90F8B9AB2027901300EFAC5F /* Model.cpp in Sources */,
 				90F8B9B42027901300EFAC5F /* Cubemap.cpp in Sources */,
@@ -230,6 +259,7 @@
 				90F8B9AF2027901300EFAC5F /* Structs.cpp in Sources */,
 				90F8B9B12027901300EFAC5F /* glad.c in Sources */,
 				90F8B9B32027901300EFAC5F /* Mesh.cpp in Sources */,
+				90F8B9C82027BE9900EFAC5F /* Lights.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,7 +373,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/boost/1.65.1/lib,
+					/usr/local/Cellar/glfw/3.2.1/lib,
+					/usr/local/Cellar/assimp/4.0.1/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYSTEM_FRAMEWORK_SEARCH_PATHS = /usr/local/bin;
 				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include;
@@ -355,7 +392,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/boost/1.65.1/lib,
+					/usr/local/Cellar/glfw/3.2.1/lib,
+					/usr/local/Cellar/assimp/4.0.1/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYSTEM_FRAMEWORK_SEARCH_PATHS = /usr/local/bin;
 				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include;

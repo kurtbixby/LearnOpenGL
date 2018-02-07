@@ -80,34 +80,34 @@ void Shader::AddDirectionLight(const Light& light, const int index)
 {
     std::string lightName = "lights[";
     lightName.append(std::to_string(index)).append("]");
-    SetVec3((lightName + std::string(".direction")).c_str(), light.direction.x, light.direction.y, light.direction.z);
-    SetVec3((lightName + std::string(".ambient")).c_str(), light.ambient.x, light.ambient.y, light.ambient.z);
-    SetVec3((lightName + std::string(".diffuse")).c_str(), light.diffuse.x, light.diffuse.y, light.diffuse.z);
-    SetVec3((lightName + std::string(".specular")).c_str(), light.specular.x, light.specular.y, light.specular.z);
+    SetVec3((lightName + std::string(".direction")).c_str(), light.data_.direction.x, light.data_.direction.y, light.data_.direction.z);
+    SetVec3((lightName + std::string(".ambient")).c_str(), light.data_.color_data.ambient.x, light.data_.color_data.ambient.y, light.data_.color_data.ambient.z);
+    SetVec3((lightName + std::string(".diffuse")).c_str(), light.data_.color_data.diffuse.x, light.data_.color_data.diffuse.y, light.data_.color_data.diffuse.z);
+    SetVec3((lightName + std::string(".specular")).c_str(), light.data_.color_data.specular.x, light.data_.color_data.specular.y, light.data_.color_data.specular.z);
 }
 
 void Shader::AddPointLight(const PointLight& pointLight, const int index)
 {
     std::string lightName = "pointLights[";
     lightName.append(std::to_string(index)).append("]");
-    SetVec3((lightName + std::string(".position")).c_str(), pointLight.position.x, pointLight.position.y, pointLight.position.z);
-    SetVec3((lightName + std::string(".ambient")).c_str(), pointLight.ambient.x, pointLight.ambient.y, pointLight.ambient.z);
-    SetVec3((lightName + std::string(".diffuse")).c_str(), pointLight.diffuse.x, pointLight.diffuse.y, pointLight.diffuse.z);
-    SetVec3((lightName + std::string(".specular")).c_str(), pointLight.specular.x, pointLight.specular.y, pointLight.specular.z);
-    SetFloat((lightName + std::string(".constant")).c_str(),  pointLight.constant);
-    SetFloat((lightName + std::string(".linear")).c_str(),    pointLight.linear);
-    SetFloat((lightName + std::string(".quadratic")).c_str(), pointLight.quadratic);
+    SetVec3((lightName + std::string(".position")).c_str(), pointLight.data_.position.x, pointLight.data_.position.y, pointLight.data_.position.z);
+    SetVec3((lightName + std::string(".ambient")).c_str(), pointLight.data_.color_data.ambient.x, pointLight.data_.color_data.ambient.y, pointLight.data_.color_data.ambient.z);
+    SetVec3((lightName + std::string(".diffuse")).c_str(), pointLight.data_.color_data.diffuse.x, pointLight.data_.color_data.diffuse.y, pointLight.data_.color_data.diffuse.z);
+    SetVec3((lightName + std::string(".specular")).c_str(), pointLight.data_.color_data.specular.x, pointLight.data_.color_data.specular.y, pointLight.data_.color_data.specular.z);
+    SetFloat((lightName + std::string(".constant")).c_str(),  pointLight.data_.constant);
+    SetFloat((lightName + std::string(".linear")).c_str(),    pointLight.data_.linear);
+    SetFloat((lightName + std::string(".quadratic")).c_str(), pointLight.data_.quadratic);
 }
 
 void Shader::AddSpotLight(const SpotLight& spotLight, const int index)
 {
     std::string lightName = "spotLights[";
     lightName.append(std::to_string(index)).append("]");
-    SetVec3((lightName + std::string(".position")).c_str(), spotLight.position.x, spotLight.position.y, spotLight.position.z);
-    SetVec3((lightName + std::string(".direction")).c_str(), spotLight.direction.x, spotLight.direction.y, spotLight.direction.z);
-    SetVec3((lightName + std::string(".ambient")).c_str(), spotLight.ambient.x, spotLight.ambient.y, spotLight.ambient.z);
-    SetVec3((lightName + std::string(".diffuse")).c_str(), spotLight.diffuse.x, spotLight.diffuse.y, spotLight.diffuse.z);
-    SetVec3((lightName + std::string(".specular")).c_str(), spotLight.specular.x, spotLight.specular.y, spotLight.specular.z);
-    SetFloat((lightName + std::string(".innerCutoff")).c_str(), spotLight.innerCutoff);
-    SetFloat((lightName + std::string(".outerCutoff")).c_str(), spotLight.outerCutoff);
+    SetVec3((lightName + std::string(".position")).c_str(), spotLight.data_.position.x, spotLight.data_.position.y, spotLight.data_.position.z);
+    SetVec3((lightName + std::string(".direction")).c_str(), spotLight.data_.direction.x, spotLight.data_.direction.y, spotLight.data_.direction.z);
+    SetVec3((lightName + std::string(".ambient")).c_str(), spotLight.data_.color_data.ambient.x, spotLight.data_.color_data.ambient.y, spotLight.data_.color_data.ambient.z);
+    SetVec3((lightName + std::string(".diffuse")).c_str(), spotLight.data_.color_data.diffuse.x, spotLight.data_.color_data.diffuse.y, spotLight.data_.color_data.diffuse.z);
+    SetVec3((lightName + std::string(".specular")).c_str(), spotLight.data_.color_data.specular.x, spotLight.data_.color_data.specular.y, spotLight.data_.color_data.specular.z);
+    SetFloat((lightName + std::string(".innerCutoff")).c_str(), spotLight.data_.innerCutoff);
+    SetFloat((lightName + std::string(".outerCutoff")).c_str(), spotLight.data_.outerCutoff);
 }

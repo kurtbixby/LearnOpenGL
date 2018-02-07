@@ -25,38 +25,49 @@ SceneGraph::SceneGraph()
 	objects_.push_back(Object(glm::vec3(0.0f, 0.0f, -3.0f), 3, 1.0f, false));
 
 	lights_ = std::vector<Light>();
-	Light dirLight;
-	dirLight.direction = glm::vec3(-12.0f, -10.0f, 20.0f);
-	dirLight.ambient = ColorConstants::WhiteLight() * 0.5f;
-	dirLight.diffuse = ColorConstants::WhiteLight() * 0.2f;
-	dirLight.specular = glm::vec3(1.0f);
+    pointLights_ = std::vector<PointLight>();
+    spotLights_ = std::vector<SpotLight>();
+    
+    // Directional Light Creation
+    LightColorData white;
+    white.ambient = ColorConstants::WhiteLight() * 0.5f;
+    white.diffuse = ColorConstants::WhiteLight() * 0.2f;
+    white.specular = glm::vec3(1.0f);
+    
+    glm::vec3 light_position = glm::vec3(-12.0f, -10.0f, 20.0f);
+    
+    Light dirLight = Light(white, light_position);
 	lights_.push_back(dirLight);
-
-	pointLights_ = std::vector<PointLight>();
-	PointLight pLight;
-    pLight.position = glm::vec3(0.0f);
-    pLight.ambient = ColorConstants::GreenLight() * 0.5f;
-    pLight.diffuse = ColorConstants::GreenLight() * 0.2f;
-    pLight.specular = glm::vec3(1.0f);
-    pLight.constant = 1.0f;
-    pLight.linear = 0.09f;
-    pLight.quadratic = 0.032f;
+    
+    // Point Light Creation
+    LightColorData green;
+    green.ambient = ColorConstants::GreenLight() * 0.5f;
+    green.diffuse = ColorConstants::GreenLight() * 0.2f;
+    green.specular = glm::vec3(1.0f);
+    
+    glm::vec3 point_position = glm::vec3(0.0f);
+    float point_constant = 1.0f;
+    float point_linear = 0.09f;
+    float point_quadratic = 0.032f;
+    PointLight pLight = PointLight(green, point_position, point_constant, point_linear, point_quadratic);
     //pointLights_.push_back(pLight);
 
     // pLight2 is the same as pLight1, but in a different location
-    pLight.position = glm::vec3(-5.0f);
+    pLight.ChangePosition(glm::vec3(-5.0f));
     //pointLights_.push_back(pLight);
 
-	spotLights_ = std::vector<SpotLight>();
-	SpotLight spLight;
-    spLight.position = glm::vec3(camPosition_.x, camPosition_.y, camPosition_.z);
-    spLight.direction = glm::vec3(camDirection_.x, camDirection_.y, camDirection_.z);
-    spLight.ambient = ColorConstants::BlueLight() * 0.5f;
-    spLight.diffuse = ColorConstants::BlueLight() * 0.2f;
-    spLight.specular = glm::vec3(1.0f);
-    spLight.innerCutoff = cos(glm::radians(10.0f));
-    spLight.outerCutoff = cos(glm::radians(15.0f));
-
+    // Spot Light Creation
+    LightColorData blue;
+    blue.ambient = ColorConstants::BlueLight() * 0.5f;
+    blue.diffuse = ColorConstants::BlueLight() * 0.2f;
+    blue.specular = glm::vec3(1.0f);
+    
+    glm::vec3 spot_position = glm::vec3(camPosition_.x, camPosition_.y, camPosition_.z);
+    glm::vec3 spot_direction = glm::vec3(camDirection_.x, camDirection_.y, camDirection_.z);
+    float spot_inner = cos(glm::radians(10.0f));
+    float spot_outer = cos(glm::radians(15.0f));
+    
+    SpotLight spLight = SpotLight(blue, spot_position, spot_direction, spot_inner, spot_outer);
     //spotLights_.push_back(spLight);
 }
 
@@ -68,8 +79,8 @@ void SceneGraph::UseCamera(const Camera& camera)
     // Makes first spotlight paired to the camera
     if (spotLights_.size() > 0)
     {
-        spotLights_[0].position = camPosition_;
-        spotLights_[0].direction = camDirection_;
+        spotLights_[0].ChangePosition(camPosition_);
+        spotLights_[0].ChangeDirection(camDirection_);
     }
     SortObjects();
 }
