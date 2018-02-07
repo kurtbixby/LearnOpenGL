@@ -171,8 +171,8 @@ int create_window(GLFWwindow** foo)
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // macOS compatibility
 #endif
-
-														 // glfw window creation
+    
+    // glfw window creation
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
 	if (nullptr == window)
 	{

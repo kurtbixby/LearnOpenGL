@@ -30,17 +30,21 @@
 		90F8B9CF202BB47A00EFAC5F /* libglfw.3.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9CC202BB47A00EFAC5F /* libglfw.3.2.dylib */; };
 		90F8B9D0202BB47A00EFAC5F /* libassimp.4.0.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9CD202BB47A00EFAC5F /* libassimp.4.0.1.dylib */; };
 		90F8B9D2202BB48F00EFAC5F /* libboost_system.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F8B9D1202BB48F00EFAC5F /* libboost_system.dylib */; };
+		90F8B9D3202BBA6100EFAC5F /* Resources in CopyFiles */ = {isa = PBXBuildFile; fileRef = 90F8B9A62027901200EFAC5F /* Resources */; };
+		90F8B9D4202BBA6300EFAC5F /* Shaders in CopyFiles */ = {isa = PBXBuildFile; fileRef = 90F8B9922027901100EFAC5F /* Shaders */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		90743CF920278FBF0041BE49 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
+				90F8B9D3202BBA6100EFAC5F /* Resources in CopyFiles */,
+				90F8B9D4202BBA6300EFAC5F /* Shaders in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 

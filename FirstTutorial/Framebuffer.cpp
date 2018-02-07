@@ -6,8 +6,16 @@
 
 #include "Structs.h"
 
+#ifdef __APPLE__
+#define FRAMEBUFFERH 1600
+#define FRAMEBUFFERV 1200
+#else
+#define FRAMEBUFFERH 800
+#define FRAMEBUFFERV 600
+#endif
+
 // Texture size has to change on Mac. Cause of skybox issue?
-Framebuffer::Framebuffer(): Framebuffer(800, 600, GL_FRAMEBUFFER) {}
+Framebuffer::Framebuffer(): Framebuffer(FRAMEBUFFERH, FRAMEBUFFERV, GL_FRAMEBUFFER) {}
 
 Framebuffer::Framebuffer(unsigned int width, unsigned int height, GLenum target)
 {
