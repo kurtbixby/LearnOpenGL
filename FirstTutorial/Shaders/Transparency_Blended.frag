@@ -63,35 +63,35 @@ layout (std140) uniform Matrices
 	mat4 view;
 };
 
-layout (std140) uniform DirLighting
-{
-	Light lights[MAX_DIR_LIGHTs];
-};
-
-layout (std140) uniform PointLighting
-{
-	PointLight pointLights[MAX_POINT_LIGHTS];
-};
-
-layout (std140) uniform SpotLighting
-{
-	SpotLight spotLights[MAX_SPOT_LIGHTS];
-};
-
-layout (std140) uniform LightingMetaData
-{
-	unsigned int DIR_LIGHTS;
-	unsigned int POINT_LIGHTS;
-	unsigned int SPOT_LIGHTS;
-};
+//layout (std140) uniform DirLighting
+//{
+//    Light lights[MAX_DIR_LIGHTs];
+//};
+//
+//layout (std140) uniform PointLighting
+//{
+//    PointLight pointLights[MAX_POINT_LIGHTS];
+//};
+//
+//layout (std140) uniform SpotLighting
+//{
+//    SpotLight spotLights[MAX_SPOT_LIGHTS];
+//};
+//
+//layout (std140) uniform LightingMetaData
+//{
+//    int DIR_LIGHTS;
+//    int POINT_LIGHTS;
+//    int SPOT_LIGHTS;
+//};
 
 uniform Material material;
-//uniform Light lights[MAX_DIR_LIGHTS];
-//uniform PointLight pointLights[MAX_POINT_LIGHTS];
-//uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
-//uniform int DIR_LIGHTS;
-//uniform int POINT_LIGHTS;
-//uniform int SPOT_LIGHTS;
+uniform Light lights[MAX_DIR_LIGHTS];
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
+uniform int DIR_LIGHTS;
+uniform int POINT_LIGHTS;
+uniform int SPOT_LIGHTS;
 
 uniform int DIFFUSE_TEXS;
 uniform int SPECULAR_TEXS;
