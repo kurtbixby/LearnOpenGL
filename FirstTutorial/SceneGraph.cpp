@@ -7,6 +7,7 @@
 
 #include "Camera.h"
 #include "Lights.h"
+#include "SceneLighting.h"
 
 SceneGraph::SceneGraph()
 {
@@ -103,6 +104,11 @@ std::vector<PointLight> SceneGraph::RelevantPointLights()
 std::vector<SpotLight> SceneGraph::RelevantSpotLights()
 {
     return spotLights_;
+}
+
+SceneLighting SceneGraph::RelevantLighting()
+{
+    return SceneLighting(lights_, pointLights_, spotLights_);
 }
 
 void SceneGraph::SortObjects()

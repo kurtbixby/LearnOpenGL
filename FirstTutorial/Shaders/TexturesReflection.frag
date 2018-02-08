@@ -63,13 +63,17 @@ layout (std140) uniform Matrices
 	mat4 view;
 };
 
+layout (std140) uniform Lighting
+{
+    int DIR_LIGHTS;
+    int POINT_LIGHTS;
+    int SPOT_LIGHTS;
+    Light lights[MAX_DIR_LIGHTS];
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    SpotLight spotLights[MAX_SPOT_LIGHTS];
+};
+
 uniform Material material;
-uniform Light lights[MAX_DIR_LIGHTS];
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
-uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
-uniform int DIR_LIGHTS;
-uniform int POINT_LIGHTS;
-uniform int SPOT_LIGHTS;
 
 uniform int DIFFUSE_TEXS;
 uniform int SPECULAR_TEXS;

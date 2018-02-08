@@ -108,6 +108,7 @@ void Scene::Render()
 	std::vector<Light> lights = graph_.RelevantLights();
 	std::vector<PointLight> pointLights = graph_.RelevantPointLights();
 	std::vector<SpotLight> spotLights = graph_.RelevantSpotLights();
+    SceneLighting lighting = graph_.RelevantLighting();
 
 	unsigned int DIR_LIGHTS = lights.size();
 	unsigned int POINT_LIGHTS = pointLights.size();
@@ -135,17 +136,19 @@ void Scene::Render()
 	lightMeta.FillBuffer(POINT_LIGHTS);
 	lightMeta.FillBuffer(SPOT_LIGHTS);
 
-	/*std::copy(lights.begin(), lights.end(), scene_lighting.lights);
-	std::copy(pointLights.begin(), pointLights.end(), scene_lighting.pointLights);
-	std::copy(spotLights.begin(), spotLights.end(), scene_lighting.spotLights);*/
-
+    const GLuint lightingBindIndex = 1;
+    UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
+    sceneLighting.BindToIndex(lightingBindIndex);
+    sceneLighting.FillBuffer(lighting);
+    
     standardShader.Use();
     standardShader.BindUniformBlock("Matrices", matrixBindIndex);
+    standardShader.BindUniformBlock("Lighting", lightingBindIndex);
 //    standardShader.BindUniformBlock("DirLighting", dirLightBindIndex);
 //    standardShader.BindUniformBlock("PointLighting", pointLightBindIndex);
 //    standardShader.BindUniformBlock("SpotLighting", spotLightBindIndex);
 //    standardShader.BindUniformBlock("LightingMetaData", lightMetaBindIndex);
-    SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
+//    SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
 
 	standardShader.SetInt("skybox", 20);
 	glActiveTexture(GL_TEXTURE0 + 20);

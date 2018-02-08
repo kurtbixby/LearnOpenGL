@@ -18,6 +18,8 @@
 
 class SceneLighting : public IBufferable {
 public:
+    SceneLighting(std::vector<Light> lights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights);
+    
     size_t DataSize();
     size_t BufferData(GLuint offset);
 private:

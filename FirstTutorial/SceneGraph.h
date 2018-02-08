@@ -6,9 +6,10 @@
 
 #include <glm/glm.hpp>
 
-#include "Object.h"
-#include "Lights.h"
 #include "Camera.h"
+#include "Lights.h"
+#include "Object.h"
+#include "SceneLighting.h"
 
 class SceneGraph
 {
@@ -18,6 +19,8 @@ public:
 
 	void UseCamera(const Camera& camera);
 	std::vector<Object> RelevantObjects();
+    
+    SceneLighting RelevantLighting();
 	std::vector<Light> RelevantLights();
 	std::vector<PointLight> RelevantPointLights();
 	std::vector<SpotLight> RelevantSpotLights();
