@@ -15,37 +15,37 @@ struct Material {
 	float shininess;
 };
 
-struct Light {
-	vec3 direction;
+struct Light {      // 64 bytes needs 0 bytes of padding
+	vec3 direction; //  0
 
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	vec3 ambient;   // 16
+	vec3 diffuse;   // 32
+	vec3 specular;  // 48
 };
 
 // Make PointLight contain a Light?
-struct PointLight {
-	vec3 position;
+struct PointLight {     // 76 bytes needs 4 bytes of padding
+	vec3 position;      //  0
 
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	vec3 ambient;       // 16
+	vec3 diffuse;       // 32
+	vec3 specular;      // 48
 
-	float constant;
-	float linear;
-	float quadratic;
+	float constant;     // 64
+	float linear;       // 68
+	float quadratic;    // 72
 };
 
-struct SpotLight {
-	vec3 position;
-	vec3 direction;
+struct SpotLight {      // 88 bytes needs 8 bytes of padding
+	vec3 position;      //  0
+	vec3 direction;     // 16
 
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	vec3 ambient;       // 32
+	vec3 diffuse;       // 48
+	vec3 specular;      // 64
 
-	float innerCutoff;
-	float outerCutoff;
+	float innerCutoff;  // 80
+	float outerCutoff;  // 84
 };
 
 out vec4 FragColor;
@@ -63,21 +63,31 @@ layout (std140) uniform Matrices
 	mat4 view;
 };
 
-layout (std140) uniform Lighting
-{
-    int DIR_LIGHTS;
-    int POINT_LIGHTS;
-    int SPOT_LIGHTS;
-    Light lights[MAX_DIR_LIGHTS];
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    SpotLight spotLights[MAX_SPOT_LIGHTS];
-};
+//layout (std140) uniform Lighting
+//{
+//    int DIR_LIGHTS;                           //  0
+//    int POINT_LIGHTS;                         //  4
+//    int SPOT_LIGHTS;                          //  8
+////    int padding;                              // 12
+//    Light lights[MAX_DIR_LIGHTS];             // 16
+//    PointLight pointLights[MAX_POINT_LIGHTS]; // 80 = 16 + ([MAX_DIR_LIGHT - 1] * [sizeof(Light) + padding]) + sizeof(Light) + alignment = 16 + 0 + 64 + 0
+//    SpotLight spotLights[MAX_SPOT_LIGHTS];    //400 = 80 + ([MAX_POINT_LIGHT - 1] * [sizeof(PointLight) + padding]) + sizeof(PointLight) + alignment
+//                                              //      80 + ([3] * [80]) + 76) + 4 = 80 + 316 + 4 = 400
+//};                                            //488 =400 + ([MAX_SPOT_LIGHT - 1] * [sizeof(SpotLight) + padding]) + sizeof(SpotLight)
+//                                              //     400 + ([0] * [96]) + 88 = 400 + 88 = 488
 
 uniform Material material;
 
 uniform int DIFFUSE_TEXS;
 uniform int SPECULAR_TEXS;
 uniform int REFLECTION_MAPS;
+
+uniform int DIR_LIGHTS;
+uniform int POINT_LIGHTS;
+uniform int SPOT_LIGHTS;
+uniform Light lights[MAX_DIR_LIGHTS];
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform samplerCube skybox;
 

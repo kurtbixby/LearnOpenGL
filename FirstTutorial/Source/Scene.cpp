@@ -114,41 +114,41 @@ void Scene::Render()
 	unsigned int POINT_LIGHTS = pointLights.size();
 	unsigned int SPOT_LIGHTS = spotLights.size();
 
-	const unsigned int dirLightBindIndex = 1;
-	UniformBlockBuffer<Light> dirLightBuff = UniformBlockBuffer<Light>(MAX_DIR_LIGHTS);
-	dirLightBuff.BindToIndex(dirLightBindIndex);
-	dirLightBuff.FillBuffer(*lights.data(), DIR_LIGHTS);
-
-	const unsigned int pointLightBindIndex = 2;
-	UniformBlockBuffer<PointLight> pointLightBuff = UniformBlockBuffer<PointLight>(MAX_POINT_LIGHTS);
-	pointLightBuff.BindToIndex(pointLightBindIndex);
-	pointLightBuff.FillBuffer(*pointLights.data(), POINT_LIGHTS);
-
-	const unsigned int spotLightBindIndex = 3;
-	UniformBlockBuffer<SpotLight> spotLightBuff = UniformBlockBuffer<SpotLight>(MAX_SPOT_LIGHTS);
-	spotLightBuff.BindToIndex(spotLightBindIndex);
-	spotLightBuff.FillBuffer(*spotLights.data(), SPOT_LIGHTS);
-
-	const unsigned int lightMetaBindIndex = 4;
-	UniformBlockBuffer<unsigned int> lightMeta = UniformBlockBuffer<unsigned int>(1);
-	lightMeta.BindToIndex(lightMetaBindIndex);
-	lightMeta.FillBuffer(DIR_LIGHTS);
-	lightMeta.FillBuffer(POINT_LIGHTS);
-	lightMeta.FillBuffer(SPOT_LIGHTS);
+//    const unsigned int dirLightBindIndex = 1;
+//    UniformBlockBuffer<Light> dirLightBuff = UniformBlockBuffer<Light>(MAX_DIR_LIGHTS);
+//    dirLightBuff.BindToIndex(dirLightBindIndex);
+//    dirLightBuff.FillBuffer(*lights.data(), DIR_LIGHTS);
+//
+//    const unsigned int pointLightBindIndex = 2;
+//    UniformBlockBuffer<PointLight> pointLightBuff = UniformBlockBuffer<PointLight>(MAX_POINT_LIGHTS);
+//    pointLightBuff.BindToIndex(pointLightBindIndex);
+//    pointLightBuff.FillBuffer(*pointLights.data(), POINT_LIGHTS);
+//
+//    const unsigned int spotLightBindIndex = 3;
+//    UniformBlockBuffer<SpotLight> spotLightBuff = UniformBlockBuffer<SpotLight>(MAX_SPOT_LIGHTS);
+//    spotLightBuff.BindToIndex(spotLightBindIndex);
+//    spotLightBuff.FillBuffer(*spotLights.data(), SPOT_LIGHTS);
+//
+//    const unsigned int lightMetaBindIndex = 4;
+//    UniformBlockBuffer<unsigned int> lightMeta = UniformBlockBuffer<unsigned int>(1);
+//    lightMeta.BindToIndex(lightMetaBindIndex);
+//    lightMeta.FillBuffer(DIR_LIGHTS);
+//    lightMeta.FillBuffer(POINT_LIGHTS);
+//    lightMeta.FillBuffer(SPOT_LIGHTS);
 
     const GLuint lightingBindIndex = 1;
     UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
     sceneLighting.BindToIndex(lightingBindIndex);
-    sceneLighting.FillBuffer(lighting);
+//    sceneLighting.FillBuffer(lighting);
     
     standardShader.Use();
     standardShader.BindUniformBlock("Matrices", matrixBindIndex);
-    standardShader.BindUniformBlock("Lighting", lightingBindIndex);
+//    standardShader.BindUniformBlock("Lighting", lightingBindIndex);
 //    standardShader.BindUniformBlock("DirLighting", dirLightBindIndex);
 //    standardShader.BindUniformBlock("PointLighting", pointLightBindIndex);
 //    standardShader.BindUniformBlock("SpotLighting", spotLightBindIndex);
 //    standardShader.BindUniformBlock("LightingMetaData", lightMetaBindIndex);
-//    SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
+    SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
 
 	standardShader.SetInt("skybox", 20);
 	glActiveTexture(GL_TEXTURE0 + 20);
