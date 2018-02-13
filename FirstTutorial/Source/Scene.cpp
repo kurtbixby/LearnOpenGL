@@ -49,7 +49,7 @@ void Scene::Render()
     glm::mat4 projection = cam.GetProjection();
     glm::mat4 view = cam.MakeViewMat();
 
-	const GLuint matrixBindIndex = 0;
+	const GLuint matrixBindIndex = 1;
 	UniformBlockBuffer<glm::mat4> matBuff = UniformBlockBuffer<glm::mat4>(2);
 	matBuff.FillBuffer(projection);
 	matBuff.FillBuffer(view);
@@ -136,10 +136,10 @@ void Scene::Render()
 //    lightMeta.FillBuffer(POINT_LIGHTS);
 //    lightMeta.FillBuffer(SPOT_LIGHTS);
 
-    const GLuint lightingBindIndex = 1;
+    const GLuint lightingBindIndex = 2;
     UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
     sceneLighting.BindToIndex(lightingBindIndex);
-//    sceneLighting.FillBuffer(lighting);
+    sceneLighting.FillBuffer(lighting);
     
     standardShader.Use();
     standardShader.BindUniformBlock("Matrices", matrixBindIndex);

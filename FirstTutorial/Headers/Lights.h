@@ -53,8 +53,9 @@ public:
     size_t DataSize();
     size_t BufferData(GLuint offset);
     
-    void ChangeDirection(glm::vec3 direction);
+    static uint32_t GLSLSize();
     
+    void ChangeDirection(glm::vec3 direction);
     glm::vec3 Direction();
     
     LightData data_;
@@ -69,8 +70,9 @@ public:
     size_t DataSize();
     size_t BufferData(GLuint offset);
     
-    void ChangePosition(glm::vec3 position);
+    static uint32_t GLSLSize();
     
+    void ChangePosition(glm::vec3 position);
     glm::vec3 Position();
     
     PointLightData data_;
@@ -83,6 +85,8 @@ public:
     
     size_t DataSize();
     size_t BufferData(GLuint offset);
+    
+    static uint32_t GLSLSize();
     
     void ChangePosition(glm::vec3 position);
     void ChangeDirection(glm::vec3 direction);

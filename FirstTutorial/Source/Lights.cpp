@@ -11,6 +11,10 @@
 
 #include "Lights.h"
 
+#define LIGHT_SIZE 64
+#define POINT_LIGHT_SIZE 76
+#define SPOT_LIGHT_SIZE 88
+
 Light::Light(LightData data)
 {
     data_ = data;
@@ -33,6 +37,11 @@ size_t Light::BufferData(GLuint offset)
     glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(data_), &data_);
     
     return sizeof(data_);
+}
+
+uint32_t Light::GLSLSize()
+{
+    return LIGHT_SIZE;
 }
 
 glm::vec3 Light::Direction()
@@ -71,6 +80,11 @@ size_t PointLight::BufferData(GLuint offset)
     return sizeof(data_);
 }
 
+uint32_t PointLight::GLSLSize()
+{
+    return POINT_LIGHT_SIZE;
+}
+
 void PointLight::ChangePosition(glm::vec3 position)
 {
     data_.position = position;
@@ -105,6 +119,11 @@ size_t SpotLight::BufferData(GLuint offset)
     glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(data_), &data_);
     
     return sizeof(data_);
+}
+
+uint32_t SpotLight::GLSLSize()
+{
+    return SPOT_LIGHT_SIZE;
 }
 
 glm::vec3 SpotLight::Position()

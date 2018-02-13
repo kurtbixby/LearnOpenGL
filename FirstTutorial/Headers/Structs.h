@@ -53,13 +53,13 @@ struct RenderTarget
 
 struct CameraInput
 {
-	unsigned char MoveForward : 1;
-	unsigned char MoveBack : 1;
-	unsigned char MoveLeft : 1;
-	unsigned char MoveRight : 1;
-	unsigned char RotateRight : 1;
-	unsigned char RotateLeft : 1;
-	unsigned char : 2;
+	bool MoveForward : 1;
+    bool MoveBack : 1;
+	bool MoveLeft : 1;
+	bool MoveRight : 1;
+	bool RotateRight : 1;
+	bool RotateLeft : 1;
+	char : 2;
 	float x_delta;
 	float y_delta;
 	float y_offset;
