@@ -86,4 +86,12 @@ inline unsigned int load_cubemap(std::vector<std::string> texturePaths)
 	return cubemapTexId;
 }
 
+inline uint32_t buffer_vec3(glm::vec3& vec, uint32_t offset)
+{
+    uint32_t buffered = -offset % VEC3_ALIGNMENT;
+    glBufferSubData(GL_UNIFORM_BUFFER, offset + buffered, sizeof(vec), &vec);
+    buffered += sizeof(vec);
+    return buffered;
+}
+
 #endif

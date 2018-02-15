@@ -10,10 +10,11 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Lights.h"
+#include "Structs.h"
 
-#define LIGHT_SIZE 64
-#define POINT_LIGHT_SIZE 76
-#define SPOT_LIGHT_SIZE 88
+#define LIGHT_SIZE 60
+#define POINT_LIGHT_SIZE 72
+#define SPOT_LIGHT_SIZE 84
 
 Light::Light(LightData data)
 {
@@ -29,14 +30,17 @@ Light::Light(LightColorData color_data, glm::vec3 direction)
 size_t Light::DataSize()
 {
     // Take padding into account
-    return sizeof(data_);
+    return LIGHT_SIZE;
 }
 
 size_t Light::BufferData(GLuint offset)
 {
-    glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(data_), &data_);
+    uint32_t offset_offset = -offset % GLSL_STRUCT_ALIGNMENT;
     
-    return sizeof(data_);
+    offset_offset += buffer_vec3(data_.direction, offset + offset_offset);
+    offset_offset += buffer_LightColorData(data_.color_data, offset + offset_offset);
+    
+    return offset_offset;
 }
 
 uint32_t Light::GLSLSize()
@@ -70,14 +74,26 @@ PointLight::PointLight(LightColorData color_data, glm::vec3 position, float cons
 
 size_t PointLight::DataSize()
 {
-    return sizeof(data_);
+    return POINT_LIGHT_SIZE;
 }
 
 size_t PointLight::BufferData(GLuint offset)
 {
-    glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(data_), &data_);
+    uint32_t offset_offset = -offset % GLSL_STRUCT_ALIGNMENT;
     
-    return sizeof(data_);
+    offset_offset += buffer_vec3(data_.position, offset + offset_offset);
+    offset_offset += buffer_LightColorData(data_.color_data, offset + offset_offset);
+    
+    glBufferSubData(GL_UNIFORM_BUFFER, offset + offset_offset, sizeof(data_.constant), &data_.constant);
+    offset_offset += sizeof(data_.constant);
+    
+    glBufferSubData(GL_UNIFORM_BUFFER, offset + offset_offset, sizeof(data_.linear), &data_.linear);
+    offset_offset += sizeof(data_.linear);
+    
+    glBufferSubData(GL_UNIFORM_BUFFER, offset + offset_offset, sizeof(data_.quadratic), &data_.quadratic);
+    offset_offset += sizeof(data_.quadratic);
+    
+    return offset_offset;
 }
 
 uint32_t PointLight::GLSLSize()
@@ -111,14 +127,25 @@ SpotLight::SpotLight(LightColorData color_data, glm::vec3 position, glm::vec3 di
 
 size_t SpotLight::DataSize()
 {
-    return sizeof(data_);
+    return SPOT_LIGHT_SIZE;
 }
 
 size_t SpotLight::BufferData(GLuint offset)
 {
-    glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(data_), &data_);
+    uint32_t offset_offset = -offset % GLSL_STRUCT_ALIGNMENT;
     
-    return sizeof(data_);
+    offset_offset += buffer_vec3(data_.position, offset + offset_offset);
+    offset_offset += buffer_vec3(data_.direction, offset + offset_offset);
+    
+    offset_offset += buffer_LightColorData(data_.color_data, offset + offset_offset);
+    
+    glBufferSubData(GL_UNIFORM_BUFFER, offset + offset_offset, sizeof(data_.innerCutoff), &data_.innerCutoff);
+    offset_offset += sizeof(data_.innerCutoff);
+    
+    glBufferSubData(GL_UNIFORM_BUFFER, offset + offset_offset, sizeof(data_.outerCutoff), &data_.outerCutoff);
+    offset_offset += sizeof(data_.outerCutoff);
+    
+    return offset_offset;
 }
 
 uint32_t SpotLight::GLSLSize()

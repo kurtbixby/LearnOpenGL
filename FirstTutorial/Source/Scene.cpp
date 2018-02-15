@@ -114,28 +114,6 @@ void Scene::Render()
 	unsigned int POINT_LIGHTS = pointLights.size();
 	unsigned int SPOT_LIGHTS = spotLights.size();
 
-//    const unsigned int dirLightBindIndex = 1;
-//    UniformBlockBuffer<Light> dirLightBuff = UniformBlockBuffer<Light>(MAX_DIR_LIGHTS);
-//    dirLightBuff.BindToIndex(dirLightBindIndex);
-//    dirLightBuff.FillBuffer(*lights.data(), DIR_LIGHTS);
-//
-//    const unsigned int pointLightBindIndex = 2;
-//    UniformBlockBuffer<PointLight> pointLightBuff = UniformBlockBuffer<PointLight>(MAX_POINT_LIGHTS);
-//    pointLightBuff.BindToIndex(pointLightBindIndex);
-//    pointLightBuff.FillBuffer(*pointLights.data(), POINT_LIGHTS);
-//
-//    const unsigned int spotLightBindIndex = 3;
-//    UniformBlockBuffer<SpotLight> spotLightBuff = UniformBlockBuffer<SpotLight>(MAX_SPOT_LIGHTS);
-//    spotLightBuff.BindToIndex(spotLightBindIndex);
-//    spotLightBuff.FillBuffer(*spotLights.data(), SPOT_LIGHTS);
-//
-//    const unsigned int lightMetaBindIndex = 4;
-//    UniformBlockBuffer<unsigned int> lightMeta = UniformBlockBuffer<unsigned int>(1);
-//    lightMeta.BindToIndex(lightMetaBindIndex);
-//    lightMeta.FillBuffer(DIR_LIGHTS);
-//    lightMeta.FillBuffer(POINT_LIGHTS);
-//    lightMeta.FillBuffer(SPOT_LIGHTS);
-
     const GLuint lightingBindIndex = 2;
     UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
     sceneLighting.BindToIndex(lightingBindIndex);
@@ -143,12 +121,7 @@ void Scene::Render()
     
     standardShader.Use();
     standardShader.BindUniformBlock("Matrices", matrixBindIndex);
-//    standardShader.BindUniformBlock("Lighting", lightingBindIndex);
-//    standardShader.BindUniformBlock("DirLighting", dirLightBindIndex);
-//    standardShader.BindUniformBlock("PointLighting", pointLightBindIndex);
-//    standardShader.BindUniformBlock("SpotLighting", spotLightBindIndex);
-//    standardShader.BindUniformBlock("LightingMetaData", lightMetaBindIndex);
-    SendLights(standardShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
+    standardShader.BindUniformBlock("Lighting", lightingBindIndex);
 
 	standardShader.SetInt("skybox", 20);
 	glActiveTexture(GL_TEXTURE0 + 20);
@@ -159,20 +132,21 @@ void Scene::Render()
 	skybox_.Deactivate();
 	glActiveTexture(GL_TEXTURE0);
 
-	transparentShader.Use();
-	transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
-	SendLights(transparentShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
-	RenderObjects(transparent, transparentShader);
+    transparentShader.Use();
+    transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
+    transparentShader.BindUniformBlock("Lighting", lightingBindIndex);
+//    SendLights(transparentShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
+    RenderObjects(transparent, transparentShader);
 
     glEnable(GL_STENCIL_TEST);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glClear(GL_STENCIL_BUFFER_BIT);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glStencilMask(0xFF);
-    
+
     // First pass
-	standardShader.Use();
-	RenderObjects(stenciled, standardShader);
+    standardShader.Use();
+    RenderObjects(stenciled, standardShader);
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -180,8 +154,8 @@ void Scene::Render()
 
     // Outline pass
     outlineShader.Use();
-	outlineShader.BindUniformBlock("Matrices", matrixBindIndex);
-	RenderObjects(stenciled, outlineShader);
+    outlineShader.BindUniformBlock("Matrices", matrixBindIndex);
+    RenderObjects(stenciled, outlineShader);
 
     glStencilMask(0xFF);
     glDisable(GL_STENCIL_TEST);

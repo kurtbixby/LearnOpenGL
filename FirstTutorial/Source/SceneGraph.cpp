@@ -38,7 +38,7 @@ SceneGraph::SceneGraph()
     glm::vec3 light_position = glm::vec3(-12.0f, -10.0f, 20.0f);
     
     Light dirLight = Light(white, light_position);
-	lights_.push_back(dirLight);
+    lights_.push_back(dirLight);
     
     // Point Light Creation
     LightColorData green;
@@ -51,11 +51,11 @@ SceneGraph::SceneGraph()
     float point_linear = 0.09f;
     float point_quadratic = 0.032f;
     PointLight pLight = PointLight(green, point_position, point_constant, point_linear, point_quadratic);
-    //pointLights_.push_back(pLight);
+    pointLights_.push_back(pLight);
 
     // pLight2 is the same as pLight1, but in a different location
     pLight.ChangePosition(glm::vec3(-5.0f));
-    //pointLights_.push_back(pLight);
+//    pointLights_.push_back(pLight);
 
     // Spot Light Creation
     LightColorData blue;
@@ -65,11 +65,11 @@ SceneGraph::SceneGraph()
     
     glm::vec3 spot_position = glm::vec3(camPosition_.x, camPosition_.y, camPosition_.z);
     glm::vec3 spot_direction = glm::vec3(camDirection_.x, camDirection_.y, camDirection_.z);
-    float spot_inner = cos(glm::radians(10.0f));
-    float spot_outer = cos(glm::radians(15.0f));
+    float spot_inner = std::cos(glm::radians(10.0f));
+    float spot_outer = std::cos(glm::radians(15.0f));
     
     SpotLight spLight = SpotLight(blue, spot_position, spot_direction, spot_inner, spot_outer);
-    //spotLights_.push_back(spLight);
+    spotLights_.push_back(spLight);
 }
 
 void SceneGraph::UseCamera(const Camera& camera)

@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "IBufferable.h"
+#include "Structs.h"
 
 #define MAX_DIR_LIGHTS 1
 #define MAX_POINT_LIGHTS 4
@@ -16,6 +17,17 @@ struct LightColorData
     glm::vec3 specular;
 };
 
+inline uint32_t buffer_LightColorData(LightColorData& color_data, uint32_t offset)
+{
+    uint32_t offset_offset = 0;
+    
+    offset_offset += buffer_vec3(color_data.ambient, offset + offset_offset);
+    offset_offset += buffer_vec3(color_data.diffuse, offset + offset_offset);
+    offset_offset += buffer_vec3(color_data.specular, offset + offset_offset);
+    
+    return offset_offset;
+}
+
 struct LightData
 {
     glm::vec3 direction;
@@ -25,24 +37,24 @@ struct LightData
 
 struct PointLightData
 {
-    float constant;
-    float linear;
-    float quadratic;
-    
     glm::vec3 position;
     
     LightColorData color_data;
+    
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 struct SpotLightData
 {
-    float innerCutoff;
-    float outerCutoff;
-    
     glm::vec3 direction;
     glm::vec3 position;
     
     LightColorData color_data;
+    
+    float innerCutoff;
+    float outerCutoff;
 };
 
 class Light : public IBufferable {

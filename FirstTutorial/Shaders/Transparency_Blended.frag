@@ -15,37 +15,37 @@ struct Material {
 	float shininess;
 };
 
-struct Light {
-	vec3 direction;
-
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+struct Light {      // 60 bytes needs 4 bytes of padding
+    vec3 direction; //  0
+    
+    vec3 ambient;   // 16
+    vec3 diffuse;   // 32
+    vec3 specular;  // 48
 };
 
 // Make PointLight contain a Light?
-struct PointLight {
-	vec3 position;
-
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-
-	float constant;
-	float linear;
-	float quadratic;
+struct PointLight {     // 72 bytes needs 8 bytes of padding
+    vec3 position;      //  0
+    
+    vec3 ambient;       // 16
+    vec3 diffuse;       // 32
+    vec3 specular;      // 48
+    
+    float constant;     // 60
+    float linear;       // 64
+    float quadratic;    // 68
 };
 
-struct SpotLight {
-	vec3 position;
-	vec3 direction;
-
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
-
-	float innerCutoff;
-	float outerCutoff;
+struct SpotLight {      // 84 bytes needs 12 bytes of padding
+    vec3 position;      //  0
+    vec3 direction;     // 16
+    
+    vec3 ambient;       // 32
+    vec3 diffuse;       // 48
+    vec3 specular;      // 64
+    
+    float innerCutoff;  // 76
+    float outerCutoff;  // 80
 };
 
 out vec4 FragColor;
@@ -63,35 +63,20 @@ layout (std140) uniform Matrices
 	mat4 view;
 };
 
-//layout (std140) uniform DirLighting
-//{
-//    Light lights[MAX_DIR_LIGHTs];
-//};
-//
-//layout (std140) uniform PointLighting
-//{
-//    PointLight pointLights[MAX_POINT_LIGHTS];
-//};
-//
-//layout (std140) uniform SpotLighting
-//{
-//    SpotLight spotLights[MAX_SPOT_LIGHTS];
-//};
-//
-//layout (std140) uniform LightingMetaData
-//{
-//    int DIR_LIGHTS;
-//    int POINT_LIGHTS;
-//    int SPOT_LIGHTS;
-//};
+layout (std140) uniform Lighting
+{
+    int DIR_LIGHTS;                           //  0
+    int POINT_LIGHTS;                         //  4
+    int SPOT_LIGHTS;                          //  8
+    //    int padding;                              // 12
+    Light lights[MAX_DIR_LIGHTS];             // 16
+    PointLight pointLights[MAX_POINT_LIGHTS]; // 80 = 16 + ([MAX_DIR_LIGHT - 1] * [sizeof(Light) + padding]) + sizeof(Light) + alignment = 16 + 0 + 64 + 0
+    SpotLight spotLights[MAX_SPOT_LIGHTS];    //400 = 80 + ([MAX_POINT_LIGHT - 1] * [sizeof(PointLight) + padding]) + sizeof(PointLight) + alignment
+    //      80 + ([3] * [80]) + 76) + 4 = 80 + 316 + 4 = 400
+};                                            //488 =400 + ([MAX_SPOT_LIGHT - 1] * [sizeof(SpotLight) + padding]) + sizeof(SpotLight)
+//     400 + ([0] * [96]) + 88 = 400 + 88 = 488
 
 uniform Material material;
-uniform Light lights[MAX_DIR_LIGHTS];
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
-uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
-uniform int DIR_LIGHTS;
-uniform int POINT_LIGHTS;
-uniform int SPOT_LIGHTS;
 
 uniform int DIFFUSE_TEXS;
 uniform int SPECULAR_TEXS;
@@ -144,13 +129,14 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 	vec3 viewLightPos = vec3(view * vec4(spotLight.position, 1.0f));
 	vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
 
-	float foo = dot(-lightDir, normalize(vec3(view * vec4(spotLight.direction, 0.0f))));
-	if (foo > spotLight.outerCutoff)
+	float fragDotProd = dot(-lightDir, normalize(vec3(view * vec4(spotLight.direction, 0.0f))));
+	if (fragDotProd > spotLight.outerCutoff)
 	{
 		float intensity = 1.0f;
-		if (foo < spotLight.innerCutoff)
+        
+		if (fragDotProd < spotLight.innerCutoff)
 		{
-			intensity = (foo - spotLight.outerCutoff) / (spotLight.innerCutoff - spotLight.outerCutoff);
+			intensity = (fragDotProd - spotLight.outerCutoff) / (spotLight.innerCutoff - spotLight.outerCutoff);
 		}
 
 		vec3 ambient = spotLight.ambient * diffuseValue;

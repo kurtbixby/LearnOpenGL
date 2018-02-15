@@ -15,7 +15,7 @@ struct Material {
 	float shininess;
 };
 
-struct Light {      // 64 bytes needs 0 bytes of padding
+struct Light {      // 60 bytes needs 4 bytes of padding
 	vec3 direction; //  0
 
 	vec3 ambient;   // 16
@@ -24,19 +24,19 @@ struct Light {      // 64 bytes needs 0 bytes of padding
 };
 
 // Make PointLight contain a Light?
-struct PointLight {     // 76 bytes needs 4 bytes of padding
+struct PointLight {     // 72 bytes needs 8 bytes of padding
 	vec3 position;      //  0
 
 	vec3 ambient;       // 16
 	vec3 diffuse;       // 32
 	vec3 specular;      // 48
 
-	float constant;     // 64
-	float linear;       // 68
-	float quadratic;    // 72
+	float constant;     // 60
+	float linear;       // 64
+	float quadratic;    // 68
 };
 
-struct SpotLight {      // 88 bytes needs 8 bytes of padding
+struct SpotLight {      // 84 bytes needs 12 bytes of padding
 	vec3 position;      //  0
 	vec3 direction;     // 16
 
@@ -44,8 +44,8 @@ struct SpotLight {      // 88 bytes needs 8 bytes of padding
 	vec3 diffuse;       // 48
 	vec3 specular;      // 64
 
-	float innerCutoff;  // 80
-	float outerCutoff;  // 84
+	float innerCutoff;  // 76
+	float outerCutoff;  // 80
 };
 
 out vec4 FragColor;
@@ -63,31 +63,24 @@ layout (std140) uniform Matrices
 	mat4 view;
 };
 
-//layout (std140) uniform Lighting
-//{
-//    int DIR_LIGHTS;                           //  0
-//    int POINT_LIGHTS;                         //  4
-//    int SPOT_LIGHTS;                          //  8
-////    int padding;                              // 12
-//    Light lights[MAX_DIR_LIGHTS];             // 16
-//    PointLight pointLights[MAX_POINT_LIGHTS]; // 80 = 16 + ([MAX_DIR_LIGHT - 1] * [sizeof(Light) + padding]) + sizeof(Light) + alignment = 16 + 0 + 64 + 0
-//    SpotLight spotLights[MAX_SPOT_LIGHTS];    //400 = 80 + ([MAX_POINT_LIGHT - 1] * [sizeof(PointLight) + padding]) + sizeof(PointLight) + alignment
-//                                              //      80 + ([3] * [80]) + 76) + 4 = 80 + 316 + 4 = 400
-//};                                            //488 =400 + ([MAX_SPOT_LIGHT - 1] * [sizeof(SpotLight) + padding]) + sizeof(SpotLight)
-//                                              //     400 + ([0] * [96]) + 88 = 400 + 88 = 488
+layout (std140) uniform Lighting
+{
+    int DIR_LIGHTS;                           //  0
+    int POINT_LIGHTS;                         //  4
+    int SPOT_LIGHTS;                          //  8
+//    int padding;                              // 12
+    Light lights[MAX_DIR_LIGHTS];             // 16
+    PointLight pointLights[MAX_POINT_LIGHTS]; // 80 = 16 + ([MAX_DIR_LIGHT - 1] * [sizeof(Light) + padding]) + sizeof(Light) + alignment = 16 + 0 + 64 + 0
+    SpotLight spotLights[MAX_SPOT_LIGHTS];    //400 = 80 + ([MAX_POINT_LIGHT - 1] * [sizeof(PointLight) + padding]) + sizeof(PointLight) + alignment
+                                              //      80 + ([3] * [80]) + 76) + 4 = 80 + 316 + 4 = 400
+};                                            //488 =400 + ([MAX_SPOT_LIGHT - 1] * [sizeof(SpotLight) + padding]) + sizeof(SpotLight)
+                                              //     400 + ([0] * [96]) + 88 = 400 + 88 = 488
 
 uniform Material material;
 
 uniform int DIFFUSE_TEXS;
 uniform int SPECULAR_TEXS;
 uniform int REFLECTION_MAPS;
-
-uniform int DIR_LIGHTS;
-uniform int POINT_LIGHTS;
-uniform int SPOT_LIGHTS;
-uniform Light lights[MAX_DIR_LIGHTS];
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
-uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform samplerCube skybox;
 
@@ -102,7 +95,7 @@ vec3 global_lighting(Light light, vec3 diffuseValue, vec3 specularValue)
 
 	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-viewLightDir, norm);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
 	vec3 specular = light.specular * spec * specularValue;
 	vec3 result = ambient + diffuse + specular;
 
@@ -139,14 +132,15 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 	vec3 viewLightPos = vec3(view * vec4(spotLight.position, 1.0f));
 	vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
 
-	float foo = dot(-lightDir, normalize(vec3(view * vec4(spotLight.direction, 0.0f))));
-	if (foo > spotLight.outerCutoff)
+	float fragDotProd = dot(-lightDir, normalize(vec3(view * vec4(spotLight.direction, 0.0f))));
+	if (fragDotProd > spotLight.outerCutoff)
 	{
-		float intensity = 1.0f;
-		if (foo < spotLight.innerCutoff)
-		{
-			intensity = (foo - spotLight.outerCutoff) / (spotLight.innerCutoff - spotLight.outerCutoff);
-		}
+        float intensity = 1.0f;
+        
+        if (fragDotProd < spotLight.innerCutoff)
+        {
+            intensity = (fragDotProd - spotLight.outerCutoff) / (spotLight.innerCutoff - spotLight.outerCutoff);
+        }
 
 		vec3 ambient = spotLight.ambient * diffuseValue;
 
@@ -159,7 +153,7 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
 		vec3 specular = spotLight.specular * spec * specularValue;
 
-		result = intensity * (ambient + diffuse + specular);
+        result = intensity * (ambient + diffuse + specular);
 	}
 	return result;
 }
@@ -220,7 +214,7 @@ void main()
 		spot += spot_lighting(spotLights[i], diffuseValue, specularValue);
 	}
 
-	vec3 result = global + point + spot + reflection;
+    vec3 result = global + point + spot + reflection;
 
 	FragColor = vec4(result, 1.0f);
 }

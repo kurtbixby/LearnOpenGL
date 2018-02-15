@@ -8,6 +8,8 @@
 
 #define MAX_DIFFUSE_TEX 3
 #define MAX_SPECULAR_TEX 3
+#define VEC3_ALIGNMENT 16
+#define GLSL_STRUCT_ALIGNMENT 16
 
 struct Vertex
 {
@@ -77,6 +79,7 @@ unsigned int texture_from_file(const char* fileName, std::string directory);
 void load_texture_file(const char* texture_file, const GLenum texture_type = GL_TEXTURE_2D);
 unsigned int load_texture(std::string texture_path, const GLenum wrap_type = GL_REPEAT);
 unsigned int load_cubemap(std::vector<std::string> texturePaths);
+uint32_t buffer_vec3(glm::vec3& vec3, uint32_t offset);
 
 #include "Structs_Inline.h"
 
