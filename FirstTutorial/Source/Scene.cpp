@@ -135,7 +135,6 @@ void Scene::Render()
     transparentShader.Use();
     transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
     transparentShader.BindUniformBlock("Lighting", lightingBindIndex);
-//    SendLights(transparentShader, DIR_LIGHTS, lights, POINT_LIGHTS, pointLights, SPOT_LIGHTS, spotLights);
     RenderObjects(transparent, transparentShader);
 
     glEnable(GL_STENCIL_TEST);
