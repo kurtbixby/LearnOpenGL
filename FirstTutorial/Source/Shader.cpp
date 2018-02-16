@@ -24,8 +24,30 @@ Shader::Shader(const GLchar* vertex_shader_path, const GLchar* fragment_shader_p
     id_ = shader_program;
 }
 
+Shader::Shader(const GLchar* vertex_shader_path, const GLchar* geometry_shader_path, const GLchar* fragment_shader_path)
+{
+    const unsigned int vertex_shader = CompileShader(vertex_shader_path, GL_VERTEX_SHADER);
+    const unsigned int geometry_shader = CompileShader(geometry_shader_path, GL_GEOMETRY_SHADER);
+    const unsigned int fragment_shader = CompileShader(fragment_shader_path, GL_FRAGMENT_SHADER);
+    
+    // Create Program
+    unsigned int shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertex_shader);
+    glAttachShader(shader_program, geometry_shader);
+    glAttachShader(shader_program, fragment_shader);
+    glLinkProgram(shader_program);
+    
+    glDeleteShader(vertex_shader);
+    glDeleteShader(geometry_shader);
+    glDeleteShader(fragment_shader);
+    
+    id_ = shader_program;
+}
+
 unsigned int Shader::CompileShader(const GLchar* shader_path, const GLenum shader_type)
 {
+    std::cout << "COMPILING SHADER: " << shader_path << std::endl;
+    
     // Get source code
     std::string shader_code;
     std::ifstream shader_file;

@@ -50,8 +50,6 @@ float last_y = current_y;
 
 float y_offset = 0.0f;
 
-//unordered_map<string, Model> loaded_models_ = unordered_map<string, Model>();
-
 int main()
 {
 	GLFWwindow* window;
@@ -60,8 +58,6 @@ int main()
 		std::cout << "Error creating window" << std::endl;
 		return -1;
 	}
-	
-	Scene scene = load_scene();
 
 	// Create standard shader
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
@@ -99,18 +95,20 @@ int main()
 	glBindVertexArray(0);
 
 	// Edge Detection?
-	/*float kernel[9] = {
-		1, 1, 1,
-		1, -8, 1,
-		1, 1, 1
-	};*/
+//    float kernel[9] = {
+//        1, 1, 1,
+//        1, -8, 1,
+//        1, 1, 1
+//    };
 
 	// Identity
-	float kernel[9] = {
-		0, 0, 0,
-		0, 1, 0,
-		0, 0, 0
-	};
+    float kernel[9] = {
+        0, 0, 0,
+        0, 1, 0,
+        0, 0, 0
+    };
+    
+    Scene scene = load_scene();
 
     // main loop
     while (!glfwWindowShouldClose(window))
@@ -195,7 +193,8 @@ int create_window(GLFWwindow** foo)
 	}
 
 	glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
+//    glEnable(GL_CULL_FACE);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
@@ -323,8 +322,9 @@ Scene load_scene()
 	models.push_back(crysis);
 
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
+    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Explode.geom").make_preferred();
     boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection.frag").make_preferred();
-    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), geometry_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
 	Shader transparent_shader = Shader(vertex_shader_path.string().c_str(), transparent_fragment_shader_path.string().c_str());

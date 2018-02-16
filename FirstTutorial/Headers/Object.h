@@ -32,12 +32,12 @@ class Object
 		{
 			if (Is2D_)
 			{
-				glDisable(GL_CULL_FACE);
+//                glDisable(GL_CULL_FACE);
 			}
 			model.Draw(shader);
 			if (Is2D_)
 			{
-				glEnable(GL_CULL_FACE);
+//                glEnable(GL_CULL_FACE);
 			}
 		}
 };

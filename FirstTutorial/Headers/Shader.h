@@ -13,6 +13,7 @@ class Shader
 public:
     // Constructor
     Shader(const GLchar* vertex_shader_path, const GLchar* fragment_shader_path);
+    Shader(const GLchar* vertex_shader_path, const GLchar* geometry_shader_path, const GLchar* fragment_shader_path);
 
     // Activate the shader
     void Use();
