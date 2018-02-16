@@ -321,8 +321,8 @@ Scene load_scene()
 	models.push_back(create_quad());
 	models.push_back(crysis);
 
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Explode.geom").make_preferred();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures_GS.vert").make_preferred();
+    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
     boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), geometry_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
@@ -335,12 +335,18 @@ Scene load_scene()
 	boost::filesystem::path skybox_vertex_shader_path = boost::filesystem::path("Shaders/SkyboxBuff.vert").make_preferred();
 	boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
 	Shader skybox_shader = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
+    
+    boost::filesystem::path bonus_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
+    boost::filesystem::path bonus_geometry_shader_path = boost::filesystem::path("Shaders/Normals.geom").make_preferred();
+    boost::filesystem::path bonus_fragment_shader_path = boost::filesystem::path("Shaders/First.frag").make_preferred();
+    Shader bonus_shader = Shader(bonus_vertex_shader_path.string().c_str(), bonus_geometry_shader_path.string().c_str(), bonus_fragment_shader_path.string().c_str());
 
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
 	shaders.push_back(transparent_shader);
     shaders.push_back(outline_shader);
 	shaders.push_back(skybox_shader);
+    shaders.push_back(bonus_shader);
 
 	Cubemap skybox = Cubemap();
 

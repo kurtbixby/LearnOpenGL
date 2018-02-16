@@ -59,6 +59,7 @@ void Scene::Render()
 	Shader& transparentShader = shaders_[1];
 	Shader& outlineShader = shaders_[2];
 	Shader& skyboxShader = shaders_[3];
+    Shader& bonusShader = shaders_[4];
 
 	// For partially transparent
 	// sort by Z position relative to camera in direction of "front", back to front
@@ -131,6 +132,10 @@ void Scene::Render()
 
 	skybox_.Deactivate();
 	glActiveTexture(GL_TEXTURE0);
+    
+    bonusShader.Use();
+    bonusShader.BindUniformBlock("Matrices", matrixBindIndex);
+    RenderObjects(regular, bonusShader);
 
     transparentShader.Use();
     transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
