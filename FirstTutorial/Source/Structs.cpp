@@ -1,11 +1,11 @@
-#include "Structs.h"
+#include "Headers/Structs.h"
 
 #include <glad/glad.h>
 #include <iostream>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "Headers/stb_image.h"
 #endif
 
 void load_texture_file(const char* texture_file, const GLenum texture_type)

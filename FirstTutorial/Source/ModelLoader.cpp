@@ -1,4 +1,4 @@
-#include "ModelLoader.h"
+#include "Headers/ModelLoader.h"
 
 #include <string>
 #include <vector>
@@ -14,8 +14,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
-#include "Mesh.h"
-#include "Structs_Inline.h"
+#include "Headers/Mesh.h"
+#include "Headers/Structs_Inline.h"
 
 unordered_map<string, Texture> ModelLoader::loaded_textures_ = unordered_map<string, Texture>();
 

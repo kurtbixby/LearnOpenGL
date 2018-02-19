@@ -9,8 +9,8 @@
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Lights.h"
-#include "Structs.h"
+#include "Headers/Lights.h"
+#include "Headers/Structs.h"
 
 #define LIGHT_SIZE 60
 #define POINT_LIGHT_SIZE 72
@@ -35,7 +35,7 @@ size_t Light::DataSize()
 
 size_t Light::BufferData(GLuint offset)
 {
-    uint32_t offset_offset = -offset % GLSL_STRUCT_ALIGNMENT;
+    uint32_t offset_offset = GLSL_STRUCT_ALIGNMENT  - (offset % GLSL_STRUCT_ALIGNMENT);
     
     offset_offset += buffer_vec3(data_.direction, offset + offset_offset);
     offset_offset += buffer_LightColorData(data_.color_data, offset + offset_offset);
@@ -79,7 +79,7 @@ size_t PointLight::DataSize()
 
 size_t PointLight::BufferData(GLuint offset)
 {
-    uint32_t offset_offset = -offset % GLSL_STRUCT_ALIGNMENT;
+    uint32_t offset_offset = GLSL_STRUCT_ALIGNMENT - (offset % GLSL_STRUCT_ALIGNMENT);
     
     offset_offset += buffer_vec3(data_.position, offset + offset_offset);
     offset_offset += buffer_LightColorData(data_.color_data, offset + offset_offset);
@@ -132,7 +132,7 @@ size_t SpotLight::DataSize()
 
 size_t SpotLight::BufferData(GLuint offset)
 {
-    uint32_t offset_offset = -offset % GLSL_STRUCT_ALIGNMENT;
+    uint32_t offset_offset = GLSL_STRUCT_ALIGNMENT - (offset % GLSL_STRUCT_ALIGNMENT);
     
     offset_offset += buffer_vec3(data_.position, offset + offset_offset);
     offset_offset += buffer_vec3(data_.direction, offset + offset_offset);

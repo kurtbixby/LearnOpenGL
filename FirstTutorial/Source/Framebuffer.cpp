@@ -1,10 +1,10 @@
-#include "Framebuffer.h"
+#include "Headers/Framebuffer.h"
 
 #include <glad/glad.h>
 #include <vector>
 #include <algorithm>
 
-#include "Structs.h"
+#include "Headers/Structs.h"
 
 #ifdef __APPLE__
 #define FRAMEBUFFERH 1600

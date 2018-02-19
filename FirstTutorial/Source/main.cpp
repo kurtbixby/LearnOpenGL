@@ -7,14 +7,14 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "Camera.h"
-#include "Framebuffer.h"
-#include "Model.h"
-#include "Primitives.h"
-#include "Scene.h"
-#include "SceneGraph.h"
-#include "Shader.h"
-#include "Structs.h"
+#include "Headers/Camera.h"
+#include "Headers/Framebuffer.h"
+#include "Headers/Model.h"
+#include "Headers/Primitives.h"
+#include "Headers/Scene.h"
+#include "Headers/SceneGraph.h"
+#include "Headers/Shader.h"
+#include "Headers/Structs.h"
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -23,7 +23,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "ModelLoader.h"
+#include "Headers/ModelLoader.h"
 
 int create_window(GLFWwindow** foo);
 Input get_input(GLFWwindow* window);

@@ -1,4 +1,4 @@
-#include "Cubemap.h"
+#include "Headers/Cubemap.h"
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED

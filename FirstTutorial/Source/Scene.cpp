@@ -1,6 +1,6 @@
 #define NOMINMAX
 
-#include "Scene.h"
+#include "Headers/Scene.h"
 
 #include <algorithm>
 #include <glad/glad.h>
@@ -9,15 +9,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Camera.h"
-#include "Cubemap.h"
-#include "Lights.h"
-#include "Model.h"
-#include "Object.h"
-#include "SceneGraph.h"
-#include "Shader.h"
-#include "Structs.h"
-#include "UniformBlockBuffer.h"
+#include "Headers/Camera.h"
+#include "Headers/Cubemap.h"
+#include "Headers/Lights.h"
+#include "Headers/Model.h"
+#include "Headers/Object.h"
+#include "Headers/SceneGraph.h"
+#include "Headers/Shader.h"
+#include "Headers/Structs.h"
+#include "Headers/UniformBlockBuffer.h"
 
 Scene::Scene()
 {

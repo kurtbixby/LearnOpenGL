@@ -1,4 +1,4 @@
-#include "Model.h"
+#include "Headers/Model.h"
 
 #include <vector>
 
@@ -7,8 +7,8 @@
 #endif
 #include <boost/filesystem.hpp>
 
-#include "Mesh.h"
-#include "Shader.h"
+#include "Headers/Mesh.h"
+#include "Headers/Shader.h"
 
 Model::Model(std::vector<Mesh> meshes, std::vector<std::vector<Texture>> mesh_textures)
 {

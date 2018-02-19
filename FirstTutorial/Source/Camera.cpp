@@ -3,7 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "Camera.h"
+#include "Headers/Camera.h"
 
 #include <iostream>
 

@@ -9,9 +9,9 @@
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Lights.h"
-#include "SceneLighting.h"
-#include "Structs.h"
+#include "Headers/Lights.h"
+#include "Headers/SceneLighting.h"
+#include "Headers/Structs.h"
 
 #define DIR_LIGHT_OFFSET 16
 #define PNT_LIGHT_OFFSET 80
@@ -30,19 +30,19 @@ size_t SceneLighting::DataSize()
     
     size += 3 * sizeof(uint32_t);
     
-    size += -size % GLSL_STRUCT_ALIGNMENT;
+    size += GLSL_STRUCT_ALIGNMENT - (size % GLSL_STRUCT_ALIGNMENT);
     uint32_t light_size = Light::GLSLSize();
-    uint32_t light_padding = -light_size % GLSL_STRUCT_ALIGNMENT;
+    uint32_t light_padding = GLSL_STRUCT_ALIGNMENT - (light_size % GLSL_STRUCT_ALIGNMENT);
     size += ((MAX_DIR_LIGHTS - 1) * (light_size + light_padding)) + light_size;
     
-    size += -size % GLSL_STRUCT_ALIGNMENT;
+    size += GLSL_STRUCT_ALIGNMENT - (size % GLSL_STRUCT_ALIGNMENT);
     uint32_t pt_light_size = PointLight::GLSLSize();
-    uint32_t pt_light_padding = -pt_light_size % GLSL_STRUCT_ALIGNMENT;
+    uint32_t pt_light_padding = GLSL_STRUCT_ALIGNMENT - (pt_light_size % GLSL_STRUCT_ALIGNMENT);
     size += ((MAX_POINT_LIGHTS - 1) * (pt_light_size + pt_light_padding)) + pt_light_size;
     
-    size += -size % GLSL_STRUCT_ALIGNMENT;
+    size += GLSL_STRUCT_ALIGNMENT - (size % GLSL_STRUCT_ALIGNMENT);
     uint32_t spot_light_size = SpotLight::GLSLSize();
-    uint32_t spot_light_padding = -spot_light_size % GLSL_STRUCT_ALIGNMENT;
+    uint32_t spot_light_padding = GLSL_STRUCT_ALIGNMENT - (spot_light_size % GLSL_STRUCT_ALIGNMENT);
     size += ((MAX_SPOT_LIGHTS - 1) * (spot_light_size + spot_light_padding)) + spot_light_size;
     
     return size;
@@ -67,19 +67,19 @@ size_t SceneLighting::BufferData(GLuint offset)
 
     offset_offset = DIR_LIGHT_OFFSET;
     for (int i = 0; i < lights_.size(); i++) {
-        offset_offset += -offset_offset % GLSL_STRUCT_ALIGNMENT;
+        offset_offset += GLSL_STRUCT_ALIGNMENT - (offset_offset % GLSL_STRUCT_ALIGNMENT);
         offset_offset += lights_[i].BufferData(offset + offset_offset);
     }
     
     offset_offset = PNT_LIGHT_OFFSET;
     for (int i = 0; i < pointLights_.size(); i++) {
-        offset_offset += -offset_offset % GLSL_STRUCT_ALIGNMENT;
+        offset_offset += GLSL_STRUCT_ALIGNMENT - (offset_offset % GLSL_STRUCT_ALIGNMENT);
         offset_offset += pointLights_[i].BufferData(offset + offset_offset);
     }
     
     offset_offset = SPT_LIGHT_OFFSET;
     for (int i = 0; i < spotLights_.size(); i++) {
-        offset_offset += -offset_offset % GLSL_STRUCT_ALIGNMENT;
+        offset_offset += GLSL_STRUCT_ALIGNMENT - (offset_offset % GLSL_STRUCT_ALIGNMENT);
         offset_offset += spotLights_[i].BufferData(offset + offset_offset);
     }
     

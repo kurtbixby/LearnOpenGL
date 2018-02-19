@@ -1,10 +1,10 @@
-#include "Primitives.h"
+#include "Headers/Primitives.h"
 
 #include <vector>
 
-#include "Mesh.h"
-#include "Model.h"
-#include "Structs.h"
+#include "Headers/Mesh.h"
+#include "Headers/Model.h"
+#include "Headers/Structs.h"
 
 Model create_plane()
 {

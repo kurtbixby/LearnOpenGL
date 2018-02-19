@@ -1,9 +1,9 @@
-#include "Mesh.h"
+#include "Headers/Mesh.h"
 
 #include <vector>
 
-#include "Structs.h"
-#include "Shader.h"
+#include "Headers/Structs.h"
+#include "Headers/Shader.h"
 
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
 {

@@ -19,37 +19,41 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Framebuffer.cpp" />
-    <ClCompile Include="glad.c" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="ModelLoader.cpp" />
-    <ClCompile Include="Primitives.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SceneGraph.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="Cubemap.cpp" />
-    <ClCompile Include="Structs.cpp" />
+    <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\Cubemap.cpp" />
+    <ClCompile Include="Source\Framebuffer.cpp" />
+    <ClCompile Include="Source\glad.c" />
+    <ClCompile Include="Source\Lights.cpp" />
+    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\Mesh.cpp" />
+    <ClCompile Include="Source\Model.cpp" />
+    <ClCompile Include="Source\ModelLoader.cpp" />
+    <ClCompile Include="Source\Primitives.cpp" />
+    <ClCompile Include="Source\Scene.cpp" />
+    <ClCompile Include="Source\SceneGraph.cpp" />
+    <ClCompile Include="Source\SceneLighting.cpp" />
+    <ClCompile Include="Source\Shader.cpp" />
+    <ClCompile Include="Source\Structs.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Framebuffer.h" />
-    <ClInclude Include="Lights.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="ModelLoader.h" />
-    <ClInclude Include="Object.h" />
-    <ClInclude Include="Primitives.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="SceneGraph.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="Cubemap.h" />
-    <ClInclude Include="stb_image.h" />
-    <ClInclude Include="Structs.h" />
-    <ClInclude Include="Structs_Inline.h" />
-    <ClInclude Include="UniformBlockBuffer.h" />
+    <ClInclude Include="Headers\Camera.h" />
+    <ClInclude Include="Headers\Cubemap.h" />
+    <ClInclude Include="Headers\Framebuffer.h" />
+    <ClInclude Include="Headers\IBufferable.h" />
+    <ClInclude Include="Headers\Lights.h" />
+    <ClInclude Include="Headers\Mesh.h" />
+    <ClInclude Include="Headers\Model.h" />
+    <ClInclude Include="Headers\ModelLoader.h" />
+    <ClInclude Include="Headers\Object.h" />
+    <ClInclude Include="Headers\Primitives.h" />
+    <ClInclude Include="Headers\Scene.h" />
+    <ClInclude Include="Headers\SceneGraph.h" />
+    <ClInclude Include="Headers\SceneLighting.h" />
+    <ClInclude Include="Headers\Shader.h" />
+    <ClInclude Include="Headers\stb_image.h" />
+    <ClInclude Include="Headers\Structs.h" />
+    <ClInclude Include="Headers\Structs_Inline.h" />
+    <ClInclude Include="Headers\UniformBlockBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\awesomeface.png" />
@@ -125,10 +129,14 @@
     <None Include="Shaders\DiffuseMap.frag" />
     <None Include="Shaders\DiffuseMap.vert" />
     <None Include="Shaders\DirectionalLight.frag" />
+    <None Include="Shaders\Explode.geom" />
     <None Include="Shaders\First.frag" />
     <None Include="Shaders\First.vert" />
     <None Include="Shaders\FlippedTextureMix.frag" />
     <None Include="Shaders\GroovyContainer.frag" />
+    <None Include="Shaders\Identity.geom" />
+    <None Include="Shaders\IdentityVec2.frag" />
+    <None Include="Shaders\IdentityVec2.vert" />
     <None Include="Shaders\InverseSpecularMap.frag" />
     <None Include="Shaders\Kernel.frag" />
     <None Include="Shaders\Light.frag" />
@@ -138,6 +146,8 @@
     <None Include="Shaders\MultipleLights.frag" />
     <None Include="Shaders\MultipleTextures.frag" />
     <None Include="Shaders\MultipleTextures.vert" />
+    <None Include="Shaders\MultipleTextures_GS.vert" />
+    <None Include="Shaders\Normals.geom" />
     <None Include="Shaders\Outline.frag" />
     <None Include="Shaders\PointLight.frag" />
     <None Include="Shaders\Reflection.frag" />
@@ -146,6 +156,7 @@
     <None Include="Shaders\Screen.vert" />
     <None Include="Shaders\Skybox.frag" />
     <None Include="Shaders\Skybox.vert" />
+    <None Include="Shaders\SmallLines.Geom" />
     <None Include="Shaders\SoftSpotLight.frag" />
     <None Include="Shaders\SpacesMatrices.vert" />
     <None Include="Shaders\Specular.frag" />
@@ -153,6 +164,7 @@
     <None Include="Shaders\SpotLight.frag" />
     <None Include="Shaders\TextureMix.frag" />
     <None Include="Shaders\TexturesReflection.frag" />
+    <None Include="Shaders\TexturesReflection_GS.frag" />
     <None Include="Shaders\Transform.vert" />
     <None Include="Shaders\Transparency.frag" />
     <None Include="Shaders\Transparency_Blended.frag" />
@@ -217,7 +229,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Program Files\boost\boost_1_65_1;C:\Projects\Packages\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>C:\Projects\OpenGL\FirstTutorial\FirstTutorial;C:\Program Files\boost\boost_1_65_1;C:\Projects\Packages\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files\boost\boost_1_65_1\stage\lib;C:\Projects\Packages\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -225,7 +237,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_65_1\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\OpenGL\FirstTutorial\FirstTutorial;C:\Program Files\boost\boost_1_65_1\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>assimp.lib;opengl32.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>

@@ -1,13 +1,13 @@
-#include "SceneGraph.h"
+#include "Headers/SceneGraph.h"
 
 #include <vector>
 #include <algorithm>
 
 #include <glm/glm.hpp>
 
-#include "Camera.h"
-#include "Lights.h"
-#include "SceneLighting.h"
+#include "Headers/Camera.h"
+#include "Headers/Lights.h"
+#include "Headers/SceneLighting.h"
 
 SceneGraph::SceneGraph()
 {
