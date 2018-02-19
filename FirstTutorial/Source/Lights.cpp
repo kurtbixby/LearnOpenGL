@@ -35,7 +35,8 @@ size_t Light::DataSize()
 
 size_t Light::BufferData(GLuint offset)
 {
-    uint32_t offset_offset = GLSL_STRUCT_ALIGNMENT  - (offset % GLSL_STRUCT_ALIGNMENT);
+    uint32_t misalignment = offset % GLSL_STRUCT_ALIGNMENT;
+    uint32_t offset_offset = misalignment ? GLSL_STRUCT_ALIGNMENT - misalignment : misalignment;
     
     offset_offset += buffer_vec3(data_.direction, offset + offset_offset);
     offset_offset += buffer_LightColorData(data_.color_data, offset + offset_offset);
@@ -79,7 +80,8 @@ size_t PointLight::DataSize()
 
 size_t PointLight::BufferData(GLuint offset)
 {
-    uint32_t offset_offset = GLSL_STRUCT_ALIGNMENT - (offset % GLSL_STRUCT_ALIGNMENT);
+    uint32_t misalignment = offset % GLSL_STRUCT_ALIGNMENT;
+    uint32_t offset_offset = misalignment ? GLSL_STRUCT_ALIGNMENT - misalignment : misalignment;
     
     offset_offset += buffer_vec3(data_.position, offset + offset_offset);
     offset_offset += buffer_LightColorData(data_.color_data, offset + offset_offset);
@@ -132,7 +134,8 @@ size_t SpotLight::DataSize()
 
 size_t SpotLight::BufferData(GLuint offset)
 {
-    uint32_t offset_offset = GLSL_STRUCT_ALIGNMENT - (offset % GLSL_STRUCT_ALIGNMENT);
+    uint32_t misalignment = offset % GLSL_STRUCT_ALIGNMENT;
+    uint32_t offset_offset = misalignment ? GLSL_STRUCT_ALIGNMENT - misalignment : misalignment;
     
     offset_offset += buffer_vec3(data_.position, offset + offset_offset);
     offset_offset += buffer_vec3(data_.direction, offset + offset_offset);
