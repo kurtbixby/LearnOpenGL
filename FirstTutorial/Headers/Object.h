@@ -11,8 +11,9 @@ class Object
 {
 	public:
 		glm::vec3 Transform_;
-		int Model_;
+		uint32_t Model_;
 		glm::vec3 Scale_;
+		glm::vec3 Rotation_; // Change this to quaternion
 		bool Outlined_;
 		bool Is2D_;
 		bool IsTransparent_;
@@ -32,12 +33,12 @@ class Object
 		{
 			if (Is2D_)
 			{
-//                glDisable(GL_CULL_FACE);
+                glDisable(GL_CULL_FACE);
 			}
 			model.Draw(shader);
 			if (Is2D_)
 			{
-//                glEnable(GL_CULL_FACE);
+                glEnable(GL_CULL_FACE);
 			}
 		}
 };

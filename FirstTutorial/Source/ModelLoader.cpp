@@ -19,9 +19,29 @@
 
 unordered_map<string, Texture> ModelLoader::loaded_textures_ = unordered_map<string, Texture>();
 
+ModelLoader::ModelLoader()
+{
+	directory_ = "";
+}
+
 ModelLoader::ModelLoader(boost::filesystem::path path)
 {
 	directory_ = path.make_preferred().string();
+}
+
+Model ModelLoader::loadDefault(const DefaultModel model)
+{
+	switch (model)
+	{
+	case DefaultModel::Box:
+		break;
+	case DefaultModel::Plane:
+		break;
+	case DefaultModel::Quad:
+		break;
+	default:
+		break;
+	}
 }
 
 Model ModelLoader::loadModel(std::string file)
