@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <glad/glad.h>
 #include <vector>
+#include <unordered_map>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -68,7 +69,7 @@ void Scene::Render()
 	// Implementation: subtract camera position and sort by dot product of resultant and cam.direction
 	// Optimization: sort only during movement
 	graph_.UseCamera(cam);
-	std::vector<Object> objects = graph_.RelevantObjects();
+    std::vector<Object> objects = graph_.RelevantObjects();
 
 	std::vector<Object> transparent = std::vector<Object>();
 	std::vector<Object> stenciled = std::vector<Object>();
@@ -92,6 +93,18 @@ void Scene::Render()
 			regular.push_back(object);
 		}
 	}
+    
+    if (transparent.size() > 0)
+    {
+        std::vector<std::vector<Object>> trans_draw_list_inst = std::vector<std::vector<Object>>();
+        // Group transparent
+        for (Object obj : transparent)
+        {
+            
+        }
+    }
+    
+    // Group stenciled
 
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
@@ -120,27 +133,90 @@ void Scene::Render()
     sceneLighting.BindToIndex(lightingBindIndex);
     sceneLighting.FillBuffer(lighting);
     
-    standardShader.Use();
-    standardShader.BindUniformBlock("Matrices", matrixBindIndex);
-    standardShader.BindUniformBlock("Lighting", lightingBindIndex);
+    if (regular.size() > 0)
+    {
+        std::vector<std::vector<Object>> reg_draw_list_inst = std::vector<std::vector<Object>>();
+        std::unordered_map<uint32_t, uint32_t> reg_model_id_obj_list_map = std::unordered_map<uint32_t, uint32_t>();
+        
+        // Group regular
+        for (Object obj : regular)
+        {
+            auto cur_model_obj_list = reg_model_id_obj_list_map.find(obj.Model_);
+            if (cur_model_obj_list != reg_model_id_obj_list_map.end())
+            {
+                uint32_t cur_model = cur_model_obj_list->second;
+                reg_draw_list_inst[cur_model].push_back(obj);
+            }
+            else
+            {
+                uint32_t model_list_index = reg_draw_list_inst.size();
+                reg_draw_list_inst.push_back(std::vector<Object>());
+                reg_draw_list_inst[model_list_index].push_back(obj);
+                reg_model_id_obj_list_map.emplace(obj.Model_, model_list_index);
+            }
+        }
+        
+        standardShader.Use();
+        standardShader.BindUniformBlock("Matrices", matrixBindIndex);
+        standardShader.BindUniformBlock("Lighting", lightingBindIndex);
 
-	standardShader.SetInt("skybox", 20);
-	glActiveTexture(GL_TEXTURE0 + 20);
-	skybox_.Activate();
+        standardShader.SetInt("skybox", 20);
+        glActiveTexture(GL_TEXTURE0 + 20);
+        skybox_.Activate();
 
-	RenderObjects(regular, standardShader);
+        for (std::vector<Object> draw_list : reg_draw_list_inst)
+        {
+//            RenderObjects(draw_list, standardShader);
+            RenderObjectsInstanced(draw_list, standardShader);
+        }
 
-	skybox_.Deactivate();
-	glActiveTexture(GL_TEXTURE0);
+        skybox_.Deactivate();
+        glActiveTexture(GL_TEXTURE0);
+        
+//        bonusShader.Use();
+//        bonusShader.BindUniformBlock("Matrices", matrixBindIndex);
+//        RenderObjects(regular, bonusShader);
+    }
     
-    bonusShader.Use();
-    bonusShader.BindUniformBlock("Matrices", matrixBindIndex);
-    RenderObjects(regular, bonusShader);
+    if (transparent.size() > 0)
+    {
+        std::vector<std::vector<Object>> trans_draw_list_inst = std::vector<std::vector<Object>>();
+        uint32_t previous_model = transparent.front().Model_;
+        std::vector<Object> current_list = std::vector<Object>();
+        
+        // Group transparent
+        for (Object obj : transparent)
+        {
+            if (obj.Model_ == previous_model)
+            {
+                current_list.push_back(obj);
+            }
+            else
+            {
+                trans_draw_list_inst.push_back(current_list);
+                current_list = std::vector<Object>();
+                current_list.push_back(obj);
+                previous_model = obj.Model_;
+            }
+        }
+        trans_draw_list_inst.push_back(current_list);
 
-    transparentShader.Use();
-    transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
-    transparentShader.BindUniformBlock("Lighting", lightingBindIndex);
-    RenderObjects(transparent, transparentShader);
+        transparentShader.Use();
+        transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
+        transparentShader.BindUniformBlock("Lighting", lightingBindIndex);
+        
+        for(std::vector<Object> draw_list : trans_draw_list_inst)
+        {
+            RenderObjects(draw_list, transparentShader);
+            for (Object instance : draw_list)
+            {
+                // Prepare for draw
+            }
+            
+//            RenderObjectsInstanced(draw_list, transparentShader);
+        }
+//        RenderObjects(transparent, transparentShader);
+    }
 
     glEnable(GL_STENCIL_TEST);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -170,6 +246,11 @@ void Scene::TakeInput(const Input& input)
     cams_[0].TakeInput(input.cameraInput);
 }
 
+Model Scene::ModelForId(uint32_t model_id) const
+{
+    return models_[model_id];
+}
+
 void Scene::RenderObjects(const vector<Object>& objects, const Shader& shader)
 {
 	for (int i = 0; i < objects.size(); i++)
@@ -177,37 +258,58 @@ void Scene::RenderObjects(const vector<Object>& objects, const Shader& shader)
 		const Object& object = objects[i];
 
 		Model model = models_[object.Model_];
-		glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), object.Transform_);
-		modelMat = glm::scale(modelMat, object.Scale_);
+        glm::mat4 modelMat = object.ModelMatrix();
+//        glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), object.Transform_);
+//        modelMat = glm::scale(modelMat, object.Scale_);
 		shader.SetMatrix4fv("model", glm::value_ptr(modelMat));
 		object.Draw(shader, model);
 	}
 }
 
-void Scene::SendLights(Shader& shader, int DIR_LIGHTS, std::vector<Light>& lights, int POINT_LIGHTS, std::vector<PointLight>& pointLights, int SPOT_LIGHTS, std::vector<SpotLight>& spotLights)
+void Scene::RenderObjectsInstanced(const vector<Object>& draw_list, const Shader& shader)
 {
-	shader.SetInt("DIR_LIGHTS", std::min(MAX_DIR_LIGHTS, DIR_LIGHTS));
-	shader.SetInt("POINT_LIGHTS", std::min(MAX_POINT_LIGHTS, POINT_LIGHTS));
-	shader.SetInt("SPOT_LIGHTS", std::min(MAX_SPOT_LIGHTS, SPOT_LIGHTS));
-
-	for (int i = 0; i < DIR_LIGHTS; i++)
-	{
-		Light* light = &lights[i];
-		shader.AddDirectionLight(*light, i);
-	}
-
-	for (int i = 0; i < POINT_LIGHTS; i++)
-	{
-		PointLight* light = &pointLights[i];
-		shader.AddPointLight(*light, i);
-	}
-
-	for (int i = 0; i < SPOT_LIGHTS; i++)
-	{
-		SpotLight* light = &spotLights[i];
-		shader.AddSpotLight(*light, i);
-	}
+    if (draw_list.size() < 1)
+    {
+        return;
+    }
+    
+    Model model = ModelForId(draw_list.front().Model_);
+    
+    std::vector<glm::mat4> instance_matrices = std::vector<glm::mat4>();
+    
+    // Prepare the transformation/states of each object
+    for (const Object& obj : draw_list)
+    {
+        instance_matrices.push_back(obj.ModelMatrix());
+    }
+    
+    model.DrawInstanced(shader, instance_matrices);
 }
+
+//void Scene::SendLights(Shader& shader, int DIR_LIGHTS, std::vector<Light>& lights, int POINT_LIGHTS, std::vector<PointLight>& pointLights, int SPOT_LIGHTS, std::vector<SpotLight>& spotLights)
+//{
+//    shader.SetInt("DIR_LIGHTS", std::min(MAX_DIR_LIGHTS, DIR_LIGHTS));
+//    shader.SetInt("POINT_LIGHTS", std::min(MAX_POINT_LIGHTS, POINT_LIGHTS));
+//    shader.SetInt("SPOT_LIGHTS", std::min(MAX_SPOT_LIGHTS, SPOT_LIGHTS));
+//
+//    for (int i = 0; i < DIR_LIGHTS; i++)
+//    {
+//        Light* light = &lights[i];
+//        shader.AddDirectionLight(*light, i);
+//    }
+//
+//    for (int i = 0; i < POINT_LIGHTS; i++)
+//    {
+//        PointLight* light = &pointLights[i];
+//        shader.AddPointLight(*light, i);
+//    }
+//
+//    for (int i = 0; i < SPOT_LIGHTS; i++)
+//    {
+//        SpotLight* light = &spotLights[i];
+//        shader.AddSpotLight(*light, i);
+//    }
+//}
 
 // Crysis path
 // standard_shader.SetMatrix4fv("model", glm::value_ptr(model));

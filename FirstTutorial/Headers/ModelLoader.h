@@ -27,7 +27,7 @@ public:
 	ModelLoader();
 	ModelLoader(boost::filesystem::path path);
 	Model loadModel(std::string file);
-	Model loadDefault(DefaultModel model);
+//    Model loadDefault(DefaultModel model);
 
 private:
 	static unordered_map<string, Texture> loaded_textures_;

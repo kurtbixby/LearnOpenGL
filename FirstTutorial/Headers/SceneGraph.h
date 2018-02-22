@@ -18,7 +18,9 @@ public:
 	// SceneGraph(ifstream istream);
 
 	void UseCamera(const Camera& camera);
-	std::vector<Object> RelevantObjects();
+//    std::vector<std::vector<Object>> RelevantObjects();
+    std::vector<Object> RelevantObjects();
+    
     
     SceneLighting RelevantLighting();
 	std::vector<Light> RelevantLights();
@@ -26,7 +28,8 @@ public:
 	std::vector<SpotLight> RelevantSpotLights();
 
 private:
-	std::vector<Object> objects_; // Replace this with a legit scene object graph
+//    std::vector<std::vector<Object>> objects_; // Replace this with a legit scene object graph
+    std::vector<Object> objects_;
 
 	std::vector<Light> lights_;
 	std::vector<PointLight> pointLights_;

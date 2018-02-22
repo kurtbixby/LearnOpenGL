@@ -315,12 +315,12 @@ Scene load_scene()
     std::vector<Model> models = std::vector<Model>();
 	ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit_reflection").make_preferred());
 	Model crysis = crysisLoader.loadModel("nanosuit.obj");
+    models.push_back(crysis);
 	models.push_back(create_box());
-	models.push_back(create_plane());
-	models.push_back(create_quad());
-	models.push_back(crysis);
+//    models.push_back(create_plane());
+//    models.push_back(create_quad());
 
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures_GS.vert").make_preferred();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_GS.vert").make_preferred();
     boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
     boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), geometry_shader_path.string().c_str(), fragment_shader_path.string().c_str());

@@ -8,13 +8,15 @@
 
 class Model
 {
-	public:
-		Model(std::vector<Mesh> meshes, std::vector<std::vector<Texture>> mesh_textures);
-		void Draw(Shader shader);
+public:
+    Model(std::vector<Mesh> meshes, std::vector<std::vector<Texture>> mesh_textures);
+    void Draw(const Shader& shader);
+    void DrawInstanced(const Shader& shader, std::vector<glm::mat4> instance_matrices);
 
-	private:
-		std::vector<Mesh> meshes_;
-		std::vector<std::vector<Texture>> mesh_textures_;
+private:
+    // Have a tree of meshes for animation
+    std::vector<Mesh> meshes_;
+    std::vector<std::vector<Texture>> mesh_textures_;
 };
 
 #endif

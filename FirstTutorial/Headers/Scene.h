@@ -32,8 +32,10 @@ private:
 	std::vector<Model> models_;
 	std::vector<Shader> shaders_;
 
+    Model ModelForId(uint32_t model_id) const;
 	void RenderObjects(const vector<Object>& objects, const Shader& shader);
-	void SendLights(Shader& shader, int DIR_LIGHTS, std::vector<Light>& lights, int POINT_LIGHTS, std::vector<PointLight>& pointLights, int SPOT_LIGHTS, std::vector<SpotLight>& spotLights);
+    void RenderObjectsInstanced(const vector<Object>& draw_list, const Shader& shader);
+//    void SendLights(Shader& shader, int DIR_LIGHTS, std::vector<Light>& lights, int POINT_LIGHTS, std::vector<PointLight>& pointLights, int SPOT_LIGHTS, std::vector<SpotLight>& spotLights);
 };
 
 #endif
