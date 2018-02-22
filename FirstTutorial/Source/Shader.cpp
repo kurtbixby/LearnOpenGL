@@ -46,7 +46,7 @@ Shader::Shader(const GLchar* vertex_shader_path, const GLchar* geometry_shader_p
 
 unsigned int Shader::CompileShader(const GLchar* shader_path, const GLenum shader_type)
 {
-    std::cout << "COMPILING SHADER: " << shader_path << std::endl;
+    std::cerr << "COMPILING SHADER: " << shader_path << std::endl;
     
     // Get source code
     std::string shader_code;
@@ -67,8 +67,8 @@ unsigned int Shader::CompileShader(const GLchar* shader_path, const GLenum shade
     }
     catch (std::ifstream::failure e)
     {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
-        std::cout << "SHADER PATH: " << shader_path << std::endl;
+        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
+        std::cerr << "SHADER PATH: " << shader_path << std::endl;
     }
 
     const char* shader_code_c = shader_code.c_str();
@@ -87,12 +87,12 @@ unsigned int Shader::CompileShader(const GLchar* shader_path, const GLenum shade
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
     if (success)
     {
-        std::cout << "SHADER COMPILATION SUCCESSFUL" << std::endl;
+        std::cerr << "SHADER COMPILATION SUCCESSFUL" << std::endl;
     }
     if (!success)
     {
         glGetShaderInfoLog(shader_id, log_size, nullptr, info_log);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << info_log << std::endl;
+        std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n" << info_log << std::endl;
     }
 
     return shader_id;

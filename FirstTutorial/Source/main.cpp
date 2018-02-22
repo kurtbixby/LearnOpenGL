@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include <chrono>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -55,7 +56,7 @@ int main()
 	GLFWwindow* window;
 	if (create_window(&window))
 	{
-		std::cout << "Error creating window" << std::endl;
+		std::cerr << "Error creating window" << std::endl;
 		return -1;
 	}
 
@@ -110,6 +111,10 @@ int main()
     
     Scene scene = load_scene();
 
+//    uint32_t frame_number = 0;
+    uint32_t frames_rendered = 0;
+    std::chrono::steady_clock::time_point previous_time = std::chrono::steady_clock::now();
+    
     // main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -152,6 +157,18 @@ int main()
         // break;
 
 		glBindTexture(GL_TEXTURE_2D, 0);
+//        frame_number++;
+        frames_rendered++;
+        
+        std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
+        double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - previous_time).count();
+        if (milliseconds > 1000)
+        {
+            float frame_time = milliseconds / frames_rendered;
+            std::cout << "Avg frame time: " << frame_time << std::endl;
+            previous_time = current_time;
+            frames_rendered = 0;
+        }
     }
 
     glfwTerminate();
@@ -174,7 +191,7 @@ int create_window(GLFWwindow** foo)
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
 	if (nullptr == window)
 	{
-		std::cout << "Failed to create GLFW window" << std::endl;
+		std::cerr << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
@@ -188,7 +205,7 @@ int create_window(GLFWwindow** foo)
 	//if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
+		std::cerr << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 

@@ -55,7 +55,7 @@ Model ModelLoader::loadModel(std::string file)
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+		std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
 	}
 	else
 	{
@@ -147,7 +147,7 @@ std::vector<Texture> ModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextur
 		if (texture_iterator == loaded_textures_.end())
 		{
 			// Not loaded
-			std::cout << pathString << " not loaded" << std::endl;
+			std::cerr << pathString << " not loaded" << std::endl;
 			Texture texture;
 			texture.id = load_texture(pathString.c_str());
 			texture.type = texType;
@@ -159,7 +159,7 @@ std::vector<Texture> ModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextur
 		}
 		else
 		{
-			std::cout << pathString << " already loaded" << std::endl;
+			std::cerr << pathString << " already loaded" << std::endl;
 			textures.push_back(texture_iterator->second);
 		}
 	}

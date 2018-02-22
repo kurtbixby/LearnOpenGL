@@ -140,8 +140,8 @@ void Camera::TakeInput(const CameraInput input)
 	{
 		fov_ = std::min(MAX_FOV, fov_ - glm::radians(input.y_offset));
 	}
-	std::cout << "FOV: " << fov_ << std::endl;
-	std::cout << "Delta: " << input.y_offset << std::endl;
+	std::cerr << "FOV: " << fov_ << std::endl;
+	std::cerr << "Delta: " << input.y_offset << std::endl;
 
 	UpdateProjection();
 

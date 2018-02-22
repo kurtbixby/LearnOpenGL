@@ -10,7 +10,7 @@
 
 void load_texture_file(const char* texture_file, const GLenum texture_type)
 {
-	std::cout << "LOADING: " << texture_file << std::endl;
+	std::cerr << "LOADING: " << texture_file << std::endl;
 	int width, height, nr_channels;
 	unsigned char* data = stbi_load(texture_file, &width, &height, &nr_channels, 0);
 
@@ -48,7 +48,7 @@ void load_texture_file(const char* texture_file, const GLenum texture_type)
 	}
 	else
 	{
-		std::cout << "Failed to load texture" << std::endl;
+		std::cerr << "Failed to load texture" << std::endl;
 	}
 
 	stbi_image_free(data);
