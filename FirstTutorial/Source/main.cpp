@@ -8,6 +8,8 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+//#include "Headers/Debug.h"
+
 #include "Headers/Camera.h"
 #include "Headers/Framebuffer.h"
 #include "Headers/Model.h"
@@ -16,6 +18,7 @@
 #include "Headers/SceneGraph.h"
 #include "Headers/Shader.h"
 #include "Headers/Structs.h"
+
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -66,9 +69,13 @@ int main()
 	Shader screenShader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	// Create intermediary framebuffer
-	Framebuffer fbuffer = Framebuffer();
-	fbuffer.AddTextureAttachment(FBAttachment::Color);
-	fbuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+	Framebuffer output_fb = Framebuffer();
+	output_fb.AddTextureAttachment(FBAttachment::Color);
+	output_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    
+    Framebuffer multi_sample_fb = Framebuffer();
+    multi_sample_fb.AddTextureAttachment(FBAttachment::Color, 4);
+    multi_sample_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil, 4);
 
 	// Create Screen Quad VAO
 	float quadVertices[] = {
@@ -123,14 +130,17 @@ int main()
         scene.TakeInput(input);
 
 		// Enable texture framebuffer
-		fbuffer.Use();
+		multi_sample_fb.Use();
 
 		// (Re)enable depth for main scene
 		glEnable(GL_DEPTH_TEST);
         scene.Render();
 		// Disable depth for screen quad
 		glDisable(GL_DEPTH_TEST);
-
+        
+        multi_sample_fb.DownsampleToFramebuffer(output_fb);
+        uint32_t frame_buffer_target = output_fb.RetrieveColorBuffer(0).TargetName;
+        
 		// Reenable default framebuffer
 		Framebuffer::UseDefault();
 		// Reset clears
@@ -144,8 +154,11 @@ int main()
 		glBindVertexArray(quadVAO);
 
 		glActiveTexture(GL_TEXTURE0);
+        
+//        debug::openGL_Errors();
+        
 		// bind fb texture
-		glBindTexture(GL_TEXTURE_2D, fbuffer.RetrieveColorBuffer(0).TargetName);
+		glBindTexture(GL_TEXTURE_2D, frame_buffer_target);
 		// send kernel to shader
 		screenShader.SetFloats("kernel", 9, &kernel[0]);
 		// draw screen quad
@@ -337,10 +350,10 @@ Scene load_scene()
 //    models.push_back(create_plane());
 //    models.push_back(create_quad());
 
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_GS.vert").make_preferred();
-    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
+//    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
     boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection.frag").make_preferred();
-    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), geometry_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
 	Shader transparent_shader = Shader(vertex_shader_path.string().c_str(), transparent_fragment_shader_path.string().c_str());

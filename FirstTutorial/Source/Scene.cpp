@@ -207,15 +207,9 @@ void Scene::Render()
         
         for(std::vector<Object> draw_list : trans_draw_list_inst)
         {
-            RenderObjects(draw_list, transparentShader);
-            for (Object instance : draw_list)
-            {
-                // Prepare for draw
-            }
-            
-//            RenderObjectsInstanced(draw_list, transparentShader);
+//            RenderObjects(draw_list, transparentShader);
+            RenderObjectsInstanced(draw_list, transparentShader);
         }
-//        RenderObjects(transparent, transparentShader);
     }
 
     glEnable(GL_STENCIL_TEST);

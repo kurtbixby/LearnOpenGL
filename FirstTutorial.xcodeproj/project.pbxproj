@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		90E9061A202D1FAC00374F51 /* Resources in CopyFiles */ = {isa = PBXBuildFile; fileRef = 90E90616202D1FA200374F51 /* Resources */; };
-		90E9061B202D1FAC00374F51 /* Shaders in CopyFiles */ = {isa = PBXBuildFile; fileRef = 90E90618202D1FA200374F51 /* Shaders */; };
+		90E9061A202D1FAC00374F51 /* Resources in Copy Files */ = {isa = PBXBuildFile; fileRef = 90E90616202D1FA200374F51 /* Resources */; };
+		90E9061B202D1FAC00374F51 /* Shaders in Copy Files */ = {isa = PBXBuildFile; fileRef = 90E90618202D1FA200374F51 /* Shaders */; };
 		90E90632202D20A900374F51 /* SceneGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90E90623202D20A700374F51 /* SceneGraph.cpp */; };
 		90E90633202D20A900374F51 /* Structs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90E90624202D20A700374F51 /* Structs.cpp */; };
 		90E90634202D20A900374F51 /* ModelLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90E90625202D20A700374F51 /* ModelLoader.cpp */; };
@@ -35,20 +35,22 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		90743CF920278FBF0041BE49 /* CopyFiles */ = {
+		90743CF920278FBF0041BE49 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
-				90E9061A202D1FAC00374F51 /* Resources in CopyFiles */,
-				90E9061B202D1FAC00374F51 /* Shaders in CopyFiles */,
+				90E9061A202D1FAC00374F51 /* Resources in Copy Files */,
+				90E9061B202D1FAC00374F51 /* Shaders in Copy Files */,
 			);
+			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		90116DFD2040D813001C6999 /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
 		90743CFB20278FBF0041BE49 /* FirstTutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FirstTutorial; sourceTree = BUILT_PRODUCTS_DIR; };
 		90E90615202D1FA200374F51 /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
 		90E90616202D1FA200374F51 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 				90E9064D202D20DD00374F51 /* Structs_Inline.h */,
 				90E90651202D20DE00374F51 /* Structs.h */,
 				90E9064C202D20DD00374F51 /* UniformBlockBuffer.h */,
+				90116DFD2040D813001C6999 /* Debug.h */,
 			);
 			path = Headers;
 			sourceTree = "<group>";
@@ -217,7 +220,7 @@
 			buildPhases = (
 				90743CF720278FBF0041BE49 /* Sources */,
 				90743CF820278FBF0041BE49 /* Frameworks */,
-				90743CF920278FBF0041BE49 /* CopyFiles */,
+				90743CF920278FBF0041BE49 /* Copy Files */,
 			);
 			buildRules = (
 			);

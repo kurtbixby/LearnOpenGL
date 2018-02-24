@@ -23,8 +23,10 @@ public:
 	RenderTarget RetrieveStencilBuffer();
 	RenderTarget RetrieveDepthStencilBuffer();
 
-	void AddTextureAttachment(FBAttachment attachmentType);
-	void AddRenderbufferAttachment(FBAttachment attachmentType);
+    void DownsampleToFramebuffer(Framebuffer& other_fb);
+    
+	void AddTextureAttachment(FBAttachment attachmentType, uint32_t samples = 1);
+	void AddRenderbufferAttachment(FBAttachment attachmentType, uint32_t samples = 1);
 
 private:
 	unsigned int fbo_;
@@ -38,11 +40,11 @@ private:
 	RenderTarget stencilAttachment_;
 	RenderTarget depthStencilAttachment_;
 
-	unsigned int CreateFramebufferTexture(FBAttachment attachmentType);
-	unsigned int CreateRenderBuffer(FBAttachment attachmentType);
+	unsigned int CreateFramebufferTexture(FBAttachment attachmentType, uint32_t samples = 1);
+	unsigned int CreateRenderBuffer(FBAttachment attachmentType, uint32_t samples = 1);
 
-	unsigned int GenFramebufferTexture(GLint internalFormat, GLenum format, GLenum dataType);
-	unsigned int GenRenderbuffer(GLenum internalFormat);
+	unsigned int GenFramebufferTexture(GLint internalFormat, GLenum format, GLenum dataType, uint32_t samples = 1);
+	unsigned int GenRenderbuffer(GLenum internalFormat, uint32_t samples = 1);
 };
 
 #endif
