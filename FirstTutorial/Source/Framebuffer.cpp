@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "Headers/Debug.h"
+//#include "Headers/Debug.h"
 #include "Headers/Structs.h"
 
 
@@ -83,7 +83,6 @@ void Framebuffer::DownsampleToFramebuffer(Framebuffer& other_fb)
 {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, this->fbo_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, other_fb.fbo_);
-    debug::openGL_Errors();
     glBlitFramebuffer(0, 0, this->width_, this->height_, 0, 0, other_fb.width_, other_fb.height_, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 

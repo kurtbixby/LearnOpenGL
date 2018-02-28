@@ -148,8 +148,17 @@ std::vector<Texture> ModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextur
 		{
 			// Not loaded
 			std::cerr << pathString << " not loaded" << std::endl;
-			Texture texture;
-			texture.id = load_texture(pathString.c_str());
+            Texture texture;
+            
+            // Assume only diffuse textures aren't in linear space
+            if (texType == TextureType::Diffuse)
+            {
+                texture.id = load_texture(pathString.c_str(), false);
+            }
+            else
+            {
+                texture.id = load_texture(pathString.c_str());
+            }
 			texture.type = texType;
 			texture.path = str.C_Str();
 

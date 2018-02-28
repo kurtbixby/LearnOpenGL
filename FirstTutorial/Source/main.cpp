@@ -8,7 +8,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-//#include "Headers/Debug.h"
+#include "Headers/Debug.h"
 
 #include "Headers/Camera.h"
 #include "Headers/Framebuffer.h"
@@ -55,7 +55,7 @@ int main()
 
 	// Create standard shader
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Kernel.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Kernel_Gamma.frag").make_preferred();
 	Shader screenShader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	// Create intermediary framebuffer
@@ -145,7 +145,7 @@ int main()
 
 		glActiveTexture(GL_TEXTURE0);
         
-//        debug::openGL_Errors();
+        debug::openGL_Errors();
         
 		// bind fb texture
 		glBindTexture(GL_TEXTURE_2D, frame_buffer_target);

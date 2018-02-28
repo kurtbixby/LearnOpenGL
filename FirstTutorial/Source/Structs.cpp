@@ -8,23 +8,26 @@
 #include "Headers/stb_image.h"
 #endif
 
-void load_texture_file(const char* texture_file, const GLenum texture_type)
+void load_texture_file(const char* texture_file, const GLenum texture_type, const bool linear_space)
 {
 	std::cerr << "LOADING: " << texture_file << std::endl;
 	int width, height, nr_channels;
 	unsigned char* data = stbi_load(texture_file, &width, &height, &nr_channels, 0);
 
 	GLenum source_format;
+    GLenum storage_format;
 	switch(nr_channels)
 	{
 	case 1:
 		source_format = GL_RED;
 		break;
 	case 3:
-		source_format = GL_RGB;
+        source_format = linear_space ? GL_RGB : GL_SRGB;
+        storage_format = GL_RGB;
 		break;
 	default:
-		source_format = GL_RGBA;
+        source_format = linear_space ? GL_RGBA : GL_SRGB_ALPHA;
+        storage_format = GL_RGBA;
 		break;
 	}
 	if (data)
@@ -40,7 +43,7 @@ void load_texture_file(const char* texture_file, const GLenum texture_type)
 		* 8) Datatype of source texture
 		* 9) Actual texture data
 		*/
-		glTexImage2D(texture_type, 0, source_format, width, height, 0, source_format, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(texture_type, 0, source_format, width, height, 0, storage_format, GL_UNSIGNED_BYTE, data);
 		if (texture_type == GL_TEXTURE_2D)
 		{
 			glGenerateMipmap(GL_TEXTURE_2D);

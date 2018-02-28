@@ -57,8 +57,8 @@ Vertex create_vertex(float posX, float posY, float posZ, float normX, float norm
 Vertex create_vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texCoords);
 Texture load_texture(std::string directory, std::string filename, TextureType texType);
 unsigned int texture_from_file(const char* fileName, std::string directory);
-void load_texture_file(const char* texture_file, const GLenum texture_type = GL_TEXTURE_2D);
-unsigned int load_texture(std::string texture_path, const GLenum wrap_type = GL_REPEAT);
+void load_texture_file(const char* texture_file, const GLenum texture_type = GL_TEXTURE_2D, const bool linear_space = true);
+unsigned int load_texture(std::string texture_path, const bool linear_space = true, const GLenum wrap_type = GL_REPEAT);
 unsigned int load_cubemap(std::vector<std::string> texturePaths);
 uint32_t buffer_vec3(glm::vec3& vec3, uint32_t offset);
 
