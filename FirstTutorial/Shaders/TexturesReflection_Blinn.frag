@@ -103,7 +103,8 @@ vec3 global_lighting(Light light, vec3 diffuseValue, vec3 specularValue)
 
 	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-viewLightDir, norm);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
+    float spec = specular_coefficient(viewDir, -viewLightDir, norm, 32);
+//    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
 	vec3 specular = light.specular * spec * specularValue;
 	vec3 result = ambient + diffuse + specular;
 
@@ -122,7 +123,8 @@ vec3 point_lighting(PointLight pointLight, vec3 diffuseValue, vec3 specularValue
 
 	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = specular_coefficient(viewDir, -lightDir, norm, 32);
+//    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	vec3 specular = pointLight.specular * spec * specularValue;
 
 	float distance = length(viewLightPos - fs_in.FragPos);
@@ -158,7 +160,8 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 
 		vec3 viewDir = normalize(-fs_in.FragPos);
 		vec3 reflectDir = reflect(-lightDir, norm);
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
+        float spec = specular_coefficient(viewDir, -lightDir, norm, 32);
+//        float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
 		vec3 specular = spotLight.specular * spec * specularValue;
 
         result = intensity * (ambient + diffuse + specular);

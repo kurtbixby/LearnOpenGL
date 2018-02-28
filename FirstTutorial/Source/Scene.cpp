@@ -26,7 +26,13 @@ Scene::Scene()
 	skybox_ = Cubemap();
 	cams_ = std::vector<Camera>();
 	models_ = std::vector<Model>();
-	shaders_ = std::vector<Shader>();
+    
+    standardShader_ = Shader();
+    transparentShader_ = Shader();
+    outlineShader_ = Shader();
+    skyboxShader_ = Shader();
+    geometryShader_ = Shader();
+    inUseDefaultShader_ = standardShader_;
 }
 
 Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> models, std::vector<Shader> shaders, Cubemap skybox)
@@ -35,7 +41,14 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
 	skybox_ = skybox;
 	cams_ = cams;
 	models_ = models;
-	shaders_ = shaders;
+    
+    standardShader_ = shaders[0];
+    transparentShader_ = shaders[1];
+    outlineShader_ = shaders[2];
+    skyboxShader_ = shaders[3];
+    geometryShader_ = shaders[4];
+    altLightShader_ = shaders[5];
+    inUseDefaultShader_ = standardShader_;
 }
 
 void Scene::Render()
@@ -55,12 +68,6 @@ void Scene::Render()
 	matBuff.FillBuffer(projection);
 	matBuff.FillBuffer(view);
 	matBuff.BindToIndex(matrixBindIndex);
-
-	Shader& standardShader = shaders_[0];
-	Shader& transparentShader = shaders_[1];
-	Shader& outlineShader = shaders_[2];
-	Shader& skyboxShader = shaders_[3];
-    Shader& bonusShader = shaders_[4];
 
 	// For partially transparent
 	// sort by Z position relative to camera in direction of "front", back to front
@@ -93,27 +100,15 @@ void Scene::Render()
 			regular.push_back(object);
 		}
 	}
-    
-    if (transparent.size() > 0)
-    {
-        std::vector<std::vector<Object>> trans_draw_list_inst = std::vector<std::vector<Object>>();
-        // Group transparent
-        for (Object obj : transparent)
-        {
-            
-        }
-    }
-    
-    // Group stenciled
 
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
-	skyboxShader.Use();
+	skyboxShader_.Use();
 
 	glActiveTexture(GL_TEXTURE0 + 2);
-	skyboxShader.SetInt("skybox", 2);
+	skyboxShader_.SetInt("skybox", 2);
 
-	skyboxShader.BindUniformBlock("Matrices", matrixBindIndex);
+	skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
 
 	skybox_.Draw();
 	glDepthFunc(GL_LESS);
@@ -124,9 +119,9 @@ void Scene::Render()
 	std::vector<SpotLight> spotLights = graph_.RelevantSpotLights();
     SceneLighting lighting = graph_.RelevantLighting();
 
-	unsigned int DIR_LIGHTS = lights.size();
-	unsigned int POINT_LIGHTS = pointLights.size();
-	unsigned int SPOT_LIGHTS = spotLights.size();
+//    unsigned int DIR_LIGHTS = lights.size();
+//    unsigned int POINT_LIGHTS = pointLights.size();
+//    unsigned int SPOT_LIGHTS = spotLights.size();
 
     const GLuint lightingBindIndex = 2;
     UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
@@ -156,18 +151,18 @@ void Scene::Render()
             }
         }
         
-        standardShader.Use();
-        standardShader.BindUniformBlock("Matrices", matrixBindIndex);
-        standardShader.BindUniformBlock("Lighting", lightingBindIndex);
+        inUseDefaultShader_.Use();
+        inUseDefaultShader_.BindUniformBlock("Matrices", matrixBindIndex);
+        inUseDefaultShader_.BindUniformBlock("Lighting", lightingBindIndex);
 
-        standardShader.SetInt("skybox", 20);
+        inUseDefaultShader_.SetInt("skybox", 20);
         glActiveTexture(GL_TEXTURE0 + 20);
         skybox_.Activate();
 
         for (std::vector<Object> draw_list : reg_draw_list_inst)
         {
 //            RenderObjects(draw_list, standardShader);
-            RenderObjectsInstanced(draw_list, standardShader);
+            RenderObjectsInstanced(draw_list, standardShader_);
         }
 
         skybox_.Deactivate();
@@ -201,43 +196,54 @@ void Scene::Render()
         }
         trans_draw_list_inst.push_back(current_list);
 
-        transparentShader.Use();
-        transparentShader.BindUniformBlock("Matrices", matrixBindIndex);
-        transparentShader.BindUniformBlock("Lighting", lightingBindIndex);
+        transparentShader_.Use();
+        transparentShader_.BindUniformBlock("Matrices", matrixBindIndex);
+        transparentShader_.BindUniformBlock("Lighting", lightingBindIndex);
         
         for(std::vector<Object> draw_list : trans_draw_list_inst)
         {
 //            RenderObjects(draw_list, transparentShader);
-            RenderObjectsInstanced(draw_list, transparentShader);
+            RenderObjectsInstanced(draw_list, transparentShader_);
         }
     }
 
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glClear(GL_STENCIL_BUFFER_BIT);
-    glStencilFunc(GL_ALWAYS, 1, 0xFF);
-    glStencilMask(0xFF);
-
-    // First pass
-    standardShader.Use();
-    RenderObjects(stenciled, standardShader);
-
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilMask(0x00);
-
-    // Outline pass
-    outlineShader.Use();
-    outlineShader.BindUniformBlock("Matrices", matrixBindIndex);
-    RenderObjects(stenciled, outlineShader);
-
-    glStencilMask(0xFF);
-    glDisable(GL_STENCIL_TEST);
+    if (stenciled.size() > 0)
+    {
+        glEnable(GL_STENCIL_TEST);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+        
+        // First pass
+        inUseDefaultShader_.Use();
+        RenderObjects(stenciled, standardShader_);
+        
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        
+        // Outline pass
+        outlineShader_.Use();
+        outlineShader_.BindUniformBlock("Matrices", matrixBindIndex);
+        RenderObjects(stenciled, outlineShader_);
+        
+        glStencilMask(0xFF);
+        glDisable(GL_STENCIL_TEST);
+    }
 }
 
 void Scene::TakeInput(const Input& input)
 {
-    cams_[0].TakeInput(input.cameraInput);
+    cams_[0].TakeInput(input.CameraInput());
+    if (input.BlinnLighting())
+    {
+        inUseDefaultShader_ = altLightShader_;
+    }
+    else
+    {
+        inUseDefaultShader_ = standardShader_;
+    }
 }
 
 Model Scene::ModelForId(uint32_t model_id) const

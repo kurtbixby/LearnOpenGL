@@ -7,6 +7,11 @@
 #include <sstream>
 #include <iostream>
 
+Shader::Shader()
+{
+    id_ = 0;
+}
+
 Shader::Shader(const GLchar* vertex_shader_path, const GLchar* fragment_shader_path)
 {
     const unsigned int vertex_shader = CompileShader(vertex_shader_path, GL_VERTEX_SHADER);
