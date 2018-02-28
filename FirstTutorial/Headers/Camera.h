@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Headers/Input.h"
 #include "Structs.h"
 
 // Don't mess with roll or y-axis translation

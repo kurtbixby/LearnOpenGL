@@ -12,13 +12,13 @@
 
 #include "Headers/Camera.h"
 #include "Headers/Framebuffer.h"
+#include "Headers/InputWrapper.h"
 #include "Headers/Model.h"
 #include "Headers/Primitives.h"
 #include "Headers/Scene.h"
 #include "Headers/SceneGraph.h"
 #include "Headers/Shader.h"
 #include "Headers/Structs.h"
-
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -29,7 +29,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Headers/ModelLoader.h"
 
-int create_window(GLFWwindow** foo);
+#define WIDTH 800
+#define HEIGHT 600
+
+int create_window(GLFWwindow** foo, InputWrapper& inputWrapper);
 Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
@@ -38,26 +41,13 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 Scene load_scene();
 
-const unsigned int WIDTH = 800;
-const unsigned int HEIGHT = 600;
-const unsigned int FOV = 45;
-float texture_mix = 0.5f;
-float mix_increment = 0.01f;
-float mix_min = 0.0f;
-float mix_max = 1.0f;
-
-float current_x = WIDTH / 2.0f;
-float current_y = HEIGHT / 2.0f;
-
-float last_x = current_x;
-float last_y = current_y;
-
-float y_offset = 0.0f;
-
 int main()
 {
+    // Get configuration?
+    // Create InputWrapper?
+    InputWrapper inputWrapper = InputWrapper();
 	GLFWwindow* window;
-	if (create_window(&window))
+	if (create_window(&window, inputWrapper))
 	{
 		std::cerr << "Error creating window" << std::endl;
 		return -1;
@@ -126,7 +116,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         // process any input
-        Input input = get_input(window);
+        Input input = inputWrapper.TakeInput(window);
         scene.TakeInput(input);
 
 		// Enable texture framebuffer
@@ -188,7 +178,7 @@ int main()
     return 0;
 }
 
-int create_window(GLFWwindow** foo)
+int create_window(GLFWwindow** foo, InputWrapper& inputWrapper)
 {
 	// glfw initialization and configuration
 	glfwInit();
@@ -211,6 +201,7 @@ int create_window(GLFWwindow** foo)
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetWindowUserPointer(window, &inputWrapper);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
@@ -227,70 +218,12 @@ int create_window(GLFWwindow** foo)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-    // glDepthFunc(GL_GREATER);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//    glDepthFunc(GL_GREATER);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	*foo = window;
 
 	return 0;
-}
-
-Input get_input(GLFWwindow* window)
-{
-	CameraInput cameraInput = CameraInput();
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-	{
-		texture_mix = std::min(texture_mix + mix_increment, mix_max);
-	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-	{
-		texture_mix = std::max(texture_mix - mix_increment, mix_min);
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		cameraInput.MoveForward = 1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		cameraInput.MoveBack = 1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		cameraInput.MoveRight = 1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		cameraInput.MoveLeft = 1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-	{
-		cameraInput.RotateRight = 1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-	{
-		cameraInput.RotateLeft = 1;
-	}
-	
-	float x_delta = current_x - last_x;
-	float y_delta = last_y - current_y;
-
-	last_x = current_x;
-	last_y = current_y;
-
-	cameraInput.x_delta = x_delta;
-	cameraInput.y_delta = y_delta;
-
-	cameraInput.y_offset = y_offset;
-	y_offset = 0.0f;
-
-    Input input = Input();
-    input.cameraInput = cameraInput;
-
-    return input;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
@@ -300,36 +233,14 @@ void framebuffer_size_callback(GLFWwindow* window, const int width, const int he
 
 void mouse_callback(GLFWwindow* window, double xPos, double yPos)
 {
-	current_x = xPos;
-	current_y = yPos;
+    InputWrapper* wrapper = static_cast<InputWrapper*>(glfwGetWindowUserPointer(window));
+    wrapper->MouseCallback(window, xPos, yPos);
 }
 
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
 {
-	y_offset += yOffset;
-}
-
-void generate_cube_locations(const unsigned number, glm::vec3* const cube_array)
-{
-	const int random_parts = 2000;
-	const float x_max = 5.0f;
-	const float x_min = -5.0f;
-	const float x_range = x_max - x_min;
-	const float y_max = 5.0f;
-	const float y_min = -5.0f;
-	const float y_range = y_max - y_min;
-	const float z_max = -1.0f;
-	const float z_min = -15.0f;
-	const float z_range = z_max - z_min;
-
-	for (int i = 0; i < number; i++)
-	{
-		const float x = (((rand() % random_parts) / static_cast<float>(random_parts)) * x_range) + x_min;
-		const float y = (((rand() % random_parts) / static_cast<float>(random_parts)) * y_range) + y_min;
-		const float z = (((rand() % random_parts) / static_cast<float>(random_parts)) * z_range) + z_min;
-
-		cube_array[i] = glm::vec3(x, y, z);
-	}
+    InputWrapper* wrapper = static_cast<InputWrapper*>(glfwGetWindowUserPointer(window));
+    wrapper->ScrollCallback(window, xOffset, yOffset);
 }
 
 Scene load_scene()
@@ -369,6 +280,10 @@ Scene load_scene()
     boost::filesystem::path bonus_geometry_shader_path = boost::filesystem::path("Shaders/Normals.geom").make_preferred();
     boost::filesystem::path bonus_fragment_shader_path = boost::filesystem::path("Shaders/First.frag").make_preferred();
     Shader bonus_shader = Shader(bonus_vertex_shader_path.string().c_str(), bonus_geometry_shader_path.string().c_str(), bonus_fragment_shader_path.string().c_str());
+    
+    boost::filesystem::path alt_light_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
+    boost::filesystem::path alt_light_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
+    Shader alt_light_shader = Shader(alt_light_vertex_shader_path.string().c_str(), alt_light_fragment_shader_path.string().c_str());
 
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
@@ -376,6 +291,7 @@ Scene load_scene()
     shaders.push_back(outline_shader);
 	shaders.push_back(skybox_shader);
     shaders.push_back(bonus_shader);
+    shaders.push_back(alt_light_shader);
 
 	Cubemap skybox = Cubemap();
 

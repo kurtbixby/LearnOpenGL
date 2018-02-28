@@ -84,6 +84,14 @@ uniform int REFLECTION_MAPS;
 
 uniform samplerCube skybox;
 
+float specular_coefficient(vec3 viewDir, vec3 toLightDir, vec3 normal, int shininess)
+{
+    vec3 normdView = normalize(viewDir);
+    vec3 normdLight = normalize(toLightDir);
+    vec3 halfway = normalize(normdView + normdLight);
+    return pow(max(dot(normal, halfway), 0.0f), shininess);
+}
+
 vec3 global_lighting(Light light, vec3 diffuseValue, vec3 specularValue)
 {
 	vec3 ambient = light.ambient * diffuseValue;

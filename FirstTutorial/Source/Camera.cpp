@@ -10,6 +10,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Headers/Input.h"
+
 const float MAX_PITCH = M_PI_2 - .001;
 const float MIN_PITCH = -1 * MAX_PITCH;
 

@@ -15,7 +15,7 @@
 #include "Headers/Object.h"
 #include "Headers/SceneLighting.h"
 
-#define ORBIT_OBJS 10000
+#define ORBIT_OBJS 10
 #define ORBIT_START 10
 #define ORBIT_SIZE 40
 
@@ -86,7 +86,7 @@ SceneGraph::SceneGraph()
 
     // pLight2 is the same as pLight1, but in a different location
     pLight.ChangePosition(glm::vec3(-5.0f));
-//    pointLights_.push_back(pLight);
+    pointLights_.push_back(pLight);
 
     // Spot Light Creation
     LightColorData blue;

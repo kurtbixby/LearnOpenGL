@@ -25,28 +25,12 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "FirstTutorial/Source/Scene.cpp"
-            timestampString = "541123756.255949"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "59"
-            endingLineNumber = "59"
-            landmarkName = "Scene::Render()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/main.cpp"
-            timestampString = "541123756.2560869"
+            timestampString = "541547664.176103"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "172"
-            endingLineNumber = "172"
+            startingLineNumber = "162"
+            endingLineNumber = "162"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -58,11 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/main.cpp"
-            timestampString = "541123756.256754"
+            timestampString = "541547664.17619"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "165"
-            endingLineNumber = "165"
+            startingLineNumber = "155"
+            endingLineNumber = "155"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -266,11 +250,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/Scene.cpp"
-            timestampString = "541123756.257802"
+            timestampString = "541547664.1763459"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "55"
-            endingLineNumber = "55"
+            startingLineNumber = "68"
+            endingLineNumber = "68"
             landmarkName = "Scene::Render()"
             landmarkType = "7">
          </BreakpointContent>
@@ -330,7 +314,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/Lights.cpp"
-            timestampString = "541123756.2581"
+            timestampString = "541219028.862785"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "44"
@@ -346,7 +330,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/Lights.cpp"
-            timestampString = "541123756.258193"
+            timestampString = "541219028.86326"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "98"
@@ -362,7 +346,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/Lights.cpp"
-            timestampString = "541123756.25827"
+            timestampString = "541219028.863319"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "84"
@@ -378,7 +362,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/Lights.cpp"
-            timestampString = "541123756.258348"
+            timestampString = "541219028.863363"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "151"
@@ -394,7 +378,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/SceneGraph.cpp"
-            timestampString = "541123756.258423"
+            timestampString = "541547664.176908"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "101"
@@ -410,7 +394,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/Lights.cpp"
-            timestampString = "541123756.258543"
+            timestampString = "541219028.863425"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "145"
@@ -458,11 +442,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/main.cpp"
-            timestampString = "541123756.258803"
+            timestampString = "541547664.177057"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "385"
-            endingLineNumber = "385"
+            startingLineNumber = "301"
+            endingLineNumber = "301"
             landmarkName = "load_scene()"
             landmarkType = "9">
          </BreakpointContent>
@@ -474,7 +458,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Headers/SceneGraph.h"
-            timestampString = "541123756.259325"
+            timestampString = "541546441.166151"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "29"
@@ -490,11 +474,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/main.cpp"
-            timestampString = "541123756.259383"
+            timestampString = "541547664.1771621"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "81"
-            endingLineNumber = "81"
+            startingLineNumber = "71"
+            endingLineNumber = "71"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -522,12 +506,60 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "FirstTutorial/Source/main.cpp"
-            timestampString = "541123756.259722"
+            timestampString = "541547664.177276"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "142"
-            endingLineNumber = "142"
+            startingLineNumber = "132"
+            endingLineNumber = "132"
             landmarkName = "main()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FirstTutorial/Source/main.cpp"
+            timestampString = "541547664.177364"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "288"
+            endingLineNumber = "288"
+            landmarkName = "load_scene()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FirstTutorial/Source/Scene.cpp"
+            timestampString = "541547664.177436"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "238"
+            endingLineNumber = "238"
+            landmarkName = "Scene::TakeInput(const Input&amp; input)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FirstTutorial/Source/main.cpp"
+            timestampString = "541547671.221168"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "289"
+            endingLineNumber = "289"
+            landmarkName = "load_scene()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

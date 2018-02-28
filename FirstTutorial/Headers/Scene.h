@@ -30,7 +30,15 @@ private:
 
 	std::vector<Camera> cams_;
 	std::vector<Model> models_;
-	std::vector<Shader> shaders_;
+    
+    Shader inUseDefaultShader_;
+    
+    Shader standardShader_;
+    Shader altLightShader_;
+    Shader transparentShader_;
+    Shader outlineShader_;
+    Shader skyboxShader_;
+    Shader geometryShader_;
 
     Model ModelForId(uint32_t model_id) const;
 	void RenderObjects(const vector<Object>& objects, const Shader& shader);

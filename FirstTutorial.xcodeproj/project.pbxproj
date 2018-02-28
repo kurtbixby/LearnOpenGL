@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		903AA8332042342F00A1B7F9 /* InputWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 903AA8322042342F00A1B7F9 /* InputWrapper.cpp */; };
+		903AA836204237DB00A1B7F9 /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 903AA835204237DB00A1B7F9 /* Input.cpp */; };
 		90E9061A202D1FAC00374F51 /* Resources in Copy Files */ = {isa = PBXBuildFile; fileRef = 90E90616202D1FA200374F51 /* Resources */; };
 		90E9061B202D1FAC00374F51 /* Shaders in Copy Files */ = {isa = PBXBuildFile; fileRef = 90E90618202D1FA200374F51 /* Shaders */; };
 		90E90632202D20A900374F51 /* SceneGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90E90623202D20A700374F51 /* SceneGraph.cpp */; };
@@ -51,6 +53,10 @@
 
 /* Begin PBXFileReference section */
 		90116DFD2040D813001C6999 /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
+		903AA831204232DF00A1B7F9 /* InputWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputWrapper.h; sourceTree = "<group>"; };
+		903AA8322042342F00A1B7F9 /* InputWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InputWrapper.cpp; sourceTree = "<group>"; };
+		903AA8342042349100A1B7F9 /* Input.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Input.h; sourceTree = "<group>"; };
+		903AA835204237DB00A1B7F9 /* Input.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Input.cpp; sourceTree = "<group>"; };
 		90743CFB20278FBF0041BE49 /* FirstTutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FirstTutorial; sourceTree = BUILT_PRODUCTS_DIR; };
 		90E90615202D1FA200374F51 /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
 		90E90616202D1FA200374F51 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
@@ -154,6 +160,8 @@
 				90E9062E202D20A800374F51 /* Cubemap.cpp */,
 				90E90631202D20A800374F51 /* Framebuffer.cpp */,
 				90E9062C202D20A800374F51 /* glad.c */,
+				903AA835204237DB00A1B7F9 /* Input.cpp */,
+				903AA8322042342F00A1B7F9 /* InputWrapper.cpp */,
 				90E9062A202D20A800374F51 /* Lights.cpp */,
 				90E90629202D20A700374F51 /* main.cpp */,
 				90E9062B202D20A800374F51 /* Mesh.cpp */,
@@ -174,8 +182,11 @@
 			children = (
 				90E90649202D20DC00374F51 /* Camera.h */,
 				90E90650202D20DD00374F51 /* Cubemap.h */,
+				90116DFD2040D813001C6999 /* Debug.h */,
 				90E90648202D20DC00374F51 /* Framebuffer.h */,
 				90E9064E202D20DD00374F51 /* IBufferable.h */,
+				903AA8342042349100A1B7F9 /* Input.h */,
+				903AA831204232DF00A1B7F9 /* InputWrapper.h */,
 				90E90643202D20DC00374F51 /* Lights.h */,
 				90E9064F202D20DD00374F51 /* Mesh.h */,
 				90E9064B202D20DD00374F51 /* Model.h */,
@@ -190,7 +201,6 @@
 				90E9064D202D20DD00374F51 /* Structs_Inline.h */,
 				90E90651202D20DE00374F51 /* Structs.h */,
 				90E9064C202D20DD00374F51 /* UniformBlockBuffer.h */,
-				90116DFD2040D813001C6999 /* Debug.h */,
 			);
 			path = Headers;
 			sourceTree = "<group>";
@@ -270,7 +280,9 @@
 			files = (
 				90E9063A202D20A900374F51 /* Mesh.cpp in Sources */,
 				90E9063D202D20A900374F51 /* Cubemap.cpp in Sources */,
+				903AA8332042342F00A1B7F9 /* InputWrapper.cpp in Sources */,
 				90E90635202D20A900374F51 /* Scene.cpp in Sources */,
+				903AA836204237DB00A1B7F9 /* Input.cpp in Sources */,
 				90E90633202D20A900374F51 /* Structs.cpp in Sources */,
 				90E9063F202D20A900374F51 /* Shader.cpp in Sources */,
 				90E9063E202D20A900374F51 /* SceneLighting.cpp in Sources */,
