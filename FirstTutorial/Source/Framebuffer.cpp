@@ -289,29 +289,31 @@ unsigned int Framebuffer::GenFramebufferTexture(GLint internalFormat, GLenum for
 {
     unsigned int texture;
     glGenTextures(1, &texture);
-    if (samples == 1)
+    
+    bool multisampled = samples > 1;
+    auto sampleType = multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+    
+    glBindTexture(sampleType, texture);
+    
+    if (multisampled)
     {
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width_, height_, 0, format, dataType, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        if (format == GL_DEPTH_COMPONENT || format == GL_DEPTH_STENCIL)
-        {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(glm::vec4(1.0f)));
-        }
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glTexImage2DMultisample(sampleType, samples, internalFormat, width_, height_, GL_TRUE);
     }
     else
     {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width_, height_, GL_TRUE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+        glTexImage2D(sampleType, 0, internalFormat, width_, height_, 0, format, dataType, nullptr);
+        glTexParameteri(sampleType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(sampleType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
-
+    
+    if (format == GL_DEPTH_COMPONENT || format == GL_DEPTH_STENCIL)
+    {
+        glTexParameteri(sampleType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(sampleType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameterfv(sampleType, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(glm::vec4(1.0f)));
+    }
+    
+    glBindTexture(sampleType, 0);
     return texture;
 }
 

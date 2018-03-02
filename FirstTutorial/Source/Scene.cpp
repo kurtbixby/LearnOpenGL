@@ -21,6 +21,7 @@
 #include "Headers/Structs.h"
 #include "Headers/UniformBlockBuffer.h"
 
+// Arbitrary to cover the entire scene based on one camera position
 #define LIGHT_DIMEN_H 50.0f
 #define LIGHT_DIMEN_V 30.0f
 #define LIGHT_NEAR_Z -30.0f
