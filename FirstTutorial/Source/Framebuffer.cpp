@@ -34,13 +34,13 @@ Framebuffer::Framebuffer(unsigned int width, unsigned int height, bool useColorB
 
     fbo_ = fbo;
 
-//    glBindFramebuffer(target_, fbo_);
-//    if (noColor_)
+    glBindFramebuffer(target_, fbo_);
+    if (noColor_)
     {
-//        glDrawBuffer(GL_NONE);
-//        glReadBuffer(GL_NONE);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
     }
-//    glBindFramebuffer(target_, 0);
+    glBindFramebuffer(target_, 0);
     
     colorAttachments_ = std::vector<RenderTarget>();
     colorAttachmentCount_ = 0;

@@ -108,6 +108,11 @@ int main()
         0, 0, 0
     };
     
+    screenShader.Use();
+    screenShader.SetFloat("gamma", 2.2f);
+    // send kernel to shader
+    screenShader.SetFloats("kernel", 9, &kernel[0]);
+    
     Scene scene = load_scene();
     
 //    Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
@@ -115,7 +120,6 @@ int main()
     
 //    scene.GenerateShadowMaps(shadow_map_buffer);
     
-//    uint32_t frame_number = 0;
     uint32_t frames_rendered = 0;
     std::chrono::steady_clock::time_point previous_time = std::chrono::steady_clock::now();
     
@@ -128,7 +132,7 @@ int main()
         
 		// Enable texture framebuffer
 		multi_sample_fb.Use();
-//        multi_sample_fb.SetViewPort();
+        multi_sample_fb.SetViewPort();
 
 		// (Re)enable depth for main scene
 		glEnable(GL_DEPTH_TEST);
@@ -150,15 +154,9 @@ int main()
 
 		// bind screen quad
 		glBindVertexArray(quadVAO);
-
 		glActiveTexture(GL_TEXTURE0);
-        
-        debug::openGL_Errors();
-        
 		// bind fb texture
 		glBindTexture(GL_TEXTURE_2D, frame_buffer_target);
-		// send kernel to shader
-		screenShader.SetFloats("kernel", 9, &kernel[0]);
 		// draw screen quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -168,7 +166,6 @@ int main()
         // break;
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-//        frame_number++;
         frames_rendered++;
         
         std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
@@ -293,9 +290,9 @@ Scene load_scene()
     boost::filesystem::path alt_light_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
     Shader alt_light_shader = Shader(alt_light_vertex_shader_path.string().c_str(), alt_light_fragment_shader_path.string().c_str());
 
-//    boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
-//    boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
-//    Shader shadow_map_shader = Shader(shadow_map_vertex_shader_path.string().c_str(), shadow_map_fragment_shader_path.string().c_str());
+    boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
+    boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
+    Shader shadow_map_shader = Shader(shadow_map_vertex_shader_path.string().c_str(), shadow_map_fragment_shader_path.string().c_str());
     
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
@@ -304,7 +301,7 @@ Scene load_scene()
 	shaders.push_back(skybox_shader);
     shaders.push_back(bonus_shader);
     shaders.push_back(alt_light_shader);
-//    shaders.push_back(shadow_map_shader);
+    shaders.push_back(shadow_map_shader);
 
 	Cubemap skybox = Cubemap();
 
