@@ -33,6 +33,11 @@ private:
 	std::vector<Camera> cams_;
 	std::vector<Model> models_;
     
+    std::vector<uint32_t> lightShadowMaps_;
+    std::vector<glm::mat4> lightSpaceMats_;
+    std::vector<uint32_t> pointLightShadowMaps_;
+    std::vector<glm::mat4> pointLightSpaceMats_;
+    
     Shader inUseDefaultShader_;
     
     Shader standardShader_;
@@ -41,9 +46,11 @@ private:
     Shader outlineShader_;
     Shader skyboxShader_;
     Shader geometryShader_;
-//    Shader shadowMapShader_;
+    Shader shadowMapShader_;
 
     Model ModelForId(uint32_t model_id) const;
+    std::vector<std::vector<Object>> CreateRegularDrawLists(const vector<Object>& objects);
+    std::vector<std::vector<Object>> CreateTransparentDrawLists(const vector<Object>& objects);
 	void RenderObjects(const vector<Object>& objects, const Shader& shader);
     void RenderObjectsInstanced(const vector<Object>& draw_list, const Shader& shader);
 //    void SendLights(Shader& shader, int DIR_LIGHTS, std::vector<Light>& lights, int POINT_LIGHTS, std::vector<PointLight>& pointLights, int SPOT_LIGHTS, std::vector<SpotLight>& spotLights);

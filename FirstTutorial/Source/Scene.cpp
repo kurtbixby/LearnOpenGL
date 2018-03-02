@@ -12,6 +12,7 @@
 
 #include "Headers/Camera.h"
 #include "Headers/Cubemap.h"
+#include "Headers/Framebuffer.h"
 #include "Headers/Lights.h"
 #include "Headers/Model.h"
 #include "Headers/Object.h"
@@ -20,10 +21,10 @@
 #include "Headers/Structs.h"
 #include "Headers/UniformBlockBuffer.h"
 
-#define LIGHT_DIMEN_H 10.0f
-#define LIGHT_DIMEN_V 10.0f
-#define LIGHT_NEAR_Z 1.0f
-#define LIGHT_FAR_Z 7.5f
+#define LIGHT_DIMEN_H 50.0f
+#define LIGHT_DIMEN_V 30.0f
+#define LIGHT_NEAR_Z -30.0f
+#define LIGHT_FAR_Z 70.0f
 
 Scene::Scene()
 {
@@ -31,6 +32,8 @@ Scene::Scene()
 	skybox_ = Cubemap();
 	cams_ = std::vector<Camera>();
 	models_ = std::vector<Model>();
+    lightShadowMaps_ = std::vector<uint32_t>();
+    pointLightShadowMaps_ = std::vector<uint32_t>();
     
     standardShader_ = Shader();
     transparentShader_ = Shader();
@@ -38,7 +41,7 @@ Scene::Scene()
     skyboxShader_ = Shader();
     geometryShader_ = Shader();
     inUseDefaultShader_ = standardShader_;
-//    shadowMapShader_ = Shader();
+    shadowMapShader_ = Shader();
 }
 
 Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> models, std::vector<Shader> shaders, Cubemap skybox)
@@ -48,6 +51,11 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
 	cams_ = cams;
 	models_ = models;
     
+    lightShadowMaps_ = std::vector<uint32_t>();
+    pointLightShadowMaps_ = std::vector<uint32_t>();
+    lightSpaceMats_ = std::vector<glm::mat4>();
+    pointLightSpaceMats_ = std::vector<glm::mat4>();
+    
     standardShader_ = shaders[0];
     transparentShader_ = shaders[1];
     outlineShader_ = shaders[2];
@@ -55,26 +63,86 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
     geometryShader_ = shaders[4];
     altLightShader_ = shaders[5];
     inUseDefaultShader_ = standardShader_;
-//    shadowMapShader_ = shaders[6];
+    shadowMapShader_ = shaders[6];
 }
 
 void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
 {
-//    // Generate shadow maps and attach them to lights
+    glCullFace(GL_FRONT);
+    // Generate shadow maps and attach them to lights
 //    shadowFramebuffer.Use();
-//    shadowFramebuffer.SetViewPort();
-//    shadowMapShader_.Use();
-//    for (Light light : graph_.RelevantLights())
-//    {
-//        glm::vec3 position = glm::vec3(0.0f) - (10.0f * light.Direction());
-//        glm::mat4 lightView = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0, 1.0f, 0.0f));
-//        glm::mat4 lightProjection = glm::ortho(-LIGHT_DIMEN_H, LIGHT_DIMEN_H, -LIGHT_DIMEN_V, LIGHT_DIMEN_V, LIGHT_NEAR_Z, LIGHT_FAR_Z);
-//        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-//        shadowMapShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMatrix));
-//        glClear(GL_DEPTH_BUFFER_BIT);        
-//    }
-    // More prep
-    // Render
+    shadowFramebuffer.SetViewPort();
+    
+    std::vector<Object> transparentObjects = std::vector<Object>();
+    std::vector<Object> regularObjects = std::vector<Object>();
+    for (Object obj : graph_.RelevantObjects())
+    {
+        if (obj.IsTransparent_)
+        {
+            transparentObjects.push_back(obj);
+        }
+        else
+        {
+            regularObjects.push_back(obj);
+        }
+    }
+    
+    std::vector<std::vector<Object>> regularDrawLists;
+    if (regularObjects.size() > 0)
+    {
+        regularDrawLists = CreateRegularDrawLists(regularObjects);
+    }
+    std::vector<std::vector<Object>> transparentDrawLists;
+    if (transparentObjects.size() > 0)
+    {
+        transparentDrawLists = CreateTransparentDrawLists(transparentObjects);
+    }
+    
+    shadowMapShader_.Use();
+    for (Light light : graph_.RelevantLights())
+    {
+        // Makes a new texture attachment
+        // Memory leak?
+        // No, just delete the textures eventually (?)
+        shadowFramebuffer.AddTextureAttachment(FBAttachment::Depth);
+        shadowFramebuffer.Use();
+        glm::vec3 position = glm::vec3(0.0f) - (20.0f * light.Direction());
+        glm::mat4 lightView = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0, 1.0f, 0.0f));
+        glm::mat4 lightProjection = glm::ortho(-LIGHT_DIMEN_H, LIGHT_DIMEN_H, -LIGHT_DIMEN_V, LIGHT_DIMEN_V, LIGHT_NEAR_Z, LIGHT_FAR_Z);
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+        lightSpaceMats_.push_back(lightSpaceMatrix);
+        shadowMapShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMatrix));
+        glClear(GL_DEPTH_BUFFER_BIT);
+        for (auto drawList : regularDrawLists)
+        {
+            if (drawList.front().Is2D_)
+            {
+                glDisable(GL_CULL_FACE);
+            }
+            RenderObjectsInstanced(drawList, shadowMapShader_);
+            if (drawList.front().Is2D_)
+            {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+        for (auto drawList : transparentDrawLists)
+        {
+            if (drawList.front().Is2D_)
+            {
+                glDisable(GL_CULL_FACE);
+            }
+            RenderObjectsInstanced(drawList, shadowMapShader_);
+            if (drawList.front().Is2D_)
+            {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+        
+        // Attach framebuffer to Light
+        auto depthBuffer = shadowFramebuffer.RetrieveDepthBuffer();
+        lightShadowMaps_.push_back(depthBuffer.TargetName);
+    }
+    glCullFace(GL_BACK);
 }
 
 void Scene::Render()
@@ -145,10 +213,6 @@ void Scene::Render()
 	std::vector<SpotLight> spotLights = graph_.RelevantSpotLights();
     SceneLighting lighting = graph_.RelevantLighting();
 
-//    unsigned int DIR_LIGHTS = lights.size();
-//    unsigned int POINT_LIGHTS = pointLights.size();
-//    unsigned int SPOT_LIGHTS = spotLights.size();
-
     const GLuint lightingBindIndex = 2;
     UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
     sceneLighting.BindToIndex(lightingBindIndex);
@@ -156,26 +220,7 @@ void Scene::Render()
     
     if (regular.size() > 0)
     {
-        std::vector<std::vector<Object>> reg_draw_list_inst = std::vector<std::vector<Object>>();
-        std::unordered_map<uint32_t, uint32_t> reg_model_id_obj_list_map = std::unordered_map<uint32_t, uint32_t>();
-        
-        // Group regular
-        for (Object obj : regular)
-        {
-            auto cur_model_obj_list = reg_model_id_obj_list_map.find(obj.Model_);
-            if (cur_model_obj_list != reg_model_id_obj_list_map.end())
-            {
-                uint32_t cur_model = cur_model_obj_list->second;
-                reg_draw_list_inst[cur_model].push_back(obj);
-            }
-            else
-            {
-                uint32_t model_list_index = reg_draw_list_inst.size();
-                reg_draw_list_inst.push_back(std::vector<Object>());
-                reg_draw_list_inst[model_list_index].push_back(obj);
-                reg_model_id_obj_list_map.emplace(obj.Model_, model_list_index);
-            }
-        }
+        std::vector<std::vector<Object>> reg_draw_list_inst = CreateRegularDrawLists(regular);
         
         inUseDefaultShader_.Use();
         inUseDefaultShader_.BindUniformBlock("Matrices", matrixBindIndex);
@@ -185,6 +230,11 @@ void Scene::Render()
         glActiveTexture(GL_TEXTURE0 + 20);
         skybox_.Activate();
 
+        inUseDefaultShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMats_.front()));
+        inUseDefaultShader_.SetInt("shadowMap", 25);
+        glActiveTexture(GL_TEXTURE0 + 25);
+        glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
+        
         for (std::vector<Object> draw_list : reg_draw_list_inst)
         {
 //            RenderObjects(draw_list, standardShader);
@@ -201,26 +251,7 @@ void Scene::Render()
     
     if (transparent.size() > 0)
     {
-        std::vector<std::vector<Object>> trans_draw_list_inst = std::vector<std::vector<Object>>();
-        uint32_t previous_model = transparent.front().Model_;
-        std::vector<Object> current_list = std::vector<Object>();
-        
-        // Group transparent
-        for (Object obj : transparent)
-        {
-            if (obj.Model_ == previous_model)
-            {
-                current_list.push_back(obj);
-            }
-            else
-            {
-                trans_draw_list_inst.push_back(current_list);
-                current_list = std::vector<Object>();
-                current_list.push_back(obj);
-                previous_model = obj.Model_;
-            }
-        }
-        trans_draw_list_inst.push_back(current_list);
+        std::vector<std::vector<Object>> trans_draw_list_inst = CreateTransparentDrawLists(transparent);
 
         transparentShader_.Use();
         transparentShader_.BindUniformBlock("Matrices", matrixBindIndex);
@@ -275,6 +306,58 @@ void Scene::TakeInput(const Input& input)
 Model Scene::ModelForId(uint32_t model_id) const
 {
     return models_[model_id];
+}
+
+std::vector<std::vector<Object>> Scene::CreateRegularDrawLists(const vector<Object>& objects)
+{
+    std::vector<std::vector<Object>> reg_draw_list_inst = std::vector<std::vector<Object>>();
+    std::unordered_map<uint32_t, uint32_t> reg_model_id_obj_list_map = std::unordered_map<uint32_t, uint32_t>();
+    
+    // Group regular
+    for (Object obj : objects)
+    {
+        auto cur_model_obj_list = reg_model_id_obj_list_map.find(obj.Model_);
+        if (cur_model_obj_list != reg_model_id_obj_list_map.end())
+        {
+            uint32_t cur_model = cur_model_obj_list->second;
+            reg_draw_list_inst[cur_model].push_back(obj);
+        }
+        else
+        {
+            uint32_t model_list_index = reg_draw_list_inst.size();
+            reg_draw_list_inst.push_back(std::vector<Object>());
+            reg_draw_list_inst[model_list_index].push_back(obj);
+            reg_model_id_obj_list_map.emplace(obj.Model_, model_list_index);
+        }
+    }
+    
+    return reg_draw_list_inst;
+}
+
+std::vector<std::vector<Object>> Scene::CreateTransparentDrawLists(const vector<Object>& objects)
+{
+    std::vector<std::vector<Object>> trans_draw_list_inst = std::vector<std::vector<Object>>();
+    uint32_t previous_model = objects.front().Model_;
+    std::vector<Object> current_list = std::vector<Object>();
+    
+    // Group transparent
+    for (Object obj : objects)
+    {
+        if (obj.Model_ == previous_model)
+        {
+            current_list.push_back(obj);
+        }
+        else
+        {
+            trans_draw_list_inst.push_back(current_list);
+            current_list = std::vector<Object>();
+            current_list.push_back(obj);
+            previous_model = obj.Model_;
+        }
+    }
+    trans_draw_list_inst.push_back(current_list);
+    
+    return trans_draw_list_inst;
 }
 
 void Scene::RenderObjects(const vector<Object>& objects, const Shader& shader)

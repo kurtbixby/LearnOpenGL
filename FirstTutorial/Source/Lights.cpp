@@ -24,7 +24,7 @@ Light::Light(LightData data)
 Light::Light(LightColorData color_data, glm::vec3 direction)
 {
     data_.color_data = color_data;
-    data_.direction = direction;
+    data_.direction = glm::normalize(direction);
 }
 
 size_t Light::DataSize()

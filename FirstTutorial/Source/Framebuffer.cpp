@@ -1,5 +1,7 @@
 #include "Headers/Framebuffer.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 #include <vector>
 #include <algorithm>
@@ -293,12 +295,20 @@ unsigned int Framebuffer::GenFramebufferTexture(GLint internalFormat, GLenum for
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width_, height_, 0, format, dataType, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        if (format == GL_DEPTH_COMPONENT || format == GL_DEPTH_STENCIL)
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(glm::vec4(1.0f)));
+        }
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     else
     {
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
         glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width_, height_, GL_TRUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     }
 

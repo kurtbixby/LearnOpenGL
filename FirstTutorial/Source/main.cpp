@@ -32,7 +32,7 @@
 #define WIDTH 800
 #define HEIGHT 600
 
-#define SHADOW_RES 1024
+#define SHADOW_RES 2048
 
 int create_window(GLFWwindow** foo, InputWrapper& inputWrapper);
 Input get_input(GLFWwindow* window);
@@ -42,6 +42,8 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 Scene load_scene();
+
+void timer_message(std::chrono::steady_clock::time_point start, std::chrono::steady_clock::time_point end, std::string message);
 
 int main()
 {
@@ -110,19 +112,18 @@ int main()
     
     screenShader.Use();
     screenShader.SetFloat("gamma", 2.2f);
-    // send kernel to shader
+//    // send kernel to shader
     screenShader.SetFloats("kernel", 9, &kernel[0]);
     
     Scene scene = load_scene();
     
-//    Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
-//    shadow_map_buffer.AddTextureAttachment(FBAttachment::Depth);
+    Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
     
-//    scene.GenerateShadowMaps(shadow_map_buffer);
+    scene.GenerateShadowMaps(shadow_map_buffer);
     
+    multi_sample_fb.SetViewPort();
     uint32_t frames_rendered = 0;
-    std::chrono::steady_clock::time_point previous_time = std::chrono::steady_clock::now();
-    
+    std::chrono::steady_clock::time_point interval_start = std::chrono::steady_clock::now();
     // main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -132,7 +133,6 @@ int main()
         
 		// Enable texture framebuffer
 		multi_sample_fb.Use();
-        multi_sample_fb.SetViewPort();
 
 		// (Re)enable depth for main scene
 		glEnable(GL_DEPTH_TEST);
@@ -142,6 +142,8 @@ int main()
         
         multi_sample_fb.DownsampleToFramebuffer(output_fb);
         uint32_t frame_buffer_target = output_fb.RetrieveColorBuffer(0).TargetName;
+        
+//        frame_buffer_target = shadow_map_buffer.RetrieveDepthBuffer().TargetName;
         
 		// Reenable default framebuffer
 		Framebuffer::UseDefault();
@@ -168,13 +170,13 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, 0);
         frames_rendered++;
         
-        std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
-        double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - previous_time).count();
+        std::chrono::steady_clock::time_point frame_end = std::chrono::steady_clock::now();
+        double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(frame_end - interval_start).count();
         if (milliseconds > 1000)
         {
             float frame_time = milliseconds / frames_rendered;
             std::cout << "Avg frame time: " << frame_time << std::endl;
-            previous_time = current_time;
+            interval_start = frame_end;
             frames_rendered = 0;
         }
     }
@@ -248,6 +250,12 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
     wrapper->ScrollCallback(window, xOffset, yOffset);
 }
 
+void timer_message(std::chrono::steady_clock::time_point start, std::chrono::steady_clock::time_point end, std::string message)
+{
+    double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << message << milliseconds << std::endl;
+}
+
 Scene load_scene()
 {
     SceneGraph graph = SceneGraph();
@@ -263,12 +271,12 @@ Scene load_scene()
 	Model crysis = crysisLoader.loadModel("nanosuit.obj");
     models.push_back(crysis);
 	models.push_back(create_box());
-//    models.push_back(create_plane());
+    models.push_back(create_plane());
 //    models.push_back(create_quad());
 
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_ShadMap.vert").make_preferred();
 //    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection.frag").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_ShadMap.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
@@ -283,15 +291,15 @@ Scene load_scene()
     
     boost::filesystem::path bonus_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
     boost::filesystem::path bonus_geometry_shader_path = boost::filesystem::path("Shaders/Normals.geom").make_preferred();
-    boost::filesystem::path bonus_fragment_shader_path = boost::filesystem::path("Shaders/First.frag").make_preferred();
+    boost::filesystem::path bonus_fragment_shader_path = boost::filesystem::path("Shaders/Old/First.frag").make_preferred();
     Shader bonus_shader = Shader(bonus_vertex_shader_path.string().c_str(), bonus_geometry_shader_path.string().c_str(), bonus_fragment_shader_path.string().c_str());
     
     boost::filesystem::path alt_light_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
     boost::filesystem::path alt_light_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
     Shader alt_light_shader = Shader(alt_light_vertex_shader_path.string().c_str(), alt_light_fragment_shader_path.string().c_str());
 
-    boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
-    boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
+    boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/ShadowsInstanced.vert").make_preferred();
+    boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/Shadows.frag").make_preferred();
     Shader shadow_map_shader = Shader(shadow_map_vertex_shader_path.string().c_str(), shadow_map_fragment_shader_path.string().c_str());
     
     std::vector<Shader> shaders = std::vector<Shader>();
