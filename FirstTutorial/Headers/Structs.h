@@ -13,44 +13,43 @@
 
 struct Vertex
 {
-	glm::vec3 Position;
-	glm::vec3 Normal;
-	glm::vec2 TexCoords;
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 TexCoords;
 };
 
 enum class TextureType
 {
-	Diffuse,
-	Specular,
-	Reflection
+    Diffuse,
+    Specular,
+    Reflection
 };
 
 struct Texture
 {
-	unsigned int id;
-	TextureType type;
-	std::string path;
+    unsigned int id;
+    TextureType type;
+    std::string path;
 };
 
 enum class FBAttachment
 {
-	Color,
-	// Depth,
-	// Stencil,
-	DepthStencil
+    Color,
+    Depth,
+    DepthStencil
 };
 
 enum class RenderTargetType
 {
-	None,
-	Texture,
-	Renderbuffer
+    None,
+    Texture,
+    Renderbuffer
 };
 
 struct RenderTarget
 {
-	unsigned int TargetName;
-	RenderTargetType TargetType;
+    unsigned int TargetName;
+    RenderTargetType TargetType;
 };
 
 Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY);

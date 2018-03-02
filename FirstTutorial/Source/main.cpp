@@ -32,6 +32,8 @@
 #define WIDTH 800
 #define HEIGHT 600
 
+#define SHADOW_RES 1024
+
 int create_window(GLFWwindow** foo, InputWrapper& inputWrapper);
 Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -107,7 +109,12 @@ int main()
     };
     
     Scene scene = load_scene();
-
+    
+//    Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
+//    shadow_map_buffer.AddTextureAttachment(FBAttachment::Depth);
+    
+//    scene.GenerateShadowMaps(shadow_map_buffer);
+    
 //    uint32_t frame_number = 0;
     uint32_t frames_rendered = 0;
     std::chrono::steady_clock::time_point previous_time = std::chrono::steady_clock::now();
@@ -118,9 +125,10 @@ int main()
         // process any input
         Input input = inputWrapper.TakeInput(window);
         scene.TakeInput(input);
-
+        
 		// Enable texture framebuffer
 		multi_sample_fb.Use();
+//        multi_sample_fb.SetViewPort();
 
 		// (Re)enable depth for main scene
 		glEnable(GL_DEPTH_TEST);
@@ -285,6 +293,10 @@ Scene load_scene()
     boost::filesystem::path alt_light_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
     Shader alt_light_shader = Shader(alt_light_vertex_shader_path.string().c_str(), alt_light_fragment_shader_path.string().c_str());
 
+//    boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
+//    boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
+//    Shader shadow_map_shader = Shader(shadow_map_vertex_shader_path.string().c_str(), shadow_map_fragment_shader_path.string().c_str());
+    
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
 	shaders.push_back(transparent_shader);
@@ -292,6 +304,7 @@ Scene load_scene()
 	shaders.push_back(skybox_shader);
     shaders.push_back(bonus_shader);
     shaders.push_back(alt_light_shader);
+//    shaders.push_back(shadow_map_shader);
 
 	Cubemap skybox = Cubemap();
 

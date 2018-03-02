@@ -10,17 +10,21 @@ class Framebuffer
 {
 public:
 	Framebuffer();
-	Framebuffer(unsigned int width, unsigned int height, GLenum target = GL_FRAMEBUFFER);
+    Framebuffer(unsigned int width, unsigned int height, bool useColorBuffer = true, GLenum target = GL_FRAMEBUFFER);
 
 	void Use();
 	void Use(GLenum target);
+    
+//    unsigned int Width();
+//    unsigned int Height();
 
 	static void UseDefault(GLenum target = GL_FRAMEBUFFER);
 
+    void SetViewPort();
+    
 	bool IsComplete();
 	RenderTarget RetrieveColorBuffer(unsigned int bufferNumber);
 	RenderTarget RetrieveDepthBuffer();
-	RenderTarget RetrieveStencilBuffer();
 	RenderTarget RetrieveDepthStencilBuffer();
 
     void DownsampleToFramebuffer(Framebuffer& other_fb);
@@ -33,11 +37,11 @@ private:
 	GLenum target_;
 	unsigned int width_;
 	unsigned int height_;
+    bool noColor_;
 
 	unsigned int colorAttachmentCount_;
 	std::vector<RenderTarget> colorAttachments_;
 	RenderTarget depthAttachment_;
-	RenderTarget stencilAttachment_;
 	RenderTarget depthStencilAttachment_;
 
 	unsigned int CreateFramebufferTexture(FBAttachment attachmentType, uint32_t samples = 1);

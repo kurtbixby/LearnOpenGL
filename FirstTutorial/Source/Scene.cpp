@@ -20,6 +20,11 @@
 #include "Headers/Structs.h"
 #include "Headers/UniformBlockBuffer.h"
 
+#define LIGHT_DIMEN_H 10.0f
+#define LIGHT_DIMEN_V 10.0f
+#define LIGHT_NEAR_Z 1.0f
+#define LIGHT_FAR_Z 7.5f
+
 Scene::Scene()
 {
 	graph_ = SceneGraph();
@@ -33,6 +38,7 @@ Scene::Scene()
     skyboxShader_ = Shader();
     geometryShader_ = Shader();
     inUseDefaultShader_ = standardShader_;
+//    shadowMapShader_ = Shader();
 }
 
 Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> models, std::vector<Shader> shaders, Cubemap skybox)
@@ -49,6 +55,26 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
     geometryShader_ = shaders[4];
     altLightShader_ = shaders[5];
     inUseDefaultShader_ = standardShader_;
+//    shadowMapShader_ = shaders[6];
+}
+
+void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
+{
+//    // Generate shadow maps and attach them to lights
+//    shadowFramebuffer.Use();
+//    shadowFramebuffer.SetViewPort();
+//    shadowMapShader_.Use();
+//    for (Light light : graph_.RelevantLights())
+//    {
+//        glm::vec3 position = glm::vec3(0.0f) - (10.0f * light.Direction());
+//        glm::mat4 lightView = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0, 1.0f, 0.0f));
+//        glm::mat4 lightProjection = glm::ortho(-LIGHT_DIMEN_H, LIGHT_DIMEN_H, -LIGHT_DIMEN_V, LIGHT_DIMEN_V, LIGHT_NEAR_Z, LIGHT_FAR_Z);
+//        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+//        shadowMapShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMatrix));
+//        glClear(GL_DEPTH_BUFFER_BIT);        
+//    }
+    // More prep
+    // Render
 }
 
 void Scene::Render()

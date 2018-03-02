@@ -3,13 +3,14 @@
 
 #define MAX_CAMERAS 1
 
-#include "Camera.h"
-#include "Cubemap.h"
-#include "Model.h"
-#include "Object.h"
-#include "SceneGraph.h"
-#include "Structs.h"
-#include "Shader.h"
+#include "Headers/Camera.h"
+#include "Headers/Cubemap.h"
+#include "Headers/Framebuffer.h"
+#include "Headers/Model.h"
+#include "Headers/Object.h"
+#include "Headers/SceneGraph.h"
+#include "Headers/Structs.h"
+#include "Headers/Shader.h"
 
 class Scene
 {
@@ -21,6 +22,7 @@ public:
 	void LoadModels(std::vector<Model>);
 	void LoadShaders(std::vector<Shader>);
 
+    void GenerateShadowMaps(Framebuffer& shadowFramebuffer);
 	void Render();
 	void TakeInput(const Input& input);
 	
@@ -39,6 +41,7 @@ private:
     Shader outlineShader_;
     Shader skyboxShader_;
     Shader geometryShader_;
+//    Shader shadowMapShader_;
 
     Model ModelForId(uint32_t model_id) const;
 	void RenderObjects(const vector<Object>& objects, const Shader& shader);

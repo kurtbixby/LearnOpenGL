@@ -22,22 +22,30 @@
 // Texture size has to change on Mac. Cause of skybox issue?
 Framebuffer::Framebuffer(): Framebuffer(FRAMEBUFFERH, FRAMEBUFFERV, GL_FRAMEBUFFER) {}
 
-Framebuffer::Framebuffer(unsigned int width, unsigned int height, GLenum target)
+Framebuffer::Framebuffer(unsigned int width, unsigned int height, bool useColorBuffer, GLenum target)
 {
     width_ = width;
     height_ = height;
     target_ = target;
+    noColor_ = !useColorBuffer;
 
     unsigned int fbo;
     glGenFramebuffers(1, &fbo);
 
     fbo_ = fbo;
 
+//    glBindFramebuffer(target_, fbo_);
+//    if (noColor_)
+    {
+//        glDrawBuffer(GL_NONE);
+//        glReadBuffer(GL_NONE);
+    }
+//    glBindFramebuffer(target_, 0);
+    
     colorAttachments_ = std::vector<RenderTarget>();
     colorAttachmentCount_ = 0;
 
     depthAttachment_ = RenderTarget {0, RenderTargetType::None};
-    stencilAttachment_ = RenderTarget {0, RenderTargetType::None};
     depthStencilAttachment_ = RenderTarget {0, RenderTargetType::None};
 }
 
@@ -55,6 +63,11 @@ void Framebuffer::Use(GLenum target)
 void Framebuffer::UseDefault(GLenum target)
 {
 	glBindFramebuffer(target, 0);
+}
+
+void Framebuffer::SetViewPort()
+{
+    glViewport(0, 0, width_, height_);
 }
 
 bool Framebuffer::IsComplete()
@@ -88,52 +101,55 @@ void Framebuffer::DownsampleToFramebuffer(Framebuffer& other_fb)
 
 RenderTarget Framebuffer::RetrieveDepthBuffer()
 {
-    return RenderTarget {0, RenderTargetType::None};
-}
-
-RenderTarget Framebuffer::RetrieveStencilBuffer()
-{
-    return RenderTarget {0, RenderTargetType::None};
+    return depthAttachment_;
 }
 
 RenderTarget Framebuffer::RetrieveDepthStencilBuffer()
 {
-    return RenderTarget {0, RenderTargetType::None};
+    return depthStencilAttachment_;
 }
 
 void Framebuffer::AddTextureAttachment(FBAttachment attachmentType, uint32_t samples)
 {
     glBindFramebuffer(target_, fbo_);
 
-    unsigned int fbTexture;
-    switch (attachmentType)
-    {
-        case FBAttachment::Color:
-            fbTexture = CreateFramebufferTexture(attachmentType, samples);
-            break;
-        case FBAttachment::DepthStencil:
-            fbTexture = CreateFramebufferTexture(attachmentType, samples);
-            break;
-    }
+    unsigned int fbTexture = CreateFramebufferTexture(attachmentType, samples);
+//    switch (attachmentType)
+//    {
+//        case FBAttachment::Color:
+//            fbTexture = CreateFramebufferTexture(attachmentType, samples);
+//            break;
+//        case FBAttachment::DepthStencil:
+//            fbTexture = CreateFramebufferTexture(attachmentType, samples);
+//            break;
+//        case FBAttachment::Depth:
+//            break;
+//        case FBAttachment::Stencil:
+//            break;
+//    }
 
     RenderTarget renderTarget = RenderTarget {fbTexture, RenderTargetType::Texture};
 
-    auto foo = GL_TEXTURE_2D;
+    auto textureSampleType = GL_TEXTURE_2D;
     if (samples != 1)
     {
-        foo = GL_TEXTURE_2D_MULTISAMPLE;
+        textureSampleType = GL_TEXTURE_2D_MULTISAMPLE;
     }
     
     switch (attachmentType)
     {
         case FBAttachment::Color:
-            glFramebufferTexture2D(target_, GL_COLOR_ATTACHMENT0 + colorAttachmentCount_, foo, fbTexture, 0);
+            glFramebufferTexture2D(target_, GL_COLOR_ATTACHMENT0 + colorAttachmentCount_, textureSampleType, fbTexture, 0);
             colorAttachments_.push_back(renderTarget);
             colorAttachmentCount_ += 1;
             break;
         case FBAttachment::DepthStencil:
-            glFramebufferTexture2D(target_, GL_DEPTH_STENCIL_ATTACHMENT, foo, fbTexture, 0);
+            glFramebufferTexture2D(target_, GL_DEPTH_STENCIL_ATTACHMENT, textureSampleType, fbTexture, 0);
             depthStencilAttachment_ = renderTarget;
+            break;
+        case FBAttachment::Depth:
+            glFramebufferTexture2D(target_, GL_DEPTH_ATTACHMENT, textureSampleType, fbTexture, 0);
+            depthAttachment_ = renderTarget;
             break;
     }
 
@@ -144,16 +160,16 @@ void Framebuffer::AddRenderbufferAttachment(FBAttachment attachmentType, uint32_
 {
     glBindFramebuffer(target_, fbo_);
 
-    unsigned int renderbuffer;
-    switch (attachmentType)
-    {
-        case FBAttachment::Color:
-            renderbuffer = CreateRenderBuffer(attachmentType, samples);
-            break;
-        case FBAttachment::DepthStencil:
-            renderbuffer = CreateRenderBuffer(attachmentType, samples);
-            break;
-    }
+    unsigned int renderbuffer = CreateRenderBuffer(attachmentType, samples);
+//    switch (attachmentType)
+//    {
+//        case FBAttachment::Color:
+//            renderbuffer = CreateRenderBuffer(attachmentType, samples);
+//            break;
+//        case FBAttachment::DepthStencil:
+//            renderbuffer = CreateRenderBuffer(attachmentType, samples);
+//            break;
+//    }
 
     RenderTarget renderTarget = RenderTarget {renderbuffer, RenderTargetType::Renderbuffer};
 
@@ -167,6 +183,10 @@ void Framebuffer::AddRenderbufferAttachment(FBAttachment attachmentType, uint32_
         case FBAttachment::DepthStencil:
             glFramebufferRenderbuffer(target_, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
             depthStencilAttachment_ = renderTarget;
+            break;
+        case FBAttachment::Depth:
+            glFramebufferRenderbuffer(target_, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+            depthAttachment_ = renderTarget;
             break;
     }
 
@@ -235,6 +255,9 @@ unsigned int Framebuffer::CreateFramebufferTexture(FBAttachment attachmentType, 
         case FBAttachment::DepthStencil:
             fbTex = GenFramebufferTexture(GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, samples);
             break;
+        case FBAttachment::Depth:
+            fbTex = GenFramebufferTexture(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT, samples);
+            break;
     }
 
     return fbTex;
@@ -251,6 +274,9 @@ unsigned int Framebuffer::CreateRenderBuffer(FBAttachment attachmentType, uint32
             break;
         case FBAttachment::DepthStencil:
             renderbuffer = GenRenderbuffer(GL_DEPTH24_STENCIL8, samples);
+            break;
+        case FBAttachment::Depth:
+            renderbuffer = GenRenderbuffer(GL_DEPTH_COMPONENT, samples);
             break;
     }
 

@@ -57,6 +57,7 @@
 		903AA8322042342F00A1B7F9 /* InputWrapper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = InputWrapper.cpp; sourceTree = "<group>"; };
 		903AA8342042349100A1B7F9 /* Input.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Input.h; sourceTree = "<group>"; };
 		903AA835204237DB00A1B7F9 /* Input.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Input.cpp; sourceTree = "<group>"; };
+		903AA8372048A5A200A1B7F9 /* ToDo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ToDo.txt; sourceTree = "<group>"; };
 		90743CFB20278FBF0041BE49 /* FirstTutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FirstTutorial; sourceTree = BUILT_PRODUCTS_DIR; };
 		90E90615202D1FA200374F51 /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
 		90E90616202D1FA200374F51 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
@@ -144,6 +145,7 @@
 		90743CFD20278FBF0041BE49 /* FirstTutorial */ = {
 			isa = PBXGroup;
 			children = (
+				903AA8372048A5A200A1B7F9 /* ToDo.txt */,
 				90E90656202D212600374F51 /* Headers */,
 				90E90641202D20C800374F51 /* Source */,
 				90E90615202D1FA200374F51 /* include */,
