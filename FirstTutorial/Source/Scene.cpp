@@ -27,6 +27,9 @@
 #define LIGHT_NEAR_Z -30.0f
 #define LIGHT_FAR_Z 70.0f
 
+#define PNT_LGHT_NEAR 0.1f
+#define PNT_LGHT_FAR 40.0f
+
 Scene::Scene()
 {
 	graph_ = SceneGraph();
@@ -41,8 +44,10 @@ Scene::Scene()
     outlineShader_ = Shader();
     skyboxShader_ = Shader();
     geometryShader_ = Shader();
+    dirShadowMapShader_ = Shader();
+    pointShadowMapShader_ = Shader();
+    
     inUseDefaultShader_ = standardShader_;
-    shadowMapShader_ = Shader();
 }
 
 Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> models, std::vector<Shader> shaders, Cubemap skybox)
@@ -63,16 +68,18 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
     skyboxShader_ = shaders[3];
     geometryShader_ = shaders[4];
     altLightShader_ = shaders[5];
+    dirShadowMapShader_ = shaders[6];
+    pointShadowMapShader_ = shaders[7];
+    
     inUseDefaultShader_ = standardShader_;
-    shadowMapShader_ = shaders[6];
 }
 
 void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
 {
+    // Attaches own depth attachment
+    
     glCullFace(GL_FRONT);
     // Generate shadow maps and attach them to lights
-//    shadowFramebuffer.Use();
-    shadowFramebuffer.SetViewPort();
     
     std::vector<Object> transparentObjects = std::vector<Object>();
     std::vector<Object> regularObjects = std::vector<Object>();
@@ -99,7 +106,20 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
         transparentDrawLists = CreateTransparentDrawLists(transparentObjects);
     }
     
-    shadowMapShader_.Use();
+    shadowFramebuffer.SetViewPort();
+    
+    GenerateDirectionalShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
+    
+//    GeneratePointShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
+//    
+//    GenerateSpotShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
+    
+    glCullFace(GL_BACK);
+}
+
+void Scene::GenerateDirectionalShadowMaps(const std::vector<std::vector<Object>> &regularDrawLists, const std::vector<std::vector<Object>> &transparentDrawLists, Framebuffer& shadowFramebuffer)
+{
+    dirShadowMapShader_.Use();
     for (Light light : graph_.RelevantLights())
     {
         // Makes a new texture attachment
@@ -112,7 +132,7 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
         glm::mat4 lightProjection = glm::ortho(-LIGHT_DIMEN_H, LIGHT_DIMEN_H, -LIGHT_DIMEN_V, LIGHT_DIMEN_V, LIGHT_NEAR_Z, LIGHT_FAR_Z);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
         lightSpaceMats_.push_back(lightSpaceMatrix);
-        shadowMapShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMatrix));
+        dirShadowMapShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMatrix));
         glClear(GL_DEPTH_BUFFER_BIT);
         for (auto drawList : regularDrawLists)
         {
@@ -120,7 +140,7 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
             {
                 glDisable(GL_CULL_FACE);
             }
-            RenderObjectsInstanced(drawList, shadowMapShader_);
+            RenderObjectsInstanced(drawList, dirShadowMapShader_);
             if (drawList.front().Is2D_)
             {
                 glEnable(GL_CULL_FACE);
@@ -132,7 +152,7 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
             {
                 glDisable(GL_CULL_FACE);
             }
-            RenderObjectsInstanced(drawList, shadowMapShader_);
+            RenderObjectsInstanced(drawList, dirShadowMapShader_);
             if (drawList.front().Is2D_)
             {
                 glEnable(GL_CULL_FACE);
@@ -143,7 +163,107 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
         auto depthBuffer = shadowFramebuffer.RetrieveDepthBuffer();
         lightShadowMaps_.push_back(depthBuffer.TargetName);
     }
-    glCullFace(GL_BACK);
+}
+
+void Scene::GeneratePointShadowMaps(const std::vector<std::vector<Object>> &regularDrawLists, const std::vector<std::vector<Object>> &transparentDrawLists, Framebuffer& shadowFramebuffer)
+{
+    pointShadowMapShader_.Use();
+    
+    glm::vec3 directions[] = {
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(-1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, -1.0f)
+    };
+    
+    glm::vec3 up[] = {
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, -1.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    };
+    
+    for (PointLight light : graph_.RelevantPointLights())
+    {
+        // Make vector to store all target names
+        std::vector<uint32_t> cubemapFaces = std::vector<uint32_t>();
+        std::vector<glm::mat4> lightSpaceMatrices = std::vector<glm::mat4>();
+        
+        float fov = glm::radians(90.0f);
+        float aspect = float(shadowFramebuffer.AspectRatio());
+        for (int i = 0; i < 6; i++)
+        {
+            // Add attachment
+            shadowFramebuffer.AddTextureAttachment(FBAttachment::Depth);
+            shadowFramebuffer.Use();
+            glm::vec3 position = light.Position();
+            glm::mat4 lightView = glm::lookAt(position, position + directions[i], up[i]);
+            glm::mat4 lightProj = glm::perspective(fov, aspect, PNT_LGHT_NEAR, PNT_LGHT_FAR);
+            glm::mat4 lightSpace = lightProj * lightView;
+            lightSpaceMatrices.push_back(lightSpace);
+        }
+        
+        for (int i = 0; i < 6; i++)
+        {
+            std::string lightSpaceName = "lightSpace[";
+            lightSpaceName.append(std::to_string(i)).append("]");
+            pointShadowMapShader_.SetMatrix4fv(lightSpaceName, glm::value_ptr(lightSpaceMatrices[i]));
+        }
+        
+        shadowFramebuffer.AddCubemapAttachment(FBAttachment::Depth);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        for (auto drawList : regularDrawLists)
+        {
+            if (drawList.front().Is2D_)
+            {
+                glDisable(GL_CULL_FACE);
+            }
+            RenderObjectsInstanced(drawList, pointShadowMapShader_);
+            if (drawList.front().Is2D_)
+            {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+        for (auto drawList : transparentDrawLists)
+        {
+            if (drawList.front().Is2D_)
+            {
+                glDisable(GL_CULL_FACE);
+            }
+            RenderObjectsInstanced(drawList, pointShadowMapShader_);
+            if (drawList.front().Is2D_)
+            {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+        
+        pointLightShadowMaps_.push_back(shadowFramebuffer.RetrieveDepthBuffer().TargetName);
+        
+//        }
+//
+//        // Make cubemap from 6 faces
+//
+//        unsigned cubemapName;
+//        glGenTextures(1, &cubemapName);
+//        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapName);
+//        for (int i = 0; i < 6; i++)
+//        {
+////                glBindTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemapFaces[i]);
+//            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+//            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemapName, 0);
+//        }
+//
+//        // Store cubemap for light
+    }
+}
+
+void Scene::GenerateSpotShadowMaps(const std::vector<std::vector<Object> > &regularDrawLists, const std::vector<std::vector<Object> > &transparentDrawLists, Framebuffer &shadowFramebuffer)
+{
+    
 }
 
 void Scene::Render()
@@ -200,8 +320,8 @@ void Scene::Render()
 	glDepthFunc(GL_LEQUAL);
 	skyboxShader_.Use();
 
-	glActiveTexture(GL_TEXTURE0 + 2);
-	skyboxShader_.SetInt("skybox", 2);
+	glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
+	skyboxShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
 
 	skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
 
@@ -227,14 +347,16 @@ void Scene::Render()
         inUseDefaultShader_.BindUniformBlock("Matrices", matrixBindIndex);
         inUseDefaultShader_.BindUniformBlock("Lighting", lightingBindIndex);
 
-        inUseDefaultShader_.SetInt("skybox", 20);
-        glActiveTexture(GL_TEXTURE0 + 20);
+        inUseDefaultShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
+        glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
         skybox_.Activate();
 
-        inUseDefaultShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMats_.front()));
-        inUseDefaultShader_.SetInt("shadowMap", 25);
-        glActiveTexture(GL_TEXTURE0 + 25);
+        inUseDefaultShader_.SetMatrix4fv("lightSpaceMatrices[0]", glm::value_ptr(lightSpaceMats_.front()));
+        inUseDefaultShader_.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
+        glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
         glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
+        
+        // Send all the appropriate shadow maps
         
         for (std::vector<Object> draw_list : reg_draw_list_inst)
         {

@@ -274,9 +274,9 @@ Scene load_scene()
     models.push_back(create_plane());
 //    models.push_back(create_quad());
 
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_ShadMap.vert").make_preferred();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_ShadMap_ManyLights.vert").make_preferred();
 //    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_ShadMapSmooth.frag").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_ShadMapSmooth_ManyLights.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
@@ -298,9 +298,14 @@ Scene load_scene()
     boost::filesystem::path alt_light_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
     Shader alt_light_shader = Shader(alt_light_vertex_shader_path.string().c_str(), alt_light_fragment_shader_path.string().c_str());
 
-    boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/ShadowsInstanced.vert").make_preferred();
-    boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/Shadows.frag").make_preferred();
+    boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/Dir_ShadowsInstanced.vert").make_preferred();
+    boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/Dir_Shadows.frag").make_preferred();
     Shader shadow_map_shader = Shader(shadow_map_vertex_shader_path.string().c_str(), shadow_map_fragment_shader_path.string().c_str());
+    
+    boost::filesystem::path pnt_shadow_map_vert_shader_path = boost::filesystem::path("Shaders/Point_Shadows.vert").make_preferred();
+    boost::filesystem::path pnt_shadow_map_geo_shader_path = boost::filesystem::path("Shaders/Point_Shadows.geom").make_preferred();
+    boost::filesystem::path pnt_shadow_map_frag_shader_path = boost::filesystem::path("Shaders/Point_Shadows.frag").make_preferred();
+    Shader pnt_shadow_map_shader = Shader(pnt_shadow_map_vert_shader_path.string().c_str(), pnt_shadow_map_geo_shader_path.string().c_str(), pnt_shadow_map_frag_shader_path.string().c_str());
     
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
@@ -310,6 +315,7 @@ Scene load_scene()
     shaders.push_back(bonus_shader);
     shaders.push_back(alt_light_shader);
     shaders.push_back(shadow_map_shader);
+    shaders.push_back(pnt_shadow_map_shader);
 
 	Cubemap skybox = Cubemap();
 

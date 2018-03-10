@@ -50,17 +50,17 @@ void Mesh::PrepareTextures(Shader& shader, vector<Texture>& textures)
         switch(tex.type)
         {
             case TextureType::Diffuse:
-                texName.append("diffuse[").append(std::to_string(diffuseTexs)).append("]");
+            texName.append("diffuse[").append(std::to_string(diffuseTexs)).append("]");
                 shader.SetInt(texName, i);
                 diffuseTexs += 1;
                 break;
             case TextureType::Specular:
-                texName.append("specular[").append(std::to_string(specularTexs)).append("]");
+            texName.append("specular[").append(std::to_string(specularTexs)).append("]");
                 shader.SetInt(texName, i);
                 specularTexs += 1;
                 break;
             case TextureType::Reflection:
-                texName.append("reflection[").append(std::to_string(reflectionMaps)).append("]");
+            texName.append("reflection[").append(std::to_string(reflectionMaps)).append("]");
                 shader.SetInt(texName, i);
                 reflectionMaps += 1;
                 break;

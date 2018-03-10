@@ -5,6 +5,8 @@
 
 #include "Structs.h"
 
+#define SKYBOX_TEX_UNIT 15
+
 class Cubemap
 {
 public:

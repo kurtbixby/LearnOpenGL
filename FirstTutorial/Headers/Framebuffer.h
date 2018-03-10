@@ -15,14 +15,13 @@ public:
 	void Use();
 	void Use(GLenum target);
     
-//    unsigned int Width();
-//    unsigned int Height();
-
 	static void UseDefault(GLenum target = GL_FRAMEBUFFER);
 
     void SetViewPort();
     
 	bool IsComplete();
+    
+    float AspectRatio();
 	RenderTarget RetrieveColorBuffer(unsigned int bufferNumber);
 	RenderTarget RetrieveDepthBuffer();
 	RenderTarget RetrieveDepthStencilBuffer();
@@ -31,6 +30,7 @@ public:
     
 	void AddTextureAttachment(FBAttachment attachmentType, uint32_t samples = 1);
 	void AddRenderbufferAttachment(FBAttachment attachmentType, uint32_t samples = 1);
+    void AddCubemapAttachment(FBAttachment attachmentType);
 
 private:
 	unsigned int fbo_;
@@ -46,9 +46,11 @@ private:
 
 	unsigned int CreateFramebufferTexture(FBAttachment attachmentType, uint32_t samples = 1);
 	unsigned int CreateRenderBuffer(FBAttachment attachmentType, uint32_t samples = 1);
+    unsigned int CreateCubemapTexture(FBAttachment attachmentType);
 
 	unsigned int GenFramebufferTexture(GLint internalFormat, GLenum format, GLenum dataType, uint32_t samples = 1);
 	unsigned int GenRenderbuffer(GLenum internalFormat, uint32_t samples = 1);
+    unsigned int GenCubemapTexture(GLint internalFormat, GLenum format, GLenum dataType);
 };
 
 #endif

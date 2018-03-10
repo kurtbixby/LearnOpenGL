@@ -21,7 +21,7 @@ public:
 	void LoadCameras(std::vector<Camera>);
 	void LoadModels(std::vector<Model>);
 	void LoadShaders(std::vector<Shader>);
-
+    
     void GenerateShadowMaps(Framebuffer& shadowFramebuffer);
 	void Render();
 	void TakeInput(const Input& input);
@@ -46,7 +46,15 @@ private:
     Shader outlineShader_;
     Shader skyboxShader_;
     Shader geometryShader_;
-    Shader shadowMapShader_;
+    Shader dirShadowMapShader_;
+    Shader pointShadowMapShader_;
+    Shader spotShadowMapShader_;
+    
+    void GenerateDirectionalShadowMaps(const std::vector<std::vector<Object>> &regularDrawLists, const std::vector<std::vector<Object>> &transparentDrawLists, Framebuffer& shadowFramebuffer);
+    
+    void GeneratePointShadowMaps(const std::vector<std::vector<Object>> &regularDrawLists, const std::vector<std::vector<Object>> &transparentDrawLists, Framebuffer& shadowFramebuffer);
+    
+    void GenerateSpotShadowMaps(const std::vector<std::vector<Object>> &regularDrawLists, const std::vector<std::vector<Object>> &transparentDrawLists, Framebuffer& shadowFramebuffer);
 
     Model ModelForId(uint32_t model_id) const;
     std::vector<std::vector<Object>> CreateRegularDrawLists(const vector<Object>& objects);

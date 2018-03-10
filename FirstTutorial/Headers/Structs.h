@@ -43,7 +43,8 @@ enum class RenderTargetType
 {
     None,
     Texture,
-    Renderbuffer
+    Renderbuffer,
+    Cubemap
 };
 
 struct RenderTarget

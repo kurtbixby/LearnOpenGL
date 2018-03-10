@@ -81,6 +81,11 @@ bool Framebuffer::IsComplete()
     return isComplete;
 }
 
+float Framebuffer::AspectRatio()
+{
+    return float(width_) / float(height_);
+}
+
 RenderTarget Framebuffer::RetrieveColorBuffer(unsigned int bufferNumber)
 {
     if (colorAttachmentCount_ == 0)
@@ -116,19 +121,6 @@ void Framebuffer::AddTextureAttachment(FBAttachment attachmentType, uint32_t sam
     glBindFramebuffer(target_, fbo_);
 
     unsigned int fbTexture = CreateFramebufferTexture(attachmentType, samples);
-//    switch (attachmentType)
-//    {
-//        case FBAttachment::Color:
-//            fbTexture = CreateFramebufferTexture(attachmentType, samples);
-//            break;
-//        case FBAttachment::DepthStencil:
-//            fbTexture = CreateFramebufferTexture(attachmentType, samples);
-//            break;
-//        case FBAttachment::Depth:
-//            break;
-//        case FBAttachment::Stencil:
-//            break;
-//    }
 
     RenderTarget renderTarget = RenderTarget {fbTexture, RenderTargetType::Texture};
 
@@ -192,6 +184,34 @@ void Framebuffer::AddRenderbufferAttachment(FBAttachment attachmentType, uint32_
             break;
     }
 
+    glBindFramebuffer(target_, 0);
+}
+
+void Framebuffer::AddCubemapAttachment(FBAttachment attachmentType)
+{
+    glBindFramebuffer(target_, fbo_);
+    
+    unsigned int cubemap = CreateCubemapTexture(attachmentType);
+    
+    RenderTarget renderTarget = RenderTarget {cubemap, RenderTargetType::Cubemap};
+    
+    switch (attachmentType)
+    {
+        case FBAttachment::Color:
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachmentCount_, cubemap, 0);
+            colorAttachments_.push_back(renderTarget);
+            colorAttachmentCount_++;
+            break;
+        case FBAttachment::DepthStencil:
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, cubemap, 0);
+            depthStencilAttachment_ = renderTarget;
+            break;
+        case FBAttachment::Depth:
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubemap, 0);
+            depthAttachment_ = renderTarget;
+            break;
+    }
+    
     glBindFramebuffer(target_, 0);
 }
 
@@ -285,6 +305,26 @@ unsigned int Framebuffer::CreateRenderBuffer(FBAttachment attachmentType, uint32
     return renderbuffer;
 }
 
+unsigned int Framebuffer::CreateCubemapTexture(FBAttachment attachmentType)
+{
+    unsigned int cubemapTex;
+    
+    switch(attachmentType)
+    {
+        case FBAttachment::Color:
+            cubemapTex = GenCubemapTexture(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+            break;
+        case FBAttachment::DepthStencil:
+            cubemapTex = GenCubemapTexture(GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+            break;
+        case FBAttachment::Depth:
+            cubemapTex = GenCubemapTexture(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT);
+            break;
+    }
+    
+    return cubemapTex;
+}
+
 unsigned int Framebuffer::GenFramebufferTexture(GLint internalFormat, GLenum format, GLenum dataType, uint32_t samples)
 {
     unsigned int texture;
@@ -334,6 +374,26 @@ unsigned int Framebuffer::GenRenderbuffer(GLenum internalFormat, uint32_t sample
     
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     return rbo;
+}
+
+unsigned int Framebuffer::GenCubemapTexture(GLint internalFormat, GLenum format, GLenum dataType)
+{
+    unsigned int cubemap;
+    glGenTextures(1, &cubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+    for (int i = 0; i < 6; i++)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width_, height_, 0, format, dataType, nullptr);
+    }
+    
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    return cubemap;
 }
 
 // void texturebuffer()
