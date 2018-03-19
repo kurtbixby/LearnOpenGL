@@ -86,6 +86,11 @@ float Framebuffer::AspectRatio()
     return float(width_) / float(height_);
 }
 
+glm::vec2 Framebuffer::Center()
+{
+    return glm::vec2(width_ / 2, height_ / 2);
+}
+
 RenderTarget Framebuffer::RetrieveColorBuffer(unsigned int bufferNumber)
 {
     if (colorAttachmentCount_ == 0)

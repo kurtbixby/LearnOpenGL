@@ -95,10 +95,11 @@ uniform samplerCube pointLightShadowMaps_1;
 //uniform samplerCube pointLightShadowMaps_2;
 //uniform samplerCube pointLightShadowMaps_3;
 
-//uniform samplerCube spotLightShadowMaps[MAX_SPOT_LIGHTS];
+//uniform sampler2D spotLightShadowMaps[MAX_SPOT_LIGHTS];
+
 uniform samplerCube skybox;
 
-uniform float farPlane;
+uniform float spotFarPlane;
 
 float specular_coefficient(vec3 viewDir, vec3 toLightDir, vec3 normal, int shininess)
 {
@@ -152,7 +153,7 @@ float point_shadow_calculation(vec3 fragPos, vec3 lightPos, samplerCube lightSha
             for (int z = -1; z <= 1; z++)
             {
                 vec3 offsetVec = vec3(x, y, z) * offsetSize;
-                float shadMapDepth = texture(lightShadMap, normalize(lightToFrag) + offsetVec).r * farPlane;
+                float shadMapDepth = texture(lightShadMap, normalize(lightToFrag) + offsetVec).r * spotFarPlane;
                 float fragDepth = length(lightToFrag);
                 shadowTotal += (fragDepth - bias) > shadMapDepth ? 1.0f : 0.0f;
             }
@@ -163,9 +164,21 @@ float point_shadow_calculation(vec3 fragPos, vec3 lightPos, samplerCube lightSha
     return shadowTotal;
 }
 
-float spot_shadow_calculation(vec3 fragPos, vec3 lightPos, samplerCube lightShadMap)
+float spot_shadow_calculation(vec4 fragWorldPos, mat4 lightSpaceMat, sampler2D lightShadMap)
 {
     return 0.0f;
+    float bias = 0.0002f;
+    vec4 fragLightPos = lightSpaceMat * fragWorldPos;
+    // Perspective division
+    vec3 projCoords = fragLightPos.xyz / fragLightPos.w;
+    // Map [-1, 1] -> [-0.5, 0.5] -> [0, 1]
+    projCoords = projCoords * 0.5f + 0.5f;
+    {
+        return 0.0f;
+    }
+    
+    float mapDepth = texture(lightShadMap, projCoords.xy).r;
+    return (projCoords.z - bias) > mapDepth ? 1.0f : 0.0f;
 }
 
 // Should include a shadow map variable in the future for different lights
@@ -216,7 +229,7 @@ vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap, vec3 diffus
     return result;
 }
 
-vec3 spot_lighting(SpotLight spotLight, samplerCube lightShadMap, vec3 diffuseValue, vec3 specularValue)
+vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
 {
     vec3 result = vec3(0.0f);
 
@@ -227,7 +240,7 @@ vec3 spot_lighting(SpotLight spotLight, samplerCube lightShadMap, vec3 diffuseVa
     if (fragDotProd > spotLight.outerCutoff)
     {
         float shadowDensity = 1.0f;
-//        float shadowDensity = 1.0f - spot_shadow_calculation(fs_in.FragPos, viewLightPos, lightShadMap);
+//        float shadowDensity = 1.0f - spot_shadow_calculation(fs_in.FragWorldPos, lightSpaceMat, lightShadMap);
 
         float intensity = 1.0f;
 
@@ -289,6 +302,7 @@ void main()
 
     // Global Light
     vec3 global = vec3(0.0f);
+    // Loop works because DIR_LIGHT is 0 or 1
     for (i = 0; i < DIR_LIGHTS; i++)
     {
         // Change shadowMap and FragLightPos for each light
@@ -320,7 +334,7 @@ void main()
     vec3 spot = vec3(0.0f);
     for (i = 0; i < SPOT_LIGHTS; i++)
     {
-        spot += spot_lighting(spotLights[i], skybox, diffuseValue, specularValue);
+        spot += spot_lighting(spotLights[i], diffuseValue, specularValue);
     }
 
     vec3 result = global + point + spot + reflection;

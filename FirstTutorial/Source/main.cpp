@@ -121,9 +121,7 @@ int main()
     Scene scene = load_scene();
     
     Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
-    debug::openGL_Errors();
     scene.GenerateShadowMaps(shadow_map_buffer);
-    debug::openGL_Errors();
     
 //    uint32_t cubeShadowMap = shadow_map_buffer.RetrieveDepthBuffer().TargetName;
 //
@@ -342,6 +340,10 @@ Scene load_scene()
     boost::filesystem::path pnt_shadow_map_frag_shader_path = boost::filesystem::path("Shaders/Point_Shadows.frag").make_preferred();
     Shader pnt_shadow_map_shader = Shader(pnt_shadow_map_vert_shader_path.string().c_str(), pnt_shadow_map_geom_shader_path.string().c_str(), pnt_shadow_map_frag_shader_path.string().c_str());
     
+    boost::filesystem::path spt_shadow_map_vert_shader_path = boost::filesystem::path("Shaders/Spot_Shadows.vert").make_preferred();
+    boost::filesystem::path spt_shadow_map_frag_shader_path = boost::filesystem::path("Shaders/Spot_Shadows.frag").make_preferred();
+    Shader spt_shadow_map_shader = Shader(spt_shadow_map_vert_shader_path.string().c_str(), spt_shadow_map_frag_shader_path.string().c_str());
+    
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
 	shaders.push_back(transparent_shader);
@@ -351,6 +353,7 @@ Scene load_scene()
     shaders.push_back(alt_light_shader);
     shaders.push_back(shadow_map_shader);
     shaders.push_back(pnt_shadow_map_shader);
+    shaders.push_back(spt_shadow_map_shader);
 
 	Cubemap skybox = Cubemap();
 

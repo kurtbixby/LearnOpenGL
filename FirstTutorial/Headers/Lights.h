@@ -110,6 +110,8 @@ public:
     glm::vec3 Position();
     glm::vec3 Direction();
     
+    float LightAngle();
+    
     SpotLightData data_;
 };
 

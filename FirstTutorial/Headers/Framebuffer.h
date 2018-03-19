@@ -2,6 +2,7 @@
 #define FRAMEBUFFER_H
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 #include <vector>
 
 #include "Structs.h"
@@ -22,6 +23,7 @@ public:
 	bool IsComplete();
     
     float AspectRatio();
+    glm::vec2 Center();
 	RenderTarget RetrieveColorBuffer(unsigned int bufferNumber);
 	RenderTarget RetrieveDepthBuffer();
 	RenderTarget RetrieveDepthStencilBuffer();

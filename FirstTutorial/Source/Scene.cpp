@@ -31,6 +31,9 @@
 #define PNT_LGHT_NEAR 0.01f
 #define PNT_LGHT_FAR 40.0f
 
+#define SPT_LGHT_NEAR 0.01f
+#define SPT_LGHT_FAR 60.0f
+
 Scene::Scene()
 {
 	graph_ = SceneGraph();
@@ -48,6 +51,7 @@ Scene::Scene()
     geometryShader_ = Shader();
     dirShadowMapShader_ = Shader();
     pointShadowMapShader_ = Shader();
+    spotShadowMapShader_ = Shader();
     
     inUseDefaultShader_ = standardShader_;
 }
@@ -71,6 +75,7 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
     altLightShader_ = shaders[5];
     dirShadowMapShader_ = shaders[6];
     pointShadowMapShader_ = shaders[7];
+    spotShadowMapShader_ = shaders[8];
     
     inUseDefaultShader_ = standardShader_;
 }
@@ -112,7 +117,7 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
     GenerateDirectionalShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
     
     GeneratePointShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
-//
+
 //    GenerateSpotShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
     
     glCullFace(GL_BACK);
@@ -189,13 +194,14 @@ void Scene::GeneratePointShadowMaps(const std::vector<std::vector<Object>> &regu
         glm::vec3(0.0f, -1.0f, 0.0f)
     };
     
+    pointShadowMapShader_.SetFloat("farPlane", PNT_LGHT_FAR);
     for (PointLight light : graph_.RelevantPointLights())
     {
         // Make vector to store all target names
         std::vector<glm::mat4> lightSpaceMatrices = std::vector<glm::mat4>();
         
         float fov = glm::radians(90.0f);
-        float aspect = float(shadowFramebuffer.AspectRatio());
+        float aspect = shadowFramebuffer.AspectRatio();
         glm::mat4 lightProj = glm::perspective(fov, aspect, PNT_LGHT_NEAR, PNT_LGHT_FAR);
         glm::vec3 position = light.Position();
         for (int i = 0; i < 6; i++)
@@ -205,7 +211,6 @@ void Scene::GeneratePointShadowMaps(const std::vector<std::vector<Object>> &regu
             lightSpaceMatrices.push_back(lightSpace);
         }
         
-        pointShadowMapShader_.SetFloat("farPlane", 40.0f);
         pointShadowMapShader_.SetVec3("lightPos", position.x, position.y, position.z);
         for (int i = 0; i < 6; i++)
         {
@@ -251,7 +256,55 @@ void Scene::GeneratePointShadowMaps(const std::vector<std::vector<Object>> &regu
 
 void Scene::GenerateSpotShadowMaps(const std::vector<std::vector<Object> > &regularDrawLists, const std::vector<std::vector<Object> > &transparentDrawLists, Framebuffer &shadowFramebuffer)
 {
+    spotShadowMapShader_.Use();
+    spotShadowMapShader_.SetFloat("farPlane", SPT_LGHT_FAR);
+    spotShadowMapShader_.SetVec2("center", shadowFramebuffer.Center().x, shadowFramebuffer.Center().y);
     
+    for (SpotLight light : graph_.RelevantSpotLights())
+    {
+        float fov = light.LightAngle();
+        float aspect = shadowFramebuffer.AspectRatio();
+        glm::mat4 lightProj = glm::perspective(fov, aspect, SPT_LGHT_NEAR, SPT_LGHT_FAR);
+        glm::vec3 position = light.Position();
+        glm::vec3 direction = light.Direction();
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); // arbitrary up in y-axis
+        glm::mat4 lightView = glm::lookAt(position, position + direction, up);
+        spotLightSpaceMats_.push_back(lightProj * lightView);
+        
+        shadowFramebuffer.AddTextureAttachment(FBAttachment::Depth);
+        shadowFramebuffer.Use();
+        
+        glClear(GL_DEPTH_BUFFER_BIT);
+        for (auto drawList : regularDrawLists)
+        {
+            bool is2D = drawList.front().Is2D_;
+            if (is2D)
+            {
+                glDisable(GL_CULL_FACE);
+            }
+            RenderObjectsInstanced(drawList, spotShadowMapShader_);
+            if (is2D)
+            {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+        for (auto drawList : transparentDrawLists)
+        {
+            bool is2D = drawList.front().Is2D_;
+            if (is2D)
+            {
+                glDisable(GL_CULL_FACE);
+            }
+            RenderObjectsInstanced(drawList, spotShadowMapShader_);
+            if (is2D)
+            {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+        
+        auto depthBuffer = shadowFramebuffer.RetrieveDepthBuffer();
+        spotLightShadowMaps_.push_back(depthBuffer.TargetName);
+    }
 }
 
 void Scene::Render()
@@ -343,7 +396,7 @@ void Scene::Render()
         glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
         glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
         
-        inUseDefaultShader_.SetFloat("farPlane", 40.0f);
+        inUseDefaultShader_.SetFloat("spotFarPlane", 40.0f);
         for (int i = 0; i < pointLightShadowMaps_.size(); i++)
         {
             std::string samplerCube = "pointLightShadowMaps_" + std::to_string(i);
@@ -352,6 +405,10 @@ void Scene::Render()
             glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[i]);
         }
         
+//        inUseDefaultShader_.SetMatrix4fv("spotLightSpaceMatrices[0]", glm::value_ptr(spotLightSpaceMats_.front()));
+//        inUseDefaultShader_.SetInt("spotLightShadowMaps[0]", SPT_SHAD_MAP_TEX_START);
+//        glActiveTexture(GL_TEXTURE0 + SPT_SHAD_MAP_TEX_START);
+//        glBindTexture(GL_TEXTURE_2D, spotLightShadowMaps_[0]);
         
 //        inUseDefaultShader_.SetInt("pointLightShadowMaps_1", PNT_SHAD_MAP_TEX_START);
 //        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START + 1);

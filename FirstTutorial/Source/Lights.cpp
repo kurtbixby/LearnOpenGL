@@ -175,3 +175,8 @@ void SpotLight::ChangeDirection(glm::vec3 direction)
 {
     data_.direction = direction;
 }
+
+float SpotLight::LightAngle()
+{
+    return 2 * data_.outerCutoff;
+}

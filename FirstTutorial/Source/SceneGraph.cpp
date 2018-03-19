@@ -26,7 +26,7 @@ SceneGraph::SceneGraph()
 
     objects_ = std::vector<Object>();
     
-//    objects_.push_back(Object(glm::vec3(0.0f), 0, 1.0f, false));
+    objects_.push_back(Object(glm::vec3(0.0f), 0, 1.0f, false));
     
     glm::vec3 orbit_axis = glm::vec3(0.0f, 1.0f, 0.0f);
     srand(11101991);
@@ -86,7 +86,7 @@ SceneGraph::SceneGraph()
     red.diffuse = ColorConstants::RedLight() * 0.5f;
     red.specular = ColorConstants::RedLight() * 0.7f;
     
-    glm::vec3 point_position = glm::vec3(0.0f, 1.0f, -10.0f);
+    glm::vec3 point_position = glm::vec3(0.0f, 2.0f, -3.0f);
     float point_constant = 1.0f;
     float point_linear = 0.09f;
     float point_quadratic = 0.032f;
@@ -95,7 +95,7 @@ SceneGraph::SceneGraph()
 
     // pLight2 is the same as pLight1, but in a different location
     PointLight pLight2 = PointLight(red, point_position, point_constant, point_linear, point_quadratic);
-    pLight2.ChangePosition(glm::vec3(10.0f, 1.0f, 00.0f));
+    pLight2.ChangePosition(glm::vec3(3.0f, 2.0f, 00.0f));
     pointLights_.push_back(pLight2);
 
     // Spot Light Creation
@@ -110,19 +110,20 @@ SceneGraph::SceneGraph()
     float spot_outer = std::cos(glm::radians(15.0f));
     
     SpotLight spLight = SpotLight(blue, spot_position, spot_direction, spot_inner, spot_outer);
-//    spotLights_.push_back(spLight);
+    spotLights_.push_back(spLight);
 }
 
 void SceneGraph::UseCamera(const Camera& camera)
 {
     camPosition_ = camera.GetPosition();
     camDirection_ = camera.GetDirection();
+    glm::vec3 right = camera.Right();
     // Hack
     // Makes first spotlight paired to the camera
     if (spotLights_.size() > 0)
     {
-        spotLights_[0].ChangePosition(camPosition_);
-        spotLights_[0].ChangeDirection(camDirection_);
+        spotLights_[0].ChangePosition(camPosition_ + 1.5f * right);
+        spotLights_[0].ChangeDirection(camDirection_ - 0.25f * right);
     }
     SortObjects();
 }
