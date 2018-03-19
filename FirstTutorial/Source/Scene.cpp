@@ -9,6 +9,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Headers/Camera.h"
 #include "Headers/Cubemap.h"
@@ -27,7 +28,7 @@
 #define LIGHT_NEAR_Z -30.0f
 #define LIGHT_FAR_Z 70.0f
 
-#define PNT_LGHT_NEAR 0.1f
+#define PNT_LGHT_NEAR 0.01f
 #define PNT_LGHT_FAR 40.0f
 
 Scene::Scene()
@@ -38,6 +39,7 @@ Scene::Scene()
 	models_ = std::vector<Model>();
     lightShadowMaps_ = std::vector<uint32_t>();
     pointLightShadowMaps_ = std::vector<uint32_t>();
+    lightSpaceMats_ = std::vector<glm::mat4>();
     
     standardShader_ = Shader();
     transparentShader_ = Shader();
@@ -60,7 +62,6 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
     lightShadowMaps_ = std::vector<uint32_t>();
     pointLightShadowMaps_ = std::vector<uint32_t>();
     lightSpaceMats_ = std::vector<glm::mat4>();
-    pointLightSpaceMats_ = std::vector<glm::mat4>();
     
     standardShader_ = shaders[0];
     transparentShader_ = shaders[1];
@@ -110,8 +111,8 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
     
     GenerateDirectionalShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
     
-//    GeneratePointShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
-//    
+    GeneratePointShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
+//
 //    GenerateSpotShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
     
     glCullFace(GL_BACK);
@@ -178,35 +179,34 @@ void Scene::GeneratePointShadowMaps(const std::vector<std::vector<Object>> &regu
         glm::vec3(0.0f, 0.0f, -1.0f)
     };
     
+    // Flip y-axis to account for texture UV mapping
     glm::vec3 up[] = {
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 1.0f),
         glm::vec3(0.0f, 0.0f, -1.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f)
+        glm::vec3(0.0f, -1.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
     };
     
     for (PointLight light : graph_.RelevantPointLights())
     {
         // Make vector to store all target names
-        std::vector<uint32_t> cubemapFaces = std::vector<uint32_t>();
         std::vector<glm::mat4> lightSpaceMatrices = std::vector<glm::mat4>();
         
         float fov = glm::radians(90.0f);
         float aspect = float(shadowFramebuffer.AspectRatio());
+        glm::mat4 lightProj = glm::perspective(fov, aspect, PNT_LGHT_NEAR, PNT_LGHT_FAR);
+        glm::vec3 position = light.Position();
         for (int i = 0; i < 6; i++)
         {
-            // Add attachment
-            shadowFramebuffer.AddTextureAttachment(FBAttachment::Depth);
-            shadowFramebuffer.Use();
-            glm::vec3 position = light.Position();
             glm::mat4 lightView = glm::lookAt(position, position + directions[i], up[i]);
-            glm::mat4 lightProj = glm::perspective(fov, aspect, PNT_LGHT_NEAR, PNT_LGHT_FAR);
             glm::mat4 lightSpace = lightProj * lightView;
             lightSpaceMatrices.push_back(lightSpace);
         }
         
+        pointShadowMapShader_.SetFloat("farPlane", 40.0f);
+        pointShadowMapShader_.SetVec3("lightPos", position.x, position.y, position.z);
         for (int i = 0; i < 6; i++)
         {
             std::string lightSpaceName = "lightSpace[";
@@ -215,49 +215,37 @@ void Scene::GeneratePointShadowMaps(const std::vector<std::vector<Object>> &regu
         }
         
         shadowFramebuffer.AddCubemapAttachment(FBAttachment::Depth);
+        shadowFramebuffer.Use();
         glClear(GL_DEPTH_BUFFER_BIT);
         for (auto drawList : regularDrawLists)
         {
-            if (drawList.front().Is2D_)
+            bool is2D = drawList.front().Is2D_;
+            if (is2D)
             {
                 glDisable(GL_CULL_FACE);
             }
             RenderObjectsInstanced(drawList, pointShadowMapShader_);
-            if (drawList.front().Is2D_)
+            if (is2D)
             {
                 glEnable(GL_CULL_FACE);
             }
         }
         for (auto drawList : transparentDrawLists)
         {
-            if (drawList.front().Is2D_)
+            bool is2D = drawList.front().Is2D_;
+            if (is2D)
             {
                 glDisable(GL_CULL_FACE);
             }
             RenderObjectsInstanced(drawList, pointShadowMapShader_);
-            if (drawList.front().Is2D_)
+            if (is2D)
             {
                 glEnable(GL_CULL_FACE);
             }
         }
         
-        pointLightShadowMaps_.push_back(shadowFramebuffer.RetrieveDepthBuffer().TargetName);
-        
-//        }
-//
-//        // Make cubemap from 6 faces
-//
-//        unsigned cubemapName;
-//        glGenTextures(1, &cubemapName);
-//        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapName);
-//        for (int i = 0; i < 6; i++)
-//        {
-////                glBindTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemapFaces[i]);
-//            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-//            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemapName, 0);
-//        }
-//
-//        // Store cubemap for light
+        auto depthBuffer = shadowFramebuffer.RetrieveDepthBuffer();
+        pointLightShadowMaps_.push_back(depthBuffer.TargetName);
     }
 }
 
@@ -320,9 +308,7 @@ void Scene::Render()
 	glDepthFunc(GL_LEQUAL);
 	skyboxShader_.Use();
 
-	glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
 	skyboxShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
-
 	skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
 
 	skybox_.Draw();
@@ -351,10 +337,16 @@ void Scene::Render()
         glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
         skybox_.Activate();
 
-        inUseDefaultShader_.SetMatrix4fv("lightSpaceMatrices[0]", glm::value_ptr(lightSpaceMats_.front()));
-        inUseDefaultShader_.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
-        glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
-        glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
+#warning "REFACTOR THIS FOR MULTIPLE LIGHT SHADOW MAPS"
+//        inUseDefaultShader_.SetMatrix4fv("dirLightSpaceMatrices[0]", glm::value_ptr(lightSpaceMats_.front()));
+//        inUseDefaultShader_.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
+//        glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
+//        glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
+        
+        inUseDefaultShader_.SetInt("pointLightShadowMaps", PNT_SHAD_MAP_TEX_START);
+        inUseDefaultShader_.SetFloat("farPlane", 40.0f);
+        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[0]);
         
         // Send all the appropriate shadow maps
         

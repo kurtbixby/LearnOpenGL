@@ -50,13 +50,13 @@ Mesh create_plane_mesh()
 {
 	float vertices[] = {
 		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
-		-5.0f, 0.0f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,
-		-5.0f, 0.0f,  5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		5.0f, 0.0f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
+		-5.0f, 0.0f, -5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f,
+		-5.0f, 0.0f,  5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		5.0f, 0.0f,  5.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f,
 
-		5.0f, 0.0f,  5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 0.0f,
-		5.0f, 0.0f, -5.0f, 0.0f, 0.0f, 1.0f, 2.0f, 2.0f,
-		-5.0f, 0.0f, -5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f
+		5.0f, 0.0f,  5.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f,
+		5.0f, 0.0f, -5.0f, 0.0f, 1.0f, 0.0f, 2.0f, 2.0f,
+		-5.0f, 0.0f, -5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f
 	};
 
 	int length = sizeof(vertices) / sizeof(vertices[0]);

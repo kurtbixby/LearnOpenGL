@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <string>
 #include <chrono>
+#include <cmath>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -26,7 +27,9 @@
 #include <boost/filesystem.hpp>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include "Headers/ModelLoader.h"
 
 #define WIDTH 800
@@ -118,28 +121,59 @@ int main()
     Scene scene = load_scene();
     
     Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
-    
+    debug::openGL_Errors();
     scene.GenerateShadowMaps(shadow_map_buffer);
+    debug::openGL_Errors();
+    
+//    uint32_t cubeShadowMap = shadow_map_buffer.RetrieveDepthBuffer().TargetName;
+//
+//    Cubemap cubemap = Cubemap(cubeShadowMap);
+//
+//    boost::filesystem::path skybox_vertex_shader_path = boost::filesystem::path("Shaders/Skybox.vert").make_preferred();
+//    boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
+//    Shader skybox_shader = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
     
     multi_sample_fb.SetViewPort();
     uint32_t frames_rendered = 0;
     std::chrono::steady_clock::time_point interval_start = std::chrono::steady_clock::now();
+    
+    Camera cam = Camera();
     // main loop
     while (!glfwWindowShouldClose(window))
     {
         // process any input
         Input input = inputWrapper.TakeInput(window);
+        cam.TakeInput(input.CameraInput());
         scene.TakeInput(input);
-        
-		// Enable texture framebuffer
-		multi_sample_fb.Use();
-
-		// (Re)enable depth for main scene
-		glEnable(GL_DEPTH_TEST);
+//
+        // Enable texture framebuffer
+        multi_sample_fb.Use();
+//
+        // (Re)enable depth for main scene
+        glEnable(GL_DEPTH_TEST);
         scene.Render();
-		// Disable depth for screen quad
-		glDisable(GL_DEPTH_TEST);
         
+//        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+//        glDepthMask(GL_FALSE);
+//        glDepthFunc(GL_LEQUAL);
+//        skybox_shader.Use();
+//        skybox_shader.SetInt("skybox", SKYBOX_TEX_UNIT);
+//        glm::mat4 view = cam.MakeViewMat();
+//        glm::mat4 proj = cam.GetProjection();
+////        glm::mat4 view = glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+////        glm::mat4 proj = glm::perspective(0.785f, 4.0f/3.0f, 0.1f, 100.0f);
+//        skybox_shader.SetMatrix4fv("projection", glm::value_ptr(proj));
+//        skybox_shader.SetMatrix4fv("view", glm::value_ptr(view));
+//        glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
+//        cubemap.Draw();
+//        glDepthFunc(GL_LESS);
+//        glDepthMask(GL_TRUE);
+
+        // Disable depth for screen quad
+        glDisable(GL_DEPTH_TEST);
+//
         multi_sample_fb.DownsampleToFramebuffer(output_fb);
         uint32_t frame_buffer_target = output_fb.RetrieveColorBuffer(0).TargetName;
         
@@ -268,8 +302,9 @@ Scene load_scene()
 
     std::vector<Model> models = std::vector<Model>();
 	ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit_reflection").make_preferred());
-	Model crysis = crysisLoader.loadModel("nanosuit.obj");
+    Model crysis = crysisLoader.loadModel("nanosuit.obj");
     models.push_back(crysis);
+//    models.push_back(create_box());
 	models.push_back(create_box());
     models.push_back(create_plane());
 //    models.push_back(create_quad());
@@ -303,9 +338,9 @@ Scene load_scene()
     Shader shadow_map_shader = Shader(shadow_map_vertex_shader_path.string().c_str(), shadow_map_fragment_shader_path.string().c_str());
     
     boost::filesystem::path pnt_shadow_map_vert_shader_path = boost::filesystem::path("Shaders/Point_Shadows.vert").make_preferred();
-    boost::filesystem::path pnt_shadow_map_geo_shader_path = boost::filesystem::path("Shaders/Point_Shadows.geom").make_preferred();
+    boost::filesystem::path pnt_shadow_map_geom_shader_path = boost::filesystem::path("Shaders/Point_Shadows.geom").make_preferred();
     boost::filesystem::path pnt_shadow_map_frag_shader_path = boost::filesystem::path("Shaders/Point_Shadows.frag").make_preferred();
-    Shader pnt_shadow_map_shader = Shader(pnt_shadow_map_vert_shader_path.string().c_str(), pnt_shadow_map_geo_shader_path.string().c_str(), pnt_shadow_map_frag_shader_path.string().c_str());
+    Shader pnt_shadow_map_shader = Shader(pnt_shadow_map_vert_shader_path.string().c_str(), pnt_shadow_map_geom_shader_path.string().c_str(), pnt_shadow_map_frag_shader_path.string().c_str());
     
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);

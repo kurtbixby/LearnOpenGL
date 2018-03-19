@@ -8,13 +8,13 @@ uniform mat4 lightSpace[6];
 
 void main()
 {
-    for (int i = 0; i < 6; i++)
+    for (int face = 0; face < 6; face++)
     {
-        gl_Layer = i;
+        gl_Layer = face;
         for (int i = 0; i < 3; i++)
         {
             FragPos = gl_in[i].gl_Position;
-            gl_Position = lightSpace[i] * FragPos;
+            gl_Position = lightSpace[face] * FragPos;
             EmitVertex();
         }
         EndPrimitive();

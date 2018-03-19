@@ -36,7 +36,6 @@ private:
     std::vector<uint32_t> lightShadowMaps_;
     std::vector<glm::mat4> lightSpaceMats_;
     std::vector<uint32_t> pointLightShadowMaps_;
-    std::vector<glm::mat4> pointLightSpaceMats_;
     
     Shader inUseDefaultShader_;
     

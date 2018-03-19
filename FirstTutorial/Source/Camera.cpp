@@ -40,7 +40,7 @@ Camera::Camera(const glm::vec3 position, const glm::vec3 target, const glm::vec3
 
 	aspectRatio_ = 4 / 3.0f;
 	fov_ = M_PI_4;
-
+    
 	projection_ = glm::perspective(fov_, aspectRatio_, 0.1f, 100.0f);
 }
 

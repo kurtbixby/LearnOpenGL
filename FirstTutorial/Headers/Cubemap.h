@@ -11,6 +11,7 @@ class Cubemap
 {
 public:
 	Cubemap();
+    Cubemap(uint32_t cubemapName);
 	Cubemap(std::vector<std::string> textureFiles);
 
 	void Activate();
