@@ -338,15 +338,24 @@ void Scene::Render()
         skybox_.Activate();
 
 #warning "REFACTOR THIS FOR MULTIPLE LIGHT SHADOW MAPS"
-//        inUseDefaultShader_.SetMatrix4fv("dirLightSpaceMatrices[0]", glm::value_ptr(lightSpaceMats_.front()));
-//        inUseDefaultShader_.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
-//        glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
-//        glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
+        inUseDefaultShader_.SetMatrix4fv("dirLightSpaceMatrices[0]", glm::value_ptr(lightSpaceMats_.front()));
+        inUseDefaultShader_.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
+        glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
+        glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
         
-        inUseDefaultShader_.SetInt("pointLightShadowMaps", PNT_SHAD_MAP_TEX_START);
         inUseDefaultShader_.SetFloat("farPlane", 40.0f);
-        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[0]);
+        for (int i = 0; i < pointLightShadowMaps_.size(); i++)
+        {
+            std::string samplerCube = "pointLightShadowMaps_" + std::to_string(i);
+            inUseDefaultShader_.SetInt(samplerCube, PNT_SHAD_MAP_TEX_START + i);
+            glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START + i);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[i]);
+        }
+        
+        
+//        inUseDefaultShader_.SetInt("pointLightShadowMaps_1", PNT_SHAD_MAP_TEX_START);
+//        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START + 1);
+//        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[1]);
         
         // Send all the appropriate shadow maps
         

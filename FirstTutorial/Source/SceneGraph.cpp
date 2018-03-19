@@ -73,24 +73,30 @@ SceneGraph::SceneGraph()
     glm::vec3 light_direction = glm::vec3(-12.0f, -10.0f, 20.0f);
     
     Light dirLight = Light(white, light_direction);
-//    lights_.push_back(dirLight);
+    lights_.push_back(dirLight);
     
     // Point Light Creation
     LightColorData green;
-    green.ambient = ColorConstants::GreenLight() * 0.5f;
-    green.diffuse = ColorConstants::GreenLight() * 0.2f;
+    green.ambient = ColorConstants::GreenLight() * 0.2f;
+    green.diffuse = ColorConstants::GreenLight() * 0.5f;
     green.specular = ColorConstants::GreenLight() * 0.7f;
     
-    glm::vec3 point_position = glm::vec3(0.0f);
+    LightColorData red;
+    red.ambient = ColorConstants::RedLight() * 0.2f;
+    red.diffuse = ColorConstants::RedLight() * 0.5f;
+    red.specular = ColorConstants::RedLight() * 0.7f;
+    
+    glm::vec3 point_position = glm::vec3(0.0f, 1.0f, -10.0f);
     float point_constant = 1.0f;
     float point_linear = 0.09f;
     float point_quadratic = 0.032f;
     PointLight pLight = PointLight(green, point_position, point_constant, point_linear, point_quadratic);
-//    pointLights_.push_back(pLight);
+    pointLights_.push_back(pLight);
 
     // pLight2 is the same as pLight1, but in a different location
-    pLight.ChangePosition(glm::vec3(-10.0f, 3.0f, 10.0f));
-    pointLights_.push_back(pLight);
+    PointLight pLight2 = PointLight(red, point_position, point_constant, point_linear, point_quadratic);
+    pLight2.ChangePosition(glm::vec3(10.0f, 1.0f, 00.0f));
+    pointLights_.push_back(pLight2);
 
     // Spot Light Creation
     LightColorData blue;

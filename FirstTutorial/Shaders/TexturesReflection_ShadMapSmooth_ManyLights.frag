@@ -88,7 +88,13 @@ uniform mat4 dirLightSpaceMatrices[MAX_DIR_LIGHTS];
 //uniform mat4 spotLightSpaceMatrices[MAX_SPOT_LIGHTS];
 
 uniform sampler2D dirLightShadowMaps[MAX_DIR_LIGHTS];
-uniform samplerCube pointLightShadowMaps;//[MAX_POINT_LIGHTS];
+
+//uniform samplerCube pointLightShadowMaps[MAX_POINT_LIGHTS];
+uniform samplerCube pointLightShadowMaps_0;
+uniform samplerCube pointLightShadowMaps_1;
+//uniform samplerCube pointLightShadowMaps_2;
+//uniform samplerCube pointLightShadowMaps_3;
+
 //uniform samplerCube spotLightShadowMaps[MAX_SPOT_LIGHTS];
 uniform samplerCube skybox;
 
@@ -104,7 +110,8 @@ float specular_coefficient(vec3 viewDir, vec3 toLightDir, vec3 normal, int shini
 
 float dir_shadow_calculation(vec4 fragLightPos, sampler2D lightShadMap, vec3 lightDir)
 {
-    float bias = max(0.0005f * (1.0f - dot(normalize(fs_in.Normal), normalize(lightDir))), 0.00005f);
+//    float bias = max(0.0005f * (1.0f - dot(normalize(fs_in.Normal), normalize(lightDir))), 0.00005f);
+    float bias = 0.0002f;
     // Perspective division
     vec3 projCoords = fragLightPos.xyz / fragLightPos.w;
     // Map [-1, 1] -> [-0.5, 0.5] -> [0, 1]
@@ -134,7 +141,7 @@ float point_shadow_calculation(vec3 fragPos, vec3 lightPos, samplerCube lightSha
     vec3 lightToFrag = fragPos - lightPos;
     
 //    float bias = max(0.0005f * (1.0f - dot(normalize(fs_in.Normal), normalize(lightToFrag))), 0.00001f);
-    float bias = 0.0005f;
+    float bias = 0.0002f;
     
     float shadowTotal = 0.0f;
     float offsetSize = 0.005f;
@@ -167,9 +174,9 @@ vec3 global_lighting(Light light, sampler2D lightShadMap, mat4 lightSpaceMatrix,
     vec4 fragLightPos = lightSpaceMatrix * fs_in.FragWorldPos;
     float shadowDensity = 1.0f - dir_shadow_calculation(fragLightPos, lightShadMap, light.direction);
     
-	vec3 ambient = light.ambient * diffuseValue;
+    vec3 ambient = 0.5f * (light.ambient * diffuseValue);
 
-	vec3 viewLightDir = normalize(-vec3(view * vec4(light.direction, 1.0f)));
+	vec3 viewLightDir = normalize(-vec3(view * vec4(light.direction, 0.0f)));
 	vec3 norm = normalize(fs_in.Normal);
 	float diff = max(dot(norm, viewLightDir), 0.0f);
 	vec3 diffuse = light.diffuse * diff * diffuseValue;
@@ -177,7 +184,7 @@ vec3 global_lighting(Light light, sampler2D lightShadMap, mat4 lightSpaceMatrix,
 	vec3 viewDir = normalize(-fs_in.FragPos);
 	vec3 reflectDir = reflect(-viewLightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
-	vec3 specular = light.specular * spec * specularValue;
+    vec3 specular = light.specular * spec * specularValue;
 	vec3 result = ambient + shadowDensity * (diffuse + specular);
 
 	return result * shadowDensity;
@@ -189,7 +196,7 @@ vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap, vec3 diffus
 
     float shadowDensity = 1.0f - point_shadow_calculation(vec3(fs_in.FragWorldPos), pointLight.position, lightShadMap);
 
-    vec3 ambient = vec3(0.0f);//pointLight.ambient * diffuseValue;
+    vec3 ambient = 0.5f * (pointLight.ambient * diffuseValue);
 
     vec3 norm = normalize(fs_in.Normal);
     vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
@@ -199,10 +206,10 @@ vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap, vec3 diffus
     vec3 viewDir = normalize(-fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = vec3(0.0f);//pointLight.specular * spec * specularValue;
+    vec3 specular = pointLight.specular * spec * specularValue;
 
     float distance = length(viewLightPos - fs_in.FragPos);
-    float attenuation = 1.0f / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * distance);
+    float attenuation = 1.0f;// / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * distance);
 
     vec3 result = attenuation * (ambient + shadowDensity * (diffuse + specular));
 
@@ -290,10 +297,24 @@ void main()
 
     // Point Light
     vec3 point = vec3(0.0f);
-    for (i = 0; i < POINT_LIGHTS; i++)
-    {
-        point += point_lighting(pointLights[i], pointLightShadowMaps, diffuseValue, specularValue);
-    }
+    
+    point += point_lighting(pointLights[0], pointLightShadowMaps_0, diffuseValue, specularValue);
+    point += point_lighting(pointLights[1], pointLightShadowMaps_1, diffuseValue, specularValue);
+    
+//    if (pointLightShadowMaps_2.env_mode != TEXMODE_OFF)
+//    {
+//        point += point_lighting(pointLights[2], pointLightShadowMaps_2, diffuseValue, specularValue);
+//    }
+//    if (pointLightShadowMaps_3.env_mode != TEXMODE_OFF)
+//    {
+//        point += point_lighting(pointLights[3], pointLightShadowMaps_3, diffuseValue, specularValue);
+//    }
+    
+    // What I want to do
+//    for (i = 0; i < POINT_LIGHTS; i++)
+//    {
+//        point += point_lighting(pointLights[i], pointLightShadowMaps[i], diffuseValue, specularValue);
+//    }
 
     // Spot Light
     vec3 spot = vec3(0.0f);
