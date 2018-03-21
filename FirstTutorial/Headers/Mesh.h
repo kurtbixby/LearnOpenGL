@@ -22,6 +22,7 @@ private:
     void initializeMesh();
     
     void PrepareTextures(Shader& shader, vector<Texture>& textures);
+    void PrepareTangentSpace();
     void PrepareMatrices(vector<glm::mat4>& instance_matrices);
 };
 

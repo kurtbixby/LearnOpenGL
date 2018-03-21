@@ -44,6 +44,7 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
+Scene load_normal_scene();
 Scene load_scene();
 
 void timer_message(std::chrono::steady_clock::time_point start, std::chrono::steady_clock::time_point end, std::string message);
@@ -118,7 +119,8 @@ int main()
 //    // send kernel to shader
     screenShader.SetFloats("kernel", 9, &kernel[0]);
     
-    Scene scene = load_scene();
+//    Scene scene = load_scene();
+    Scene scene = load_normal_scene();
     
     Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
     scene.GenerateShadowMaps(shadow_map_buffer);
@@ -141,7 +143,6 @@ int main()
     {
         // process any input
         Input input = inputWrapper.TakeInput(window);
-        cam.TakeInput(input.CameraInput());
         scene.TakeInput(input);
 //
         // Enable texture framebuffer
@@ -149,7 +150,8 @@ int main()
 //
         // (Re)enable depth for main scene
         glEnable(GL_DEPTH_TEST);
-        scene.Render();
+//        scene.Render();
+        scene.RenderSimple();
         
 //        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -158,6 +160,7 @@ int main()
 //        glDepthFunc(GL_LEQUAL);
 //        skybox_shader.Use();
 //        skybox_shader.SetInt("skybox", SKYBOX_TEX_UNIT);
+//        cam.TakeInput(input.CameraInput());
 //        glm::mat4 view = cam.MakeViewMat();
 //        glm::mat4 proj = cam.GetProjection();
 ////        glm::mat4 view = glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -359,5 +362,36 @@ Scene load_scene()
 
     Scene scene = Scene(graph, cams, models, shaders, skybox);
 
+    return scene;
+}
+
+Scene load_normal_scene()
+{
+    SceneGraph graph = SceneGraph(false);
+    
+    // Camera initialization
+    Camera cam = Camera();
+    cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
+    std::vector<Camera> cams = std::vector<Camera>();
+    cams.push_back(cam);
+    
+    std::vector<Model> models = std::vector<Model>();
+    models.push_back(create_brick_wall());
+    
+    std::vector<Shader> shaders = std::vector<Shader>();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/NormalMaps.vert").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/NormalMaps.frag").make_preferred();
+    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+    shaders.push_back(standard_shader);
+    
+    while (shaders.size() < 9)
+    {
+        shaders.push_back(Shader());
+    }
+    
+    Cubemap skybox = Cubemap();
+    
+    Scene scene = Scene(graph, cams, models, shaders, skybox);
+    
     return scene;
 }

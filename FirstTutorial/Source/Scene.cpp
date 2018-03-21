@@ -471,6 +471,53 @@ void Scene::Render()
     }
 }
 
+void Scene::RenderSimple()
+{
+    // render section of main loop
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
+    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+    
+    Camera& cam = cams_[0];
+    
+    glm::mat4 projection = cam.GetProjection();
+    glm::mat4 view = cam.MakeViewMat();
+    
+    const GLuint matrixBindIndex = 1;
+    UniformBlockBuffer<glm::mat4> matBuff = UniformBlockBuffer<glm::mat4>(2);
+    matBuff.FillBuffer(projection);
+    matBuff.FillBuffer(view);
+    matBuff.BindToIndex(matrixBindIndex);
+    
+    graph_.UseCamera(cam);
+    std::vector<Object> objects = graph_.RelevantObjects();
+    std::vector<Light> lights = graph_.RelevantLights();
+    
+    const GLuint lightingBindIndex = 2;
+    UniformBlockBuffer<Light> sceneLighting = UniformBlockBuffer<Light>(2);
+    sceneLighting.BindToIndex(lightingBindIndex);
+    sceneLighting.FillBuffer(lights[0]);
+    sceneLighting.FillBuffer(lights[1]);
+    
+    inUseDefaultShader_.Use();
+    inUseDefaultShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    inUseDefaultShader_.BindUniformBlock("Lighting", lightingBindIndex);
+    
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    
+    for (Object obj : objects)
+    {
+        Model m = ModelForId(obj.Model_);
+        
+        glm::vec3 rotAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+        // Model Matrix
+        glm::mat4 thisModMat = glm::rotate(modelMatrix, glm::radians(90.0f), rotAxis);
+        inUseDefaultShader_.SetMatrix4fv("model", glm::value_ptr(thisModMat));
+        
+        m.Draw(inUseDefaultShader_);
+    }
+}
+
 void Scene::TakeInput(const Input& input)
 {
     cams_[0].TakeInput(input.CameraInput());

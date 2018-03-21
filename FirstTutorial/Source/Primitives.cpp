@@ -19,6 +19,20 @@ Model create_plane()
 	return Model(meshes, mesh_textures);
 }
 
+Model create_brick_wall()
+{
+    std::vector<Mesh> meshes = std::vector<Mesh>();
+    meshes.push_back(create_plane_mesh());
+    
+    std::vector<std::vector<Texture>> mesh_textures = std::vector<std::vector<Texture>>();
+    std::vector<Texture> textures = std::vector<Texture>();
+    textures.push_back(load_texture("Resources", "brickwall.jpg", TextureType::Diffuse));
+    textures.push_back(load_texture("Resources", "brickwall_normal.jpg", TextureType::Normal));
+    mesh_textures.push_back(textures);
+    
+    return Model(meshes, mesh_textures);
+}
+
 Model create_box()
 {
 	std::vector<Mesh> meshes = std::vector<Mesh>();

@@ -22,7 +22,8 @@ enum class TextureType
 {
     Diffuse,
     Specular,
-    Reflection
+    Reflection,
+    Normal
 };
 
 struct Texture

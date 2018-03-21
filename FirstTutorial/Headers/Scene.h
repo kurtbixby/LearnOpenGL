@@ -24,6 +24,7 @@ public:
     
     void GenerateShadowMaps(Framebuffer& shadowFramebuffer);
 	void Render();
+    void RenderSimple();
 	void TakeInput(const Input& input);
 	
 private:
