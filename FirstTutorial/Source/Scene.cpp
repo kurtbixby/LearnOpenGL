@@ -52,6 +52,7 @@ Scene::Scene()
     dirShadowMapShader_ = Shader();
     pointShadowMapShader_ = Shader();
     spotShadowMapShader_ = Shader();
+    lightsShader_ = Shader();
     
     inUseDefaultShader_ = standardShader_;
 }
@@ -76,6 +77,7 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> mode
     dirShadowMapShader_ = shaders[6];
     pointShadowMapShader_ = shaders[7];
     spotShadowMapShader_ = shaders[8];
+    lightsShader_ = shaders[9];
     
     inUseDefaultShader_ = standardShader_;
 }
@@ -419,8 +421,20 @@ void Scene::Render()
         for (std::vector<Object> draw_list : reg_draw_list_inst)
         {
 //            RenderObjects(draw_list, standardShader);
-            RenderObjectsInstanced(draw_list, standardShader_);
+            RenderObjectsInstanced(draw_list, inUseDefaultShader_);
         }
+        
+        lightsShader_.Use();
+        lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
+        lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
+        std::vector<Object> light_list = std::vector<Object>();
+        // Draw Lights
+        for (PointLight light : pointLights)
+        {
+            Object light_obj = Object(light.Position(), 1, glm::vec3(0.5f), false);
+            light_list.push_back(light_obj);
+        }
+        RenderObjectsInstanced(light_list, lightsShader_);
 
         skybox_.Deactivate();
         glActiveTexture(GL_TEXTURE0);

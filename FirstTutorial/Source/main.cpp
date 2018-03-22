@@ -116,7 +116,7 @@ int main()
     
     screenShader.Use();
     screenShader.SetFloat("gamma", 2.2f);
-    screenShader.SetFloat("exposure", 0.01f);
+    screenShader.SetFloat("exposure", 1.0f);
 //    // send kernel to shader
     screenShader.SetFloats("kernel", 9, &kernel[0]);
     
@@ -349,6 +349,10 @@ Scene load_scene()
     boost::filesystem::path spt_shadow_map_frag_shader_path = boost::filesystem::path("Shaders/Spot_Shadows.frag").make_preferred();
     Shader spt_shadow_map_shader = Shader(spt_shadow_map_vert_shader_path.string().c_str(), spt_shadow_map_frag_shader_path.string().c_str());
     
+    boost::filesystem::path lights_vert_shader_path = boost::filesystem::path("Shaders/Lights.vert").make_preferred();
+    boost::filesystem::path lights_frag_shader_path = boost::filesystem::path("Shaders/Lights.frag").make_preferred();
+    Shader lights_shader = Shader(lights_vert_shader_path.string().c_str(), lights_frag_shader_path.string().c_str());
+    
     std::vector<Shader> shaders = std::vector<Shader>();
     shaders.push_back(standard_shader);
 	shaders.push_back(transparent_shader);
@@ -359,6 +363,7 @@ Scene load_scene()
     shaders.push_back(shadow_map_shader);
     shaders.push_back(pnt_shadow_map_shader);
     shaders.push_back(spt_shadow_map_shader);
+    shaders.push_back(lights_shader);
 
 	Cubemap skybox = Cubemap();
 

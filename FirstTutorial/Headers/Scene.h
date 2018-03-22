@@ -51,6 +51,7 @@ private:
     Shader dirShadowMapShader_;
     Shader pointShadowMapShader_;
     Shader spotShadowMapShader_;
+    Shader lightsShader_;
     
     void GenerateDirectionalShadowMaps(const std::vector<std::vector<Object>> &regularDrawLists, const std::vector<std::vector<Object>> &transparentDrawLists, Framebuffer& shadowFramebuffer);
     
