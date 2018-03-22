@@ -138,6 +138,7 @@ void Framebuffer::AddTextureAttachment(FBAttachment attachmentType, uint32_t sam
     switch (attachmentType)
     {
         case FBAttachment::Color:
+        case FBAttachment::ColorHDR:
             glFramebufferTexture2D(target_, GL_COLOR_ATTACHMENT0 + colorAttachmentCount_, textureSampleType, fbTexture, 0);
             colorAttachments_.push_back(renderTarget);
             colorAttachmentCount_ += 1;
@@ -175,6 +176,7 @@ void Framebuffer::AddRenderbufferAttachment(FBAttachment attachmentType, uint32_
     switch (attachmentType)
     {
         case FBAttachment::Color:
+        case FBAttachment::ColorHDR:
             glFramebufferRenderbuffer(target_, GL_COLOR_ATTACHMENT0 + colorAttachmentCount_, GL_RENDERBUFFER, renderbuffer);
             colorAttachments_.push_back(renderTarget);
             colorAttachmentCount_ += 1;
@@ -203,6 +205,7 @@ void Framebuffer::AddCubemapAttachment(FBAttachment attachmentType)
     switch (attachmentType)
     {
         case FBAttachment::Color:
+        case FBAttachment::ColorHDR:
             glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachmentCount_, cubemap, 0);
             colorAttachments_.push_back(renderTarget);
             colorAttachmentCount_++;
@@ -279,6 +282,9 @@ unsigned int Framebuffer::CreateFramebufferTexture(FBAttachment attachmentType, 
         case FBAttachment::Color:
             fbTex = GenFramebufferTexture(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, samples);
             break;
+        case FBAttachment::ColorHDR:
+            fbTex = GenFramebufferTexture(GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, samples);
+            break;
         case FBAttachment::DepthStencil:
             fbTex = GenFramebufferTexture(GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, samples);
             break;
@@ -299,6 +305,9 @@ unsigned int Framebuffer::CreateRenderBuffer(FBAttachment attachmentType, uint32
         case FBAttachment::Color:
             renderbuffer = GenRenderbuffer(GL_RGB, samples);
             break;
+        case FBAttachment::ColorHDR:
+            renderbuffer = GenRenderbuffer(GL_RGB16F, samples);
+            break;
         case FBAttachment::DepthStencil:
             renderbuffer = GenRenderbuffer(GL_DEPTH24_STENCIL8, samples);
             break;
@@ -318,6 +327,9 @@ unsigned int Framebuffer::CreateCubemapTexture(FBAttachment attachmentType)
     {
         case FBAttachment::Color:
             cubemapTex = GenCubemapTexture(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+            break;
+        case FBAttachment::ColorHDR:
+            cubemapTex = GenCubemapTexture(GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE);
             break;
         case FBAttachment::DepthStencil:
             cubemapTex = GenCubemapTexture(GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);

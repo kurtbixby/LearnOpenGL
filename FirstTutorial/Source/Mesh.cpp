@@ -45,7 +45,7 @@ void Mesh::PrepareTextures(Shader& shader, vector<Texture>& textures)
     
     for (int i = 0; i < textures.size(); i++)
     {
-        std::string texName = "";
+        std::string texName = "material.";
         Texture tex = textures[i];
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, tex.id);

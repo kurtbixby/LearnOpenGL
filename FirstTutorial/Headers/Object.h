@@ -17,12 +17,12 @@ public:
     
     // Have a tree-like structure for
 
-    Object() : Object(glm::vec3(1.0f), -1, 1.0f, false) {};
-    Object(const glm::vec3 transform, const int model, const float scale, const bool outline, const bool is2D = false, const bool isTransparent = false)
+    Object() : Object(glm::vec3(1.0f), -1, glm::vec3(1.0f), false) {};
+    Object(const glm::vec3 transform, const int model, const glm::vec3 scale, const bool outline, const bool is2D = false, const bool isTransparent = false)
     {
         Transform_ = transform;
         Model_ = model;
-        Scale_ = glm::vec3(scale);
+        Scale_ = scale;
         Outlined_ = outline;
         Is2D_ = is2D;
         IsTransparent_ = isTransparent;

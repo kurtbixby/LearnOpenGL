@@ -222,7 +222,7 @@ vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap, vec3 diffus
     vec3 specular = pointLight.specular * spec * specularValue;
 
     float distance = length(viewLightPos - fs_in.FragPos);
-    float attenuation = 1.0f;// / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * distance);
+    float attenuation = 1.0f / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * distance);
 
     vec3 result = attenuation * (ambient + shadowDensity * (diffuse + specular));
 

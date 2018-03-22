@@ -81,6 +81,7 @@ public:
 class PointLight : public IBufferable {
 public:
     PointLight(PointLightData data);
+    PointLight(LightColorData color_data, glm::vec3 position);
     PointLight(LightColorData color_data, glm::vec3 position, float constant, float linear, float quadratic);
     
     size_t DataSize();

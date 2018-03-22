@@ -37,7 +37,8 @@ enum class FBAttachment
 {
     Color,
     Depth,
-    DepthStencil
+    DepthStencil,
+    ColorHDR
 };
 
 enum class RenderTargetType

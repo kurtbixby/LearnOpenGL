@@ -64,6 +64,9 @@ PointLight::PointLight(PointLightData data)
     data_ = data;
 }
 
+PointLight::PointLight(LightColorData color_data, glm::vec3 position): PointLight(color_data, position, 1.0f, 0.09f, 0.032f)
+{}
+
 PointLight::PointLight(LightColorData color_data, glm::vec3 position, float constant, float linear, float quadratic)
 {
     data_.color_data = color_data;

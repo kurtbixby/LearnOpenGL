@@ -503,15 +503,12 @@ void Scene::RenderSimple()
     inUseDefaultShader_.BindUniformBlock("Matrices", matrixBindIndex);
     inUseDefaultShader_.BindUniformBlock("Lighting", lightingBindIndex);
     
-    glm::mat4 modelMatrix = glm::mat4(1.0f);
-    
     for (Object obj : objects)
     {
         Model m = ModelForId(obj.Model_);
         
-        glm::vec3 rotAxis = glm::vec3(1.0f, 0.0f, 0.0f);
-        // Model Matrix
-        glm::mat4 thisModMat = glm::rotate(modelMatrix, glm::radians(90.0f), rotAxis);
+        glm::mat4 modelMatrix = obj.ModelMatrix();
+        glm::mat4 thisModMat = glm::translate(modelMatrix, glm::vec3(0.0f, -0.5f, 0.0f));
         inUseDefaultShader_.SetMatrix4fv("model", glm::value_ptr(thisModMat));
         
         m.Draw(inUseDefaultShader_);
@@ -530,6 +527,11 @@ void Scene::TakeInput(const Input& input)
         inUseDefaultShader_ = standardShader_;
     }
 }
+
+//void Scene::Simulate()
+//{
+//
+//}
 
 Model Scene::ModelForId(uint32_t model_id) const
 {

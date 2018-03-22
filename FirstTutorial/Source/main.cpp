@@ -63,16 +63,16 @@ int main()
 
 	// Create standard shader
 	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Kernel_Gamma.frag").make_preferred();
+	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Kernel_Gamma_HDR_Exposure.frag").make_preferred();
 	Shader screenShader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	// Create intermediary framebuffer
 	Framebuffer output_fb = Framebuffer();
-	output_fb.AddTextureAttachment(FBAttachment::Color);
+	output_fb.AddTextureAttachment(FBAttachment::ColorHDR);
 	output_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
     
     Framebuffer multi_sample_fb = Framebuffer();
-    multi_sample_fb.AddTextureAttachment(FBAttachment::Color, 4);
+    multi_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR, 4);
     multi_sample_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil, 4);
 
 	// Create Screen Quad VAO
@@ -116,11 +116,12 @@ int main()
     
     screenShader.Use();
     screenShader.SetFloat("gamma", 2.2f);
+    screenShader.SetFloat("exposure", 0.01f);
 //    // send kernel to shader
     screenShader.SetFloats("kernel", 9, &kernel[0]);
     
-//    Scene scene = load_scene();
-    Scene scene = load_normal_scene();
+    Scene scene = load_scene();
+//    Scene scene = load_normal_scene();
     
     Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
     scene.GenerateShadowMaps(shadow_map_buffer);
@@ -144,14 +145,15 @@ int main()
         // process any input
         Input input = inputWrapper.TakeInput(window);
         scene.TakeInput(input);
+//        scene.Simulate();
 //
         // Enable texture framebuffer
         multi_sample_fb.Use();
 //
         // (Re)enable depth for main scene
         glEnable(GL_DEPTH_TEST);
-//        scene.Render();
-        scene.RenderSimple();
+        scene.Render();
+//        scene.RenderSimple();
         
 //        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -367,7 +369,7 @@ Scene load_scene()
 
 Scene load_normal_scene()
 {
-    SceneGraph graph = SceneGraph(false);
+    SceneGraph graph = SceneGraph(1);
     
     // Camera initialization
     Camera cam = Camera();
@@ -377,6 +379,37 @@ Scene load_normal_scene()
     
     std::vector<Model> models = std::vector<Model>();
     models.push_back(create_brick_wall());
+    
+    std::vector<Shader> shaders = std::vector<Shader>();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/NormalMaps.vert").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/NormalMaps.frag").make_preferred();
+    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+    shaders.push_back(standard_shader);
+    
+    while (shaders.size() < 9)
+    {
+        shaders.push_back(Shader());
+    }
+    
+    Cubemap skybox = Cubemap();
+    
+    Scene scene = Scene(graph, cams, models, shaders, skybox);
+    
+    return scene;
+}
+
+Scene load_hdr_scene()
+{
+    SceneGraph graph = SceneGraph(2);
+    
+    // Camera initialization
+    Camera cam = Camera();
+    cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
+    std::vector<Camera> cams = std::vector<Camera>();
+    cams.push_back(cam);
+    
+    std::vector<Model> models = std::vector<Model>();
+    models.push_back(create_box());
     
     std::vector<Shader> shaders = std::vector<Shader>();
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/NormalMaps.vert").make_preferred();

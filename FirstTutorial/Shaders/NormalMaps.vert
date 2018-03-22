@@ -19,7 +19,6 @@ struct Light {      // 60 bytes needs 4 bytes of padding
 out VS_OUT
 {
     vec2 TexCoords;
-    mat3 InvTBN;
     vec3 TBNViewPos;
     vec3 TBNFragPos;
 } vs_out;
@@ -46,13 +45,13 @@ uniform mat4 model;
 void main()
 {
     vec3 Tan = normalize(vec3(model * vec4(aTan, 0.0f)));
-    vec3 BiTan = normalize(vec3(model * vec4(aBiTan, 0.0f)));
     vec3 Norm = normalize(vec3(model * vec4(aNorm, 0.0f)));
+//    vec3 BiTan = normalize(vec3(model * vec4(aBiTan, 0.0f)));
+    vec3 BiTan = cross(Norm, Tan);
     mat3 InvTBN = transpose(mat3(Tan, BiTan, Norm));
     
     vs_out.TexCoords = aTexCoords;
-    vs_out.InvTBN = InvTBN;
-    vs_out.TBNFragPos = InvTBN * vec3(model * vec4(aNorm, 0.0f));
+    vs_out.TBNFragPos = InvTBN * aPos;
     vs_out.TBNViewPos = InvTBN * viewPos;
     
     int i;
