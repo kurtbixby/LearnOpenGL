@@ -416,7 +416,9 @@ void Scene::Render()
 //        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START + 1);
 //        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[1]);
         
-        // Send all the appropriate shadow maps
+        // Unit vector for greyScale conversion/brightness measurement
+        glm::vec3 bloomThreshold = glm::vec3(0.2126, 0.7152, 0.0722);
+        inUseDefaultShader_.SetVec3("bloomThreshold", bloomThreshold.r, bloomThreshold.g, bloomThreshold.b);
         
         for (std::vector<Object> draw_list : reg_draw_list_inst)
         {
@@ -427,6 +429,7 @@ void Scene::Render()
         lightsShader_.Use();
         lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
         lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
+        lightsShader_.SetVec3("bloomThreshold", bloomThreshold.r, bloomThreshold.g, bloomThreshold.b);
         std::vector<Object> light_list = std::vector<Object>();
         // Draw Lights
         for (PointLight light : pointLights)

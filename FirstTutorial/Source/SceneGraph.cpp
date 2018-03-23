@@ -143,12 +143,12 @@ SceneGraph::SceneGraph(uint32_t number)
             LightColorData green;
             green.ambient = ColorConstants::GreenLight() * 0.2f;
             green.diffuse = ColorConstants::GreenLight() * 0.5f;
-            green.specular = ColorConstants::GreenLight() * 0.7f;
+            green.specular = ColorConstants::GreenLight() * 5.7f;
             
             LightColorData red;
             red.ambient = ColorConstants::RedLight() * 0.2f;
             red.diffuse = ColorConstants::RedLight() * 0.5f;
-            red.specular = ColorConstants::RedLight() * 0.7f;
+            red.specular = ColorConstants::RedLight() * 5.7f;
             
             glm::vec3 point_position = glm::vec3(0.0f, 2.0f, -3.0f);
             float point_constant = 1.0f;

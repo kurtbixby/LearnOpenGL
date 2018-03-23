@@ -60,6 +60,16 @@ void Framebuffer::Use(GLenum target)
 {
     target_ = target;
     glBindFramebuffer(target_, fbo_);
+    
+    if (colorAttachmentCount_ > 1)
+    {
+        std::vector<unsigned int> attachments = std::vector<unsigned int>();
+        for (int i = 0; i < colorAttachmentCount_; i++)
+        {
+            attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+        }
+        glDrawBuffers(colorAttachmentCount_, &attachments[0]);
+    }
 }
 
 void Framebuffer::UseDefault(GLenum target)
@@ -108,7 +118,12 @@ void Framebuffer::DownsampleToFramebuffer(Framebuffer& other_fb)
 {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, this->fbo_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, other_fb.fbo_);
-    glBlitFramebuffer(0, 0, this->width_, this->height_, 0, 0, other_fb.width_, other_fb.height_, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    for (int i = 0; i < colorAttachmentCount_; i++)
+    {
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
+        glBlitFramebuffer(0, 0, this->width_, this->height_, 0, 0, other_fb.width_, other_fb.height_, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    }
 }
 
 RenderTarget Framebuffer::RetrieveDepthBuffer()

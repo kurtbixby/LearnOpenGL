@@ -73,7 +73,14 @@ int main()
     
     Framebuffer multi_sample_fb = Framebuffer();
     multi_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR, 4);
+    multi_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR, 4);
     multi_sample_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil, 4);
+    
+    // Create intermediary framebuffer
+    Framebuffer single_sample_fb = Framebuffer();
+    single_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR);
+    single_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR);
+    single_sample_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
 
 	// Create Screen Quad VAO
 	float quadVertices[] = {
@@ -138,7 +145,27 @@ int main()
     uint32_t frames_rendered = 0;
     std::chrono::steady_clock::time_point interval_start = std::chrono::steady_clock::now();
     
-    Camera cam = Camera();
+    // Setup for blur
+    Framebuffer pingBuffer = Framebuffer();
+    pingBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+    pingBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    
+    Framebuffer pongBuffer = Framebuffer();
+    pongBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+    pongBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    
+    std::vector<Framebuffer> pingPongBuffers = std::vector<Framebuffer>();
+    pingPongBuffers.push_back(pingBuffer);
+    pingPongBuffers.push_back(pongBuffer);
+    
+    boost::filesystem::path blur_vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
+    boost::filesystem::path blur_fragment_shader_path = boost::filesystem::path("Shaders/Blur.frag").make_preferred();
+    Shader blurShader = Shader(blur_vertex_shader_path.string().c_str(), blur_fragment_shader_path.string().c_str());
+    
+    boost::filesystem::path combine_vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
+    boost::filesystem::path combine_fragment_shader_path = boost::filesystem::path("Shaders/Combine.frag").make_preferred();
+    Shader combineShader = Shader(combine_vertex_shader_path.string().c_str(), combine_fragment_shader_path.string().c_str());
+    
     // main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -176,11 +203,51 @@ int main()
 
         // Disable depth for screen quad
         glDisable(GL_DEPTH_TEST);
-//
-        multi_sample_fb.DownsampleToFramebuffer(output_fb);
-        uint32_t frame_buffer_target = output_fb.RetrieveColorBuffer(0).TargetName;
         
-//        frame_buffer_target = shadow_map_buffer.RetrieveDepthBuffer().TargetName;
+        // Downsample
+        multi_sample_fb.DownsampleToFramebuffer(single_sample_fb);
+        
+        // Blur the two targets
+        pingPongBuffers[0].Use();
+        glClear(GL_COLOR_BUFFER_BIT);
+        pingPongBuffers[1].Use();
+        glClear(GL_COLOR_BUFFER_BIT);
+        glBindVertexArray(quadVAO);
+        glActiveTexture(GL_TEXTURE0);
+        int amount = 6;
+        unsigned int readColorBuffer = single_sample_fb.RetrieveColorBuffer(1).TargetName;
+        unsigned int bufferIndex = 0;
+        bool horizontal = true;
+        blurShader.Use();
+        for (int i = 0; i < amount; i++)
+        {
+            pingPongBuffers[bufferIndex].Use();
+            blurShader.SetBool("horizontal", horizontal);
+            glBindTexture(GL_TEXTURE_2D, readColorBuffer);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            horizontal = !horizontal;
+            readColorBuffer = pingPongBuffers[bufferIndex].RetrieveColorBuffer(0).TargetName;
+            bufferIndex = (bufferIndex + 1) % 2;
+        }
+
+        unsigned int finalBlur = pingPongBuffers[(bufferIndex + 1) % 2].RetrieveColorBuffer(0).TargetName;
+
+        // Combine into one framebuffer
+        Framebuffer composite_fb = Framebuffer();
+        composite_fb.AddTextureAttachment(FBAttachment::ColorHDR);
+        composite_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+
+        composite_fb.Use();
+        combineShader.Use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, single_sample_fb.RetrieveColorBuffer(0).TargetName);
+        combineShader.SetInt("texture0", 0);
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, finalBlur);
+        combineShader.SetInt("texture1", 1);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+        uint32_t frame_buffer_target = composite_fb.RetrieveColorBuffer(0).TargetName;
         
 		// Reenable default framebuffer
 		Framebuffer::UseDefault();
@@ -314,7 +381,7 @@ Scene load_scene()
 
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_ShadMap_ManyLights.vert").make_preferred();
 //    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_ShadMapSmooth_ManyLights.frag").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_ShadMapSmooth_ManyLights_Bloom.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 
 	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
@@ -350,7 +417,7 @@ Scene load_scene()
     Shader spt_shadow_map_shader = Shader(spt_shadow_map_vert_shader_path.string().c_str(), spt_shadow_map_frag_shader_path.string().c_str());
     
     boost::filesystem::path lights_vert_shader_path = boost::filesystem::path("Shaders/Lights.vert").make_preferred();
-    boost::filesystem::path lights_frag_shader_path = boost::filesystem::path("Shaders/Lights.frag").make_preferred();
+    boost::filesystem::path lights_frag_shader_path = boost::filesystem::path("Shaders/Lights_Bloom.frag").make_preferred();
     Shader lights_shader = Shader(lights_vert_shader_path.string().c_str(), lights_frag_shader_path.string().c_str());
     
     std::vector<Shader> shaders = std::vector<Shader>();
@@ -384,37 +451,6 @@ Scene load_normal_scene()
     
     std::vector<Model> models = std::vector<Model>();
     models.push_back(create_brick_wall());
-    
-    std::vector<Shader> shaders = std::vector<Shader>();
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/NormalMaps.vert").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/NormalMaps.frag").make_preferred();
-    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
-    shaders.push_back(standard_shader);
-    
-    while (shaders.size() < 9)
-    {
-        shaders.push_back(Shader());
-    }
-    
-    Cubemap skybox = Cubemap();
-    
-    Scene scene = Scene(graph, cams, models, shaders, skybox);
-    
-    return scene;
-}
-
-Scene load_hdr_scene()
-{
-    SceneGraph graph = SceneGraph(2);
-    
-    // Camera initialization
-    Camera cam = Camera();
-    cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
-    std::vector<Camera> cams = std::vector<Camera>();
-    cams.push_back(cam);
-    
-    std::vector<Model> models = std::vector<Model>();
-    models.push_back(create_box());
     
     std::vector<Shader> shaders = std::vector<Shader>();
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/NormalMaps.vert").make_preferred();
