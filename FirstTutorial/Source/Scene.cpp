@@ -20,6 +20,7 @@
 #include "Headers/SceneGraph.h"
 #include "Headers/Shader.h"
 #include "Headers/Structs.h"
+#include "Headers/Timer.h"
 #include "Headers/UniformBlockBuffer.h"
 
 // Arbitrary to cover the entire scene based on one camera position
@@ -313,6 +314,7 @@ void Scene::Render()
 {
 	// render section of main loop
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
+    glClearDepth(1.0f);
 	// glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
 
@@ -358,17 +360,17 @@ void Scene::Render()
 			regular.push_back(object);
 		}
 	}
-
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL);
-	skyboxShader_.Use();
-
-	skyboxShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
-	skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
-
-	skybox_.Draw();
-	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
+    
+    glDepthMask(GL_FALSE);
+    glDepthFunc(GL_LEQUAL);
+    skyboxShader_.Use();
+    
+    skyboxShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
+    skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    
+    skybox_.Draw();
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
 
 	std::vector<Light> lights = graph_.RelevantLights();
 	std::vector<PointLight> pointLights = graph_.RelevantPointLights();

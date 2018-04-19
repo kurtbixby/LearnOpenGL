@@ -64,7 +64,6 @@ private:
     std::vector<std::vector<Object>> CreateTransparentDrawLists(const vector<Object>& objects);
 	void RenderObjects(const vector<Object>& objects, const Shader& shader);
     void RenderObjectsInstanced(const vector<Object>& draw_list, const Shader& shader);
-//    void SendLights(Shader& shader, int DIR_LIGHTS, std::vector<Light>& lights, int POINT_LIGHTS, std::vector<PointLight>& pointLights, int SPOT_LIGHTS, std::vector<SpotLight>& spotLights);
 };
 
 #endif

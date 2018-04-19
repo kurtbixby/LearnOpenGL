@@ -15,9 +15,11 @@ Graphical:
         Shadow Volumes(?)
 
 Scene Creation/Loading
-Resource Manager
+Resource Manager - Good for memory constraints. Pass (handles with?) pointers around
     Textures
     Objects
 Legitimate Scene Graph
 Pre-baked Lighting
     Shadow Maps
+    Cascading Shadow Maps?
+Shader Code Generation

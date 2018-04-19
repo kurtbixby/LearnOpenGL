@@ -16,10 +16,13 @@
 #include "Headers/InputWrapper.h"
 #include "Headers/Model.h"
 #include "Headers/Primitives.h"
+#include "Headers/RenderConfig.h"
+#include "Headers/Renderer.h"
 #include "Headers/Scene.h"
 #include "Headers/SceneGraph.h"
 #include "Headers/Shader.h"
 #include "Headers/Structs.h"
+#include "Headers/Timer.h"
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -37,7 +40,7 @@
 
 #define SHADOW_RES 2048
 
-int create_window(GLFWwindow** foo, InputWrapper& inputWrapper);
+int create_window(GLFWwindow** foo, InputWrapper& inputWrapper, uint32_t width, uint32_t height);
 Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
@@ -51,245 +54,58 @@ void timer_message(std::chrono::steady_clock::time_point start, std::chrono::ste
 
 int main()
 {
-    // Get configuration?
+    // Change to load config from disk
+    RenderConfig config = RenderConfig();
+    
     // Create InputWrapper?
     InputWrapper inputWrapper = InputWrapper();
 	GLFWwindow* window;
-	if (create_window(&window, inputWrapper))
+	if (create_window(&window, inputWrapper, config.WindowWidth(), config.WindowHeight()))
 	{
 		std::cerr << "Error creating window" << std::endl;
 		return -1;
 	}
-
-	// Create standard shader
-	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Kernel_Gamma_HDR_Exposure.frag").make_preferred();
-	Shader screenShader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
-
-	// Create intermediary framebuffer
-	Framebuffer output_fb = Framebuffer();
-	output_fb.AddTextureAttachment(FBAttachment::ColorHDR);
-	output_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
     
-    Framebuffer multi_sample_fb = Framebuffer();
-    multi_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR, 4);
-    multi_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR, 4);
-    multi_sample_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil, 4);
-    
-    // Create intermediary framebuffer
-    Framebuffer single_sample_fb = Framebuffer();
-    single_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR);
-    single_sample_fb.AddTextureAttachment(FBAttachment::ColorHDR);
-    single_sample_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-
-	// Create Screen Quad VAO
-	float quadVertices[] = {
-		// positions   // texCoords
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-		1.0f,  1.0f,  1.0f, 1.0f
-	};
-
-	unsigned int quadVAO;
-	glGenVertexArrays(1, &quadVAO);
-	unsigned int quadVBO;
-	glGenBuffers(1, &quadVBO);
-	glBindVertexArray(quadVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(0));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
-	glBindVertexArray(0);
-
-	// Edge Detection?
-//    float kernel[9] = {
-//        1, 1, 1,
-//        1, -8, 1,
-//        1, 1, 1
-//    };
-
-	// Identity
-    float kernel[9] = {
-        0, 0, 0,
-        0, 1, 0,
-        0, 0, 0
-    };
-    
-    screenShader.Use();
-    screenShader.SetFloat("gamma", 2.2f);
-    screenShader.SetFloat("exposure", 1.0f);
-//    // send kernel to shader
-    screenShader.SetFloats("kernel", 9, &kernel[0]);
+    Renderer renderer = Renderer(config);
     
     Scene scene = load_scene();
 //    Scene scene = load_normal_scene();
     
-    Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, false);
-    scene.GenerateShadowMaps(shadow_map_buffer);
+    if (config.ShadowmapsEnabled())
+    {
+        Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, 1, false);
+        scene.GenerateShadowMaps(shadow_map_buffer);
+    }
     
-//    uint32_t cubeShadowMap = shadow_map_buffer.RetrieveDepthBuffer().TargetName;
-//
-//    Cubemap cubemap = Cubemap(cubeShadowMap);
-//
-//    boost::filesystem::path skybox_vertex_shader_path = boost::filesystem::path("Shaders/Skybox.vert").make_preferred();
-//    boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
-//    Shader skybox_shader = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
-    
-    multi_sample_fb.SetViewPort();
-    uint32_t frames_rendered = 0;
-    std::chrono::steady_clock::time_point interval_start = std::chrono::steady_clock::now();
-    
-    // Setup for blur
-    Framebuffer pingBuffer = Framebuffer();
-    pingBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-    pingBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-    
-    Framebuffer pongBuffer = Framebuffer();
-    pongBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-    pongBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-    
-    std::vector<Framebuffer> pingPongBuffers = std::vector<Framebuffer>();
-    pingPongBuffers.push_back(pingBuffer);
-    pingPongBuffers.push_back(pongBuffer);
-    
-    boost::filesystem::path blur_vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-    boost::filesystem::path blur_fragment_shader_path = boost::filesystem::path("Shaders/Blur.frag").make_preferred();
-    Shader blurShader = Shader(blur_vertex_shader_path.string().c_str(), blur_fragment_shader_path.string().c_str());
-    
-    boost::filesystem::path combine_vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-    boost::filesystem::path combine_fragment_shader_path = boost::filesystem::path("Shaders/Combine.frag").make_preferred();
-    Shader combineShader = Shader(combine_vertex_shader_path.string().c_str(), combine_fragment_shader_path.string().c_str());
-    
+    Timer frame_timer = Timer();
     // main loop
     while (!glfwWindowShouldClose(window))
     {
+        frame_timer.Start();
         // process any input
         Input input = inputWrapper.TakeInput(window);
         scene.TakeInput(input);
+        
 //        scene.Simulate();
-//
-        // Enable texture framebuffer
-        multi_sample_fb.Use();
-//
-        // (Re)enable depth for main scene
-        glEnable(GL_DEPTH_TEST);
-        scene.Render();
-//        scene.RenderSimple();
         
-//        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-//        glDepthMask(GL_FALSE);
-//        glDepthFunc(GL_LEQUAL);
-//        skybox_shader.Use();
-//        skybox_shader.SetInt("skybox", SKYBOX_TEX_UNIT);
-//        cam.TakeInput(input.CameraInput());
-//        glm::mat4 view = cam.MakeViewMat();
-//        glm::mat4 proj = cam.GetProjection();
-////        glm::mat4 view = glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-////        glm::mat4 proj = glm::perspective(0.785f, 4.0f/3.0f, 0.1f, 100.0f);
-//        skybox_shader.SetMatrix4fv("projection", glm::value_ptr(proj));
-//        skybox_shader.SetMatrix4fv("view", glm::value_ptr(view));
-//        glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
-//        cubemap.Draw();
-//        glDepthFunc(GL_LESS);
-//        glDepthMask(GL_TRUE);
-
-        // Disable depth for screen quad
-        glDisable(GL_DEPTH_TEST);
+        renderer.RenderScene(scene);
         
-        // Downsample
-        multi_sample_fb.DownsampleToFramebuffer(single_sample_fb);
-        
-        // Blur the two targets
-        pingPongBuffers[0].Use();
-        glClear(GL_COLOR_BUFFER_BIT);
-        pingPongBuffers[1].Use();
-        glClear(GL_COLOR_BUFFER_BIT);
-        glBindVertexArray(quadVAO);
-        glActiveTexture(GL_TEXTURE0);
-        int amount = 6;
-        unsigned int readColorBuffer = single_sample_fb.RetrieveColorBuffer(1).TargetName;
-        unsigned int bufferIndex = 0;
-        bool horizontal = true;
-        blurShader.Use();
-        for (int i = 0; i < amount; i++)
-        {
-            pingPongBuffers[bufferIndex].Use();
-            blurShader.SetBool("horizontal", horizontal);
-            glBindTexture(GL_TEXTURE_2D, readColorBuffer);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            horizontal = !horizontal;
-            readColorBuffer = pingPongBuffers[bufferIndex].RetrieveColorBuffer(0).TargetName;
-            bufferIndex = (bufferIndex + 1) % 2;
-        }
-
-        unsigned int finalBlur = pingPongBuffers[(bufferIndex + 1) % 2].RetrieveColorBuffer(0).TargetName;
-
-        // Combine into one framebuffer
-        Framebuffer composite_fb = Framebuffer();
-        composite_fb.AddTextureAttachment(FBAttachment::ColorHDR);
-        composite_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-
-        composite_fb.Use();
-        combineShader.Use();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, single_sample_fb.RetrieveColorBuffer(0).TargetName);
-        combineShader.SetInt("texture0", 0);
-        glActiveTexture(GL_TEXTURE0 + 1);
-        glBindTexture(GL_TEXTURE_2D, finalBlur);
-        combineShader.SetInt("texture1", 1);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        
-        uint32_t frame_buffer_target = composite_fb.RetrieveColorBuffer(0).TargetName;
-        
-		// Reenable default framebuffer
-		Framebuffer::UseDefault();
-		// Reset clears
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// Enable screen shader
-		screenShader.Use();
-
-		// bind screen quad
-		glBindVertexArray(quadVAO);
-		glActiveTexture(GL_TEXTURE0);
-		// bind fb texture
-		glBindTexture(GL_TEXTURE_2D, frame_buffer_target);
-		// draw screen quad
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
         glfwPollEvents();
         // break;
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-        frames_rendered++;
-        
-        std::chrono::steady_clock::time_point frame_end = std::chrono::steady_clock::now();
-        double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(frame_end - interval_start).count();
-        if (milliseconds > 1000)
-        {
-            float frame_time = milliseconds / frames_rendered;
-            std::cout << "Avg frame time: " << frame_time << std::endl;
-            interval_start = frame_end;
-            frames_rendered = 0;
-        }
+        frame_timer.Stop();
+        std::cout << "Frame time: " << frame_timer.ElapsedTime() << std::endl;
+        frame_timer.Reset();
     }
 
     glfwTerminate();
     return 0;
 }
 
-int create_window(GLFWwindow** foo, InputWrapper& inputWrapper)
+int create_window(GLFWwindow** foo, InputWrapper& inputWrapper, uint32_t width, uint32_t height)
 {
 	// glfw initialization and configuration
 	glfwInit();
@@ -302,7 +118,7 @@ int create_window(GLFWwindow** foo, InputWrapper& inputWrapper)
 #endif
     
     // glfw window creation
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(width, height, "LearnOpenGL", nullptr, nullptr);
 	if (nullptr == window)
 	{
 		std::cerr << "Failed to create GLFW window" << std::endl;
@@ -360,6 +176,7 @@ void timer_message(std::chrono::steady_clock::time_point start, std::chrono::ste
     std::cout << message << milliseconds << std::endl;
 }
 
+// REFACTOR THIS INTO LOADING A SCENE FROM DISK
 Scene load_scene()
 {
     SceneGraph graph = SceneGraph();

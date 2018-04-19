@@ -318,15 +318,6 @@ void main()
     point += point_lighting(pointLights[0], pointLightShadowMaps_0, diffuseValue, specularValue);
     point += point_lighting(pointLights[1], pointLightShadowMaps_1, diffuseValue, specularValue);
     
-//    if (pointLightShadowMaps_2.env_mode != TEXMODE_OFF)
-//    {
-//        point += point_lighting(pointLights[2], pointLightShadowMaps_2, diffuseValue, specularValue);
-//    }
-//    if (pointLightShadowMaps_3.env_mode != TEXMODE_OFF)
-//    {
-//        point += point_lighting(pointLights[3], pointLightShadowMaps_3, diffuseValue, specularValue);
-//    }
-    
     // What I want to do
 //    for (i = 0; i < POINT_LIGHTS; i++)
 //    {
