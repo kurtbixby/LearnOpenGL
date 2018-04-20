@@ -45,6 +45,7 @@ Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
 Scene load_normal_scene();
@@ -73,6 +74,7 @@ int main()
     
     if (config.ShadowmapsEnabled())
     {
+        // Switch this to use SceneRenderer
         Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, 1, false);
         scene.GenerateShadowMaps(shadow_map_buffer);
     }
@@ -131,9 +133,9 @@ int create_window(GLFWwindow** foo, InputWrapper& inputWrapper, uint32_t width, 
     glfwSetWindowUserPointer(window, &inputWrapper);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
 
 	// glad load all opengl fxn pointers
-	//if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 	{
 		std::cerr << "Failed to initialize GLAD" << std::endl;
@@ -170,13 +172,19 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
     wrapper->ScrollCallback(window, xOffset, yOffset);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    InputWrapper* wrapper = static_cast<InputWrapper*>(glfwGetWindowUserPointer(window));
+    wrapper->KeyCallback(window, key, scancode, action, mods);
+}
+
 void timer_message(std::chrono::steady_clock::time_point start, std::chrono::steady_clock::time_point end, std::string message)
 {
     double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << message << milliseconds << std::endl;
 }
 
-// REFACTOR THIS INTO LOADING A SCENE FROM DISK
+#warning REFACTOR THIS INTO LOADING A SCENE FROM DISK
 Scene load_scene()
 {
     SceneGraph graph = SceneGraph();

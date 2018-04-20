@@ -1,10 +1,7 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
-#include <string>
-#include <vector>
 #include <glm/glm.hpp>
-#include <glad/glad.h>
 
 #define VEC3_ALIGNMENT 16
 #define GLSL_STRUCT_ALIGNMENT 16

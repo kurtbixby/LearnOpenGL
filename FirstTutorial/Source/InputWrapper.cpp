@@ -49,6 +49,11 @@ void InputWrapper::ScrollCallback(GLFWwindow* window, double xOffset, double yOf
     yOffset_ += yOffset;
 }
 
+void InputWrapper::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+#warning Implement this. Remember to reset the state every frame/tick.
+}
+
 Input InputWrapper::TakeInput(GLFWwindow* window)
 {
     CameraInput cameraInput = CameraInput();

@@ -21,6 +21,8 @@ public:
     
     void MouseCallback(GLFWwindow* window, double xPos, double yPos);
     void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+    void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    
 private:
     Input input_;
     

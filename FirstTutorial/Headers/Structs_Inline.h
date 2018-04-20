@@ -1,9 +1,8 @@
 #ifndef STRUCTS_INLINE_H
 #define STRUCTS_INLINE_H
 
-#include <string>
 #include <glm/glm.hpp>
-#include <boost/filesystem.hpp>
+#include <glad/glad.h>
 
 // Keep this separate to keep Vertex as POD
 inline Vertex create_vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texX, float texY)
