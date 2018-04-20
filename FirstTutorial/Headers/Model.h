@@ -3,8 +3,11 @@
 
 #include <vector>
 
+#include <glm/glm.hpp>
+
 #include "Mesh.h"
 #include "Shader.h"
+#include "Texture.h"
 
 class Model
 {

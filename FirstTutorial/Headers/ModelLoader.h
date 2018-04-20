@@ -13,6 +13,7 @@
 #include "Mesh.h"
 #include "Model.h"
 #include "Structs.h"
+#include "Texture.h"
 
 enum class DefaultModel
 {

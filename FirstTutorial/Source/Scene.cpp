@@ -373,9 +373,6 @@ void Scene::Render()
     glDepthFunc(GL_LESS);
     glDepthMask(GL_TRUE);
 
-	std::vector<Light> lights = graph_.RelevantLights();
-	std::vector<PointLight> pointLights = graph_.RelevantPointLights();
-	std::vector<SpotLight> spotLights = graph_.RelevantSpotLights();
     SceneLighting lighting = graph_.RelevantLighting();
 
     const GLuint lightingBindIndex = 2;
@@ -433,8 +430,10 @@ void Scene::Render()
         lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
         lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
         lightsShader_.SetVec3("bloomThreshold", bloomThreshold.r, bloomThreshold.g, bloomThreshold.b);
+        
         std::vector<Object> light_list = std::vector<Object>();
         // Draw Lights
+        std::vector<PointLight> pointLights = graph_.RelevantPointLights();
         for (PointLight light : pointLights)
         {
             Object light_obj = Object(light.Position(), 1, glm::vec3(0.5f), false);
@@ -491,6 +490,139 @@ void Scene::Render()
     }
 }
 
+void Scene::RenderDeferred()
+{
+    // Preparation
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
+    glClearDepth(1.0f);
+    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+    
+    // View camera and matrix set up
+    Camera& cam = cams_[0];
+    glm::mat4 projection = cam.GetProjection();
+    glm::mat4 view = cam.MakeViewMat();
+    
+    const GLuint matrixBindIndex = 1;
+    UniformBlockBuffer<glm::mat4> matBuff = UniformBlockBuffer<glm::mat4>(2);
+    matBuff.FillBuffer(projection);
+    matBuff.FillBuffer(view);
+    matBuff.BindToIndex(matrixBindIndex);
+    
+    // Set up the different draw lists
+    // For partially transparent
+    // sort by Z position relative to camera in direction of "front", back to front
+    // project object position onto infinite "front" vector
+    
+    // Implementation: subtract camera position and sort by dot product of resultant and cam.direction
+    // Optimization: sort only during movement
+    graph_.UseCamera(cam);
+    std::vector<Object> objects = graph_.RelevantObjects();
+    
+    std::vector<Object> transparent = std::vector<Object>();
+    std::vector<Object> stenciled = std::vector<Object>();
+    std::vector<Object> regular = std::vector<Object>();
+    
+    for (int i = 0; i < objects.size(); i++)
+    {
+        Object& object = objects[i];
+        if (object.IsTransparent_)
+        {
+            transparent.push_back(object);
+            continue;
+        }
+        else if (object.Outlined_)
+        {
+            stenciled.push_back(object);
+            continue;
+        }
+        else
+        {
+            regular.push_back(object);
+        }
+    }
+    
+    /*
+    // Skybox section
+    glDepthMask(GL_FALSE);
+    glDepthFunc(GL_LEQUAL);
+    skyboxShader_.Use();
+    
+    skyboxShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
+    skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    
+    skybox_.Draw();
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    */
+    
+    // Create lighting object and send to GPU
+    SceneLighting lighting = graph_.RelevantLighting();
+    const GLuint lightingBindIndex = 2;
+    UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
+    sceneLighting.BindToIndex(lightingBindIndex);
+    sceneLighting.FillBuffer(lighting);
+    
+    // Regular object rendering
+    // Should break out into own function
+    if (regular.size() > 0)
+    {
+        DrawRegularObjects(lightingBindIndex, matrixBindIndex, regular);
+        
+        //        bonusShader.Use();
+        //        bonusShader.BindUniformBlock("Matrices", matrixBindIndex);
+        //        RenderObjects(regular, bonusShader);
+    }
+    
+    /*
+    // Transparent object rendering
+    // Old and needs reworking
+    if (transparent.size() > 0)
+    {
+        std::vector<std::vector<Object>> trans_draw_list_inst = CreateTransparentDrawLists(transparent);
+     
+        transparentShader_.Use();
+        transparentShader_.BindUniformBlock("Matrices", matrixBindIndex);
+        transparentShader_.BindUniformBlock("Lighting", lightingBindIndex);
+     
+        for(std::vector<Object> draw_list : trans_draw_list_inst)
+        {
+            //            RenderObjects(draw_list, transparentShader);
+            RenderObjectsInstanced(draw_list, transparentShader_);
+        }
+    }
+    */
+    
+    /*
+    // Stenciling
+    // Very old and needs reworking
+    if (stenciled.size() > 0)
+    {
+        glEnable(GL_STENCIL_TEST);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+     
+        // First pass
+        inUseDefaultShader_.Use();
+        RenderObjects(stenciled, standardShader_);
+     
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+     
+        // Outline pass
+        outlineShader_.Use();
+        outlineShader_.BindUniformBlock("Matrices", matrixBindIndex);
+        RenderObjects(stenciled, outlineShader_);
+     
+        glStencilMask(0xFF);
+        glDisable(GL_STENCIL_TEST);
+    }
+    */
+}
+
 void Scene::RenderSimple()
 {
     // render section of main loop
@@ -533,6 +665,98 @@ void Scene::RenderSimple()
         
         m.Draw(inUseDefaultShader_);
     }
+}
+
+void Scene::DrawRegularObjects(GLuint lightingBindIndex, GLuint matrixBindIndex, const std::vector<Object> &regular) {
+    std::vector<std::vector<Object>> reg_draw_list_inst = CreateRegularDrawLists(regular);
+    
+    // Use buffer creation shader for this
+    inUseDefaultShader_.Use();
+    inUseDefaultShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    
+    //    inUseDefaultShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
+    //    glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
+    //    skybox_.Activate();
+    
+    for (std::vector<Object> draw_list : reg_draw_list_inst)
+    {
+        RenderObjectsInstanced(draw_list, inUseDefaultShader_);
+    }
+    
+    Framebuffer activeBuff = Framebuffer();
+    std::vector<std::string> deferredTextureNames = {
+        "worldPosition",
+        "worldNormal",
+        "colorDiffuse",
+        "colorSpec",
+        "reflectDir",
+        "reflectColor"
+    };
+    
+    for (int i = 0; i < deferredTextureNames.size(); i++)
+    {
+        GLuint texture = activeBuff.RetrieveColorBuffer(i).TargetName;
+#warning CHANGE THIS TO AN OFFSET + i
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        inUseDefaultShader_.SetInt(deferredTextureNames[i], texture);
+    }
+    
+    // Use buffer composition shader
+    inUseDefaultShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    inUseDefaultShader_.BindUniformBlock("Lighting", lightingBindIndex);
+    
+    inUseDefaultShader_.SetInt("skybox", SKYBOX_TEX_UNIT);
+    glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
+    skybox_.Activate();
+    
+#warning "REFACTOR THIS FOR MULTIPLE LIGHT SHADOW MAPS"
+    inUseDefaultShader_.SetMatrix4fv("dirLightSpaceMatrices[0]", glm::value_ptr(lightSpaceMats_.front()));
+    inUseDefaultShader_.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
+    glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
+    glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
+    
+    inUseDefaultShader_.SetFloat("spotFarPlane", 40.0f);
+    for (int i = 0; i < pointLightShadowMaps_.size(); i++)
+    {
+        std::string samplerCube = "pointLightShadowMaps_" + std::to_string(i);
+        inUseDefaultShader_.SetInt(samplerCube, PNT_SHAD_MAP_TEX_START + i);
+        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START + i);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[i]);
+    }
+    
+    //        inUseDefaultShader_.SetMatrix4fv("spotLightSpaceMatrices[0]", glm::value_ptr(spotLightSpaceMats_.front()));
+    //        inUseDefaultShader_.SetInt("spotLightShadowMaps[0]", SPT_SHAD_MAP_TEX_START);
+    //        glActiveTexture(GL_TEXTURE0 + SPT_SHAD_MAP_TEX_START);
+    //        glBindTexture(GL_TEXTURE_2D, spotLightShadowMaps_[0]);
+    
+    //        inUseDefaultShader_.SetInt("pointLightShadowMaps_1", PNT_SHAD_MAP_TEX_START);
+    //        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START + 1);
+    //        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[1]);
+    
+    // Unit vector for greyScale conversion/brightness measurement
+    glm::vec3 bloomThreshold = glm::vec3(0.2126, 0.7152, 0.0722);
+    inUseDefaultShader_.SetVec3("bloomThreshold", bloomThreshold.r, bloomThreshold.g, bloomThreshold.b);
+    
+    
+    // Add lights to scene
+    lightsShader_.Use();
+    lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
+    lightsShader_.SetVec3("bloomThreshold", bloomThreshold.r, bloomThreshold.g, bloomThreshold.b);
+    
+    std::vector<Object> light_list = std::vector<Object>();
+    // Draw Lights
+    std::vector<PointLight> pointLights = graph_.RelevantPointLights();
+    for (PointLight light : pointLights)
+    {
+        Object light_obj = Object(light.Position(), 1, glm::vec3(0.5f), false);
+        light_list.push_back(light_obj);
+    }
+    RenderObjectsInstanced(light_list, lightsShader_);
+    
+    skybox_.Deactivate();
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void Scene::TakeInput(const Input& input)

@@ -5,6 +5,7 @@
 #include "Headers/Mesh.h"
 #include "Headers/Model.h"
 #include "Headers/Structs.h"
+#include "Headers/Texture.h"
 
 Model create_plane()
 {

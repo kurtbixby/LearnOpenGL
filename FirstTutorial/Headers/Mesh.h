@@ -5,6 +5,7 @@
 
 #include "Structs.h"
 #include "Shader.h"
+#include "Texture.h"
 
 using namespace std;
 

@@ -8,6 +8,10 @@
 #include <vector>
 #include <string>
 
+#include <glad/glad.h>
+
+#include "Headers/Texture.h"
+
 const float Cubemap::Vertices_[] = {
 	// positions          
 	-1.0f,  1.0f, -1.0f,

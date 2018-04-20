@@ -27,6 +27,7 @@ public:
     // Move to SceneRenderer
     void GenerateShadowMaps(Framebuffer& shadowFramebuffer);
 	void Render();
+    void RenderDeferred();
     void RenderSimple();
 	//
 private:
@@ -58,6 +59,8 @@ private:
     Shader lightsShader_;
     
     Model ModelForId(uint32_t model_id) const;
+    
+    void DrawRegularObjects(GLuint lightingBindIndex, GLuint matrixBindIndex, const std::vector<Object> &regular);
     
     std::vector<std::vector<Object>> CreateRegularDrawLists(const vector<Object>& objects);
     std::vector<std::vector<Object>> CreateTransparentDrawLists(const vector<Object>& objects);
