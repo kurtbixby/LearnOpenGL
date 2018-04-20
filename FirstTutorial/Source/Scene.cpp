@@ -87,7 +87,6 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
 {
     // Attaches own depth attachment
     
-    glCullFace(GL_FRONT);
     // Generate shadow maps and attach them to lights
     
     std::vector<Object> transparentObjects = std::vector<Object>();
@@ -116,6 +115,8 @@ void Scene::GenerateShadowMaps(Framebuffer& shadowFramebuffer)
     }
     
     shadowFramebuffer.SetViewPort();
+    
+    glCullFace(GL_FRONT);
     
     GenerateDirectionalShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
     
