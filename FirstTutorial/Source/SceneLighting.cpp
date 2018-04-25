@@ -85,3 +85,18 @@ size_t SceneLighting::BufferData(GLuint offset)
     
     return DataSize();
 }
+
+std::vector<Light> SceneLighting::DirLights()
+{
+    return lights_;
+}
+
+std::vector<PointLight> SceneLighting::PntLights()
+{
+    return pointLights_;
+}
+
+std::vector<SpotLight> SceneLighting::SptLights()
+{
+    return spotLights_;
+}

@@ -72,12 +72,14 @@ int main()
     Scene scene = load_scene();
 //    Scene scene = load_normal_scene();
     
-    if (config.ShadowmapsEnabled())
-    {
-        // Switch this to use SceneRenderer
-        Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, 1, false);
-        scene.GenerateShadowMaps(shadow_map_buffer);
-    }
+//    if (config.ShadowmapsEnabled())
+//    {
+//        // Switch this to use SceneRenderer
+//        Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, 1, false);
+//        scene.GenerateShadowMaps(shadow_map_buffer);
+//    }
+    
+    SceneRenderer sceneRenderer = SceneRenderer(&scene, SHADOW_RES);
     
     Timer frame_timer = Timer();
     // main loop
@@ -88,9 +90,9 @@ int main()
         Input input = inputWrapper.TakeInput(window);
         scene.TakeInput(input);
         
-//        scene.Simulate();
+        scene.Simulate();
         
-        renderer.RenderScene(scene);
+        renderer.RenderScene(sceneRenderer);
         
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
@@ -195,17 +197,7 @@ Scene load_scene()
     std::vector<Camera> cams = std::vector<Camera>();
     cams.push_back(cam);
 
-//    std::vector<Model> models = std::vector<Model>();
-//    ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit_reflection").make_preferred());
-//    Model crysis = crysisLoader.loadModel("nanosuit.obj");
-//    models.push_back(crysis);
-////    models.push_back(create_box());
-//    models.push_back(create_box());
-//    models.push_back(create_plane());
-////    models.push_back(create_quad());
-
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_ShadMap_ManyLights.vert").make_preferred();
-//    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
     boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_ShadMapSmooth_ManyLights_Bloom.frag").make_preferred();
     Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
 

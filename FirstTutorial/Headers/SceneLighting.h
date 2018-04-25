@@ -22,6 +22,11 @@ public:
     
     size_t DataSize();
     size_t BufferData(GLuint offset);
+    
+    std::vector<Light> DirLights();
+    std::vector<PointLight> PntLights();
+    std::vector<SpotLight> SptLights();
+    
 private:
     std::vector<Light> lights_;
     std::vector<PointLight> pointLights_;

@@ -8,6 +8,10 @@
 
 #include "Headers/Renderer.h"
 
+#include "Headers/RenderConfig.h"
+#include "Headers/SceneRenderer.h"
+#include "Headers/Shader.h"
+
 #define PINGBUFFER 0
 #define PONGBUFFER 1
 #define COMPBUFFER 2
@@ -104,16 +108,17 @@ GLuint Renderer::CreateScreenQuadVAO()
     return quadVAO;
 }
 
-void Renderer::RenderScene(Scene& scene)
+void Renderer::RenderScene(SceneRenderer& sceneRenderer)
 {
     Framebuffer& primaryBuffer = buffers_.front();
     primaryBuffer.SetViewPort();
     primaryBuffer.Use();
-    
-    glEnable(GL_DEPTH_TEST);
-    scene.Render();
-    glDisable(GL_DEPTH_TEST);
 
+    // Need to specify if bloom is enabled
+    glEnable(GL_DEPTH_TEST);
+    sceneRenderer.Render_Forward(primaryBuffer);
+    glDisable(GL_DEPTH_TEST);
+ 
     Framebuffer workingBuffer;
     if (primaryBuffer.IsMultiSample())
     {

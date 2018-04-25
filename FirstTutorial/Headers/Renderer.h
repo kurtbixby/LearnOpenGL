@@ -15,7 +15,7 @@
 
 #include "Headers/Framebuffer.h"
 #include "Headers/RenderConfig.h"
-#include "Headers/Scene.h"
+#include "Headers/SceneRenderer.h"
 #include "Headers/Shader.h"
 
 class Renderer {
@@ -30,7 +30,7 @@ class Renderer {
     bool bloom_;
 public:
     Renderer(RenderConfig& config);
-    void RenderScene(Scene& scene);
+    void RenderScene(SceneRenderer& sceneRenderer);
     
 private:
     // Initialization

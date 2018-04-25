@@ -225,6 +225,7 @@ void Framebuffer::AddCubemapAttachment(FBAttachment attachmentType)
     
     RenderTarget renderTarget = RenderTarget {cubemap, RenderTargetType::Cubemap};
     
+    // Delete/remove old texture
     switch (attachmentType)
     {
         case FBAttachment::Color:

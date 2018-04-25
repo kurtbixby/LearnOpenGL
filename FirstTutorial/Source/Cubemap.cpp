@@ -80,8 +80,10 @@ Cubemap::Cubemap(uint32_t cubemapName)
 Cubemap::Cubemap(std::vector<std::string> textureFiles) : Cubemap::Cubemap(load_cubemap(textureFiles))
 {}
 
-void Cubemap::Activate()
+void Cubemap::Activate(Shader& shader, std::string cubemapName)
 {
+    shader.SetInt(cubemapName, SKYBOX_TEX_UNIT);
+    glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texId_);
 }
 
@@ -90,9 +92,9 @@ void Cubemap::Deactivate()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
-void Cubemap::Draw()
+void Cubemap::Draw(Shader& shader)
 {
-	Activate();
+	Activate(shader);
 	glBindVertexArray(vao_);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
