@@ -27,17 +27,24 @@ class ModelLoader
 public:
 	ModelLoader();
 	ModelLoader(boost::filesystem::path path);
-	Model loadModel(std::string file);
-//    Model loadDefault(DefaultModel model);
+	Model LoadModel(std::string file);
 
 private:
+    struct aiSceneWrapper {
+        std::string relative_dir;
+        const aiScene* scene;
+    };
+    
 	static unordered_map<string, Texture> loaded_textures_;
+    static unordered_map<string, Model> loaded_models_;
 
+    const static std::string defaultModelsFolder_;
 	std::string directory_;
 
-	void processNode(aiNode* node, const aiScene* scene, std::vector<Mesh>& meshes, std::vector<std::vector<Texture>>& mesh_textures);
-	Mesh processMesh(aiMesh* mesh, const aiScene* scene, std::vector<Texture>& textures);
-	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType texType);
+    Model loadDefaultModel(std::string file);
+	void processNode(aiNode* node, aiSceneWrapper wrapped_scene, std::vector<Mesh>& meshes, std::vector<std::vector<Texture>>& mesh_textures);
+	Mesh processMesh(aiMesh* mesh, aiSceneWrapper wrapped_scene, std::vector<Texture>& textures);
+    std::vector<Texture> loadMaterialTextures(std::string relative_dir, aiMaterial* mat, aiTextureType type, TextureType texType);
 };
 
 #endif

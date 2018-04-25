@@ -1,13 +1,40 @@
-#include "Headers/Primitives.h"
+#include "Headers/PrimitivesLoader.h"
 
 #include <vector>
+
+#include <boost/algorithm/string.hpp>
 
 #include "Headers/Mesh.h"
 #include "Headers/Model.h"
 #include "Headers/Structs.h"
 #include "Headers/Texture.h"
 
-Model create_plane()
+const std::unordered_map<std::string, PrimitivesLoader::PrimitivesNames> PrimitivesLoader::modelNameMap_ = {
+    {"plane", Plane}, {"box", Box}, {"quad", Quad}, {"brickwall", BrickWall}
+};
+
+Model PrimitivesLoader::LoadPrimitive(std::string primitiveFile)
+{
+    std::string primitiveName = boost::algorithm::to_lower_copy(primitiveFile);
+    PrimitivesNames primitiveValue = modelNameMap_.at(primitiveName);
+    switch (primitiveValue) {
+        case Plane:
+            return create_plane();
+            break;
+        case Quad:
+            return create_quad();
+            break;
+        case BrickWall:
+            return create_brick_wall();
+            break;
+        default:
+            case Box:
+            return create_box();
+        break;
+    }
+}
+
+Model PrimitivesLoader::create_plane()
 {
 	std::vector<Mesh> meshes = std::vector<Mesh>();
 	meshes.push_back(create_plane_mesh());
@@ -20,7 +47,7 @@ Model create_plane()
 	return Model(meshes, mesh_textures);
 }
 
-Model create_brick_wall()
+Model PrimitivesLoader::create_brick_wall()
 {
     std::vector<Mesh> meshes = std::vector<Mesh>();
     meshes.push_back(create_plane_mesh());
@@ -34,7 +61,7 @@ Model create_brick_wall()
     return Model(meshes, mesh_textures);
 }
 
-Model create_box()
+Model PrimitivesLoader::create_box()
 {
 	std::vector<Mesh> meshes = std::vector<Mesh>();
 	meshes.push_back(create_box_mesh());
@@ -48,7 +75,7 @@ Model create_box()
 	return Model(meshes, mesh_textures);
 }
 
-Model create_quad()
+Model PrimitivesLoader::create_quad()
 {
 	std::vector<Mesh> meshes = std::vector<Mesh>();
 	meshes.push_back(create_quad_mesh());
@@ -61,7 +88,7 @@ Model create_quad()
 	return Model(meshes, mesh_textures);
 }
 
-Mesh create_plane_mesh()
+Mesh PrimitivesLoader::create_plane_mesh()
 {
 	float vertices[] = {
 		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
@@ -95,7 +122,7 @@ Mesh create_plane_mesh()
 	return Mesh(vertexes, indices);
 }
 
-Mesh create_box_mesh()
+Mesh PrimitivesLoader::create_box_mesh()
 {
 	float vertices[] = {
 		// positions          // normals           // texture coords
@@ -173,7 +200,7 @@ Mesh create_box_mesh()
 	return Mesh(vertexes, indices);	
 }
 
-Mesh create_quad_mesh()
+Mesh PrimitivesLoader::create_quad_mesh()
 {
 	std::vector<Vertex> vertices = {
 		create_vertex(-0.5f, -0.5f, 0.0f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f),

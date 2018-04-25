@@ -58,13 +58,13 @@ SceneGraph::SceneGraph(uint32_t number)
             lights_.push_back(grnLight);
             lights_.push_back(redLight);
             
-            Object obj = Object(glm::vec3(0.0f), 0, glm::vec3(1.0f, 1.0f, 5.0f), 0);
+            Object obj = Object(glm::vec3(0.0f), "Defaults/brickwall", glm::vec3(1.0f, 1.0f, 5.0f), 0);
             objects_.push_back(obj);
             break;
         }
         case 2:
         {
-            objects_.push_back(Object(glm::vec3(0.0f), 0, glm::vec3(1.0f, 1.0f, 10.0f), false));
+            objects_.push_back(Object(glm::vec3(0.0f), "Defaults/box", glm::vec3(1.0f, 1.0f, 10.0f), false));
             
             LightColorData green;
             green.ambient = ColorConstants::GreenLight() * 0.2f;
@@ -94,11 +94,12 @@ SceneGraph::SceneGraph(uint32_t number)
         case 0:
         default:
         {
-            objects_.push_back(Object(glm::vec3(0.0f), 0, glm::vec3(1.0f), false));
+            // Nanosuit
+            objects_.push_back(Object(glm::vec3(0.0f), "nanosuit_reflection/nanosuit.obj", glm::vec3(1.0f), false));
             
             glm::vec3 orbit_axis = glm::vec3(0.0f, 1.0f, 0.0f);
             srand(11101991);
-            uint32_t instance_model = 1;
+            std::string instance_model = "Defaults/box";
             for (int i = 0; i < ORBIT_OBJS; i++)
             {
                 float random = (rand() % 1000) / 1000.0f;
@@ -110,7 +111,7 @@ SceneGraph::SceneGraph(uint32_t number)
                 objects_.push_back(new_obj);
             }
             
-            Object plane = Object(glm::vec3(0.0f, -0.75f, 0.0f), 2, glm::vec3(10.0f), false, true);
+            Object plane = Object(glm::vec3(0.0f, -0.75f, 0.0f), "Defaults/plane", glm::vec3(10.0f), false, true);
             objects_.push_back(plane);
             
             /**

@@ -7,6 +7,7 @@
 #include "Headers/Cubemap.h"
 #include "Headers/Framebuffer.h"
 #include "Headers/Model.h"
+#include "Headers/ModelLoader.h"
 #include "Headers/Object.h"
 #include "Headers/SceneGraph.h"
 #include "Headers/Structs.h"
@@ -16,13 +17,19 @@ class Scene
 {
 public:
 	Scene();
-	Scene(SceneGraph graph, std::vector<Camera> cams, std::vector<Model> models, std::vector<Shader> shaders, Cubemap skybox);
+	Scene(SceneGraph graph, std::vector<Camera> cams, ModelLoader modelLoader, std::vector<Shader> shaders, Cubemap skybox);
 
-	void LoadCameras(std::vector<Camera>);
-	void LoadModels(std::vector<Model>);
-	void LoadShaders(std::vector<Shader>);
+//    void LoadCameras(std::vector<Camera>);
+//    void LoadModels(std::vector<Model>);
+//    void LoadShaders(std::vector<Shader>);
     
     void TakeInput(const Input& input);
+    
+    std::vector<std::vector<Object>> RegularObjectsDrawLists();
+    std::vector<std::vector<Object>> TransparentObjectsDrawLists();
+    
+    Camera ActiveCamera();
+    SceneLighting ActiveLighting();
     
     // Move to SceneRenderer
     void GenerateShadowMaps(Framebuffer& shadowFramebuffer);
@@ -35,7 +42,7 @@ private:
 	Cubemap skybox_;
 
 	std::vector<Camera> cams_;
-	std::vector<Model> models_;
+    uint32_t activeCameraIndex_;
     
     // Move to SceneRenderer
     std::vector<uint32_t> lightShadowMaps_;
@@ -58,11 +65,13 @@ private:
     Shader spotShadowMapShader_;
     Shader lightsShader_;
     
-    Model ModelForId(uint32_t model_id) const;
+    ModelLoader modelLoader_;
+    Model ModelForId(std::string modelName);
     
-    void DrawRegularObjects(GLuint lightingBindIndex, GLuint matrixBindIndex, const std::vector<Object> &regular);
+    void DrawRegularObjectsDeferred(GLuint lightingBindIndex, GLuint matrixBindIndex, const std::vector<Object> &regular);
     
     std::vector<std::vector<Object>> CreateRegularDrawLists(const vector<Object>& objects);
+    // Might be a pointless function. Probably have to draw each transparent object individually.
     std::vector<std::vector<Object>> CreateTransparentDrawLists(const vector<Object>& objects);
     
     // Move to SceneRenderer

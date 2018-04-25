@@ -15,7 +15,7 @@
 #include "Headers/Framebuffer.h"
 #include "Headers/InputWrapper.h"
 #include "Headers/Model.h"
-#include "Headers/Primitives.h"
+#include "Headers/PrimitivesLoader.h"
 #include "Headers/RenderConfig.h"
 #include "Headers/Renderer.h"
 #include "Headers/Scene.h"
@@ -195,14 +195,14 @@ Scene load_scene()
     std::vector<Camera> cams = std::vector<Camera>();
     cams.push_back(cam);
 
-    std::vector<Model> models = std::vector<Model>();
-	ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit_reflection").make_preferred());
-    Model crysis = crysisLoader.loadModel("nanosuit.obj");
-    models.push_back(crysis);
+//    std::vector<Model> models = std::vector<Model>();
+//    ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit_reflection").make_preferred());
+//    Model crysis = crysisLoader.loadModel("nanosuit.obj");
+//    models.push_back(crysis);
+////    models.push_back(create_box());
 //    models.push_back(create_box());
-	models.push_back(create_box());
-    models.push_back(create_plane());
-//    models.push_back(create_quad());
+//    models.push_back(create_plane());
+////    models.push_back(create_quad());
 
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced_ShadMap_ManyLights.vert").make_preferred();
 //    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
@@ -259,7 +259,7 @@ Scene load_scene()
 
 	Cubemap skybox = Cubemap();
 
-    Scene scene = Scene(graph, cams, models, shaders, skybox);
+    Scene scene = Scene(graph, cams, ModelLoader("Resources/"), shaders, skybox);
 
     return scene;
 }
@@ -274,8 +274,8 @@ Scene load_normal_scene()
     std::vector<Camera> cams = std::vector<Camera>();
     cams.push_back(cam);
     
-    std::vector<Model> models = std::vector<Model>();
-    models.push_back(create_brick_wall());
+//    std::vector<Model> models = std::vector<Model>();
+//    models.push_back(create_brick_wall());
     
     std::vector<Shader> shaders = std::vector<Shader>();
     boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/NormalMaps.vert").make_preferred();
@@ -290,7 +290,7 @@ Scene load_normal_scene()
     
     Cubemap skybox = Cubemap();
     
-    Scene scene = Scene(graph, cams, models, shaders, skybox);
+    Scene scene = Scene(graph, cams, ModelLoader("Resources/"), shaders, skybox);
     
     return scene;
 }

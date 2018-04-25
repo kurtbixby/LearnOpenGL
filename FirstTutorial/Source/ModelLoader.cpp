@@ -10,14 +10,23 @@
 #endif
 #include <boost/filesystem.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
 #include "Headers/Mesh.h"
+#include "Headers/PrimitivesLoader.h"
 #include "Headers/Structs_Inline.h"
 
+// Not thread-safe
 unordered_map<string, Texture> ModelLoader::loaded_textures_ = unordered_map<string, Texture>();
+
+// Not thread-safe
+unordered_map<string, Model> ModelLoader::loaded_models_ = unordered_map<string, Model>();
+
+const std::string ModelLoader::defaultModelsFolder_ = "Defaults/";
 
 ModelLoader::ModelLoader()
 {
@@ -29,26 +38,25 @@ ModelLoader::ModelLoader(boost::filesystem::path path)
     directory_ = path.make_preferred().string();
 }
 
-//Model ModelLoader::loadDefault(const DefaultModel model)
-//{
-//    switch (model)
-//    {
-//    case DefaultModel::Box:
-//        break;
-//    case DefaultModel::Plane:
-//        break;
-//    case DefaultModel::Quad:
-//        break;
-//    default:
-//        break;
-//    }
-//}
-
-Model ModelLoader::loadModel(std::string file)
+Model ModelLoader::LoadModel(std::string file)
 {
-    std::string path_string = boost::filesystem::path(directory_).append(file).make_preferred().string();
+    auto model_iterator = loaded_models_.find(file);
+    if (model_iterator != loaded_models_.end())
+    {
+        return model_iterator->second;
+    }
+    
+    if (boost::algorithm::istarts_with(file, defaultModelsFolder_))
+    {
+        Model primitiveModel = loadDefaultModel(file);
+        loaded_models_.emplace(file, primitiveModel);
+        return primitiveModel;
+    }
+    boost::filesystem::path file_path = boost::filesystem::path(directory_).append(file).make_preferred();
+    std::string path_string = file_path.string();
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path_string, aiProcess_Triangulate | aiProcess_FlipUVs);
+    aiSceneWrapper wrapped_scene = aiSceneWrapper{boost::filesystem::path(file).make_preferred().remove_filename().string(), scene};
 
     std::vector<Mesh> meshes = std::vector<Mesh>();
     std::vector<std::vector<Texture>> mesh_textures = std::vector<std::vector<Texture>>();
@@ -59,29 +67,38 @@ Model ModelLoader::loadModel(std::string file)
     }
     else
     {
-        processNode(scene->mRootNode, scene, meshes, mesh_textures);
+        processNode(scene->mRootNode, wrapped_scene, meshes, mesh_textures);
     }
+    
+    Model model = Model(meshes, mesh_textures);
+    loaded_models_.emplace(file, model);
 
-    return Model(meshes, mesh_textures);
+    return model;
 }
 
-void ModelLoader::processNode(aiNode* node, const aiScene* scene, std::vector<Mesh>& meshes, std::vector<std::vector<Texture>>& mesh_textures)
+Model ModelLoader::loadDefaultModel(std::string file)
+{
+    std::string modelName = file.substr(defaultModelsFolder_.length());
+    return PrimitivesLoader::LoadPrimitive(modelName);
+}
+
+void ModelLoader::processNode(aiNode* node, aiSceneWrapper wrapped_scene, std::vector<Mesh>& meshes, std::vector<std::vector<Texture>>& mesh_textures)
 {
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        aiMesh* mesh = wrapped_scene.scene->mMeshes[node->mMeshes[i]];
         std::vector<Texture> new_mesh_textures = std::vector<Texture>();
-        meshes.push_back(processMesh(mesh, scene, new_mesh_textures));
+        meshes.push_back(processMesh(mesh, wrapped_scene, new_mesh_textures));
         mesh_textures.push_back(new_mesh_textures);
     }
 
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        processNode(node->mChildren[i], scene, meshes, mesh_textures);
+        processNode(node->mChildren[i], wrapped_scene, meshes, mesh_textures);
     }
 }
 
-Mesh ModelLoader::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<Texture>& textures)
+Mesh ModelLoader::processMesh(aiMesh* mesh, aiSceneWrapper wrapped_scene, std::vector<Texture>& textures)
 {
     // Vertices
     std::vector<Vertex> vertices;
@@ -119,19 +136,20 @@ Mesh ModelLoader::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<Te
     // Textures
     if (mesh->mMaterialIndex >= 0)
     {
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Diffuse);
+        aiMaterial* material = wrapped_scene.scene->mMaterials[mesh->mMaterialIndex];
+        std::string relative_dir = wrapped_scene.relative_dir;
+        vector<Texture> diffuseMaps = loadMaterialTextures(relative_dir, material, aiTextureType_DIFFUSE, TextureType::Diffuse);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::Specular);
+        vector<Texture> specularMaps = loadMaterialTextures(relative_dir, material, aiTextureType_SPECULAR, TextureType::Specular);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-        vector<Texture> reflectionMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, TextureType::Reflection);
+        vector<Texture> reflectionMaps = loadMaterialTextures(relative_dir, material, aiTextureType_AMBIENT, TextureType::Reflection);
         textures.insert(textures.end(), reflectionMaps.begin(), reflectionMaps.end());
     }
 
     return Mesh(vertices, indices);
 }
 
-std::vector<Texture> ModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType texType)
+std::vector<Texture> ModelLoader::loadMaterialTextures(std::string relative_dir, aiMaterial* mat, aiTextureType type, TextureType texType)
 {
     std::vector<Texture> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -139,7 +157,7 @@ std::vector<Texture> ModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextur
         aiString str;
         mat->GetTexture(type, i, &str);
 
-        boost::filesystem::path texturePath = boost::filesystem::path(directory_).append(str.C_Str()).make_preferred();
+        boost::filesystem::path texturePath = boost::filesystem::path(directory_).append(relative_dir).append(str.C_Str()).make_preferred();
         //boost::filesystem::path texturePath = boost::filesystem::path(str.C_Str()).make_preferred();
         string pathString = texturePath.string();
 
