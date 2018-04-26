@@ -26,7 +26,10 @@ public:
     std::vector<std::vector<Object>> TransparentObjectsDrawLists();
     
     Camera ActiveCamera();
+    
     SceneLighting ActiveLighting();
+    bool LightingChanged();
+    
     Cubemap ActiveSkybox();
     
 private:
@@ -35,6 +38,8 @@ private:
 
 	std::vector<Camera> cams_;
     uint32_t activeCameraIndex_;
+    
+    bool dirtyLighting_;
     
     ModelLoader modelLoader_;
     

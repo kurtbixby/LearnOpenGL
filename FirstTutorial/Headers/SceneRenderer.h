@@ -71,7 +71,9 @@ private:
     void GenerateDirLightShadowMaps(const std::vector<Light>& lights, const std::vector<std::vector<Object>> &regularDrawLists, Framebuffer& shadowFramebuffer);
     void GeneratePntLightShadowMaps(const std::vector<PointLight>& lights, const std::vector<std::vector<Object>> &regularDrawLists, Framebuffer& shadowFramebuffer);
     
+    bool sentShadowMaps_;
     void SendShadowMapsToShader(Shader& shader);
+    
     void CompositeDeferredRenderTextures(Framebuffer& deferredBuffer, Shader& compositionShader);
     void RenderDrawLists(std::vector<std::vector<Object>> drawLists, Shader& shader);
     void RenderObjectsInstanced(std::vector<Object> drawList, Shader& shader);

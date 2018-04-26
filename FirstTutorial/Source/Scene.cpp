@@ -41,6 +41,8 @@ Scene::Scene()
 	graph_ = SceneGraph();
 	skybox_ = Cubemap();
 	cams_ = std::vector<Camera>();
+    activeCameraIndex_ = 0;
+    dirtyLighting_ = true;
     
     modelLoader_ = ModelLoader();
 }
@@ -50,6 +52,8 @@ Scene::Scene(SceneGraph graph, std::vector<Camera> cams, ModelLoader modelLoader
 	graph_ = graph;
 	skybox_ = skybox;
 	cams_ = cams;
+    activeCameraIndex_ = 0;
+    dirtyLighting_ = true;
     
     modelLoader_ = modelLoader;
 }
@@ -71,7 +75,13 @@ Camera Scene::ActiveCamera()
 
 SceneLighting Scene::ActiveLighting()
 {
+    dirtyLighting_ = false;
     return graph_.RelevantLighting();
+}
+
+bool Scene::LightingChanged()
+{
+    return dirtyLighting_;
 }
 
 Cubemap Scene::ActiveSkybox()

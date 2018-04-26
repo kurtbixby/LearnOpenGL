@@ -117,6 +117,8 @@ void SceneRenderer::MakeShadowMaps(uint32_t shadowRes)
     //    GenerateSpotShadowMaps(regularDrawLists, transparentDrawLists, shadowFramebuffer);
     
     glCullFace(GL_BACK);
+    
+    sentShadowMaps_ = false;
 }
 
 void SceneRenderer::GenerateDirLightShadowMaps(const std::vector<Light>& lights, const std::vector<std::vector<Object>> &regularDrawLists, Framebuffer& shadowFramebuffer)
@@ -241,7 +243,10 @@ GLuint SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
     skybox.Activate(regularShader_);
     
     // Only have to do this when the shadow maps change
-    SendShadowMapsToShader(regularShader_);
+    if (scene_->LightingChanged() || !sentShadowMaps_)
+    {
+        SendShadowMapsToShader(regularShader_);
+    }
     std::vector<std::vector<Object>> regularObjDrawLists = scene_->RegularObjectsDrawLists();
     if (regularObjDrawLists.size() > 0)
     {
@@ -284,6 +289,8 @@ void SceneRenderer::SendShadowMapsToShader(Shader& shader)
     }
     
     shader.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
+    
+    sentShadowMaps_ = true;
 }
 
 GLuint SceneRenderer::Render_Deferred(Framebuffer& mainBuffer)
