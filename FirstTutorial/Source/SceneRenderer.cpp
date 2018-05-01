@@ -36,7 +36,8 @@ const std::vector<std::string> SceneRenderer::deferredTextureNames_ = {
     "colorDiffuse",
     "colorSpec",
     "reflectDir",
-    "reflectColor"
+    "reflectColor",
+    "skyboxColor"
 };
 
 uint32_t SceneRenderer::DeferredFramebuffersNumber()
@@ -66,9 +67,10 @@ const glm::vec3 SceneRenderer::cubeShadMapUps_[] = {
     glm::vec3(0.0f, -1.0f, 0.0f)
 };
 
-SceneRenderer::SceneRenderer(Scene* scene, uint32_t shadowRes)
+SceneRenderer::SceneRenderer(Scene* scene, uint32_t shadowRes, ScreenRenderer* scrRenderer)
 {
     scene_ = scene;
+    scrRenderer_ = scrRenderer;
     modelLoader_ = ModelLoader(boost::filesystem::path("Resources").make_preferred());
     
     MakeShaders();
@@ -90,6 +92,9 @@ void SceneRenderer::MakeShaders()
     boost::filesystem::path skybox_vertex_shader_path = boost::filesystem::path("Shaders/SkyboxBuff.vert").make_preferred();
     boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
     skyboxShader_ = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
+    
+    boost::filesystem::path deff_skybox_fragment_shader_path = boost::filesystem::path("Shaders/Deferred_Skybox.frag").make_preferred();
+    deferredSkyboxShader_ = Shader(skybox_vertex_shader_path.string().c_str(), deff_skybox_fragment_shader_path.string().c_str());
     
     boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/Dir_ShadowsInstanced.vert").make_preferred();
     boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/Dir_Shadows.frag").make_preferred();
@@ -124,7 +129,6 @@ void SceneRenderer::MakeShadowMaps(uint32_t shadowRes)
     std::vector<std::vector<Object>> regularDrawLists = scene_->RegularObjectsDrawLists();
     std::vector<std::vector<Object>> transparentDrawLists = scene_->TransparentObjectsDrawLists();
     SceneLighting lighting = scene_->ActiveLighting();
-    
     
     glCullFace(GL_FRONT);
     
@@ -218,6 +222,11 @@ void SceneRenderer::GeneratePntLightShadowMaps(const std::vector<PointLight>& li
     }
 }
 
+void SceneRenderer::RenderChanged()
+{
+    sentShadowMaps_ = false;
+}
+
 void SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
 {
     mainBuffer.SetViewPort();
@@ -226,8 +235,12 @@ void SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
     // Can wait until the draw calls
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
     glClearDepth(1.0f);
-    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+    glClearStencil(0x0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // state user
+    
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 0x1, 0x1);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     
     Camera cam = scene_->ActiveCamera();
     // Combine this into one function that returns on object?
@@ -240,16 +253,7 @@ void SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
     matBuff.FillBuffer(view);
     matBuff.BindToIndex(matrixBindIndex);
     
-    
-    glDepthMask(GL_FALSE);
-    glDepthFunc(GL_LEQUAL);
-    skyboxShader_.Use();
-    skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
     Cubemap skybox = scene_->ActiveSkybox();
-    skybox.Draw(skyboxShader_);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
-    
     
     SceneLighting lighting = scene_->ActiveLighting();
     const GLuint lightingBindIndex = LIGHTING_BLOCK_IDX;
@@ -280,6 +284,17 @@ void SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
     lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
     lightsShader_.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
     DrawLights(lighting, lightsShader_);
+    
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    skyboxShader_.Use();
+    skyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    skybox.Draw(skyboxShader_);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
 }
 
 void SceneRenderer::SendShadowMapsToShader(Shader& shader)
@@ -321,12 +336,16 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     gBuffer.SetViewPort();
     gBuffer.Use();
     // Can wait until the draw calls
-    glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // state setter
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // state setter
     glClearDepth(1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+    glClearStencil(0x0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // state user
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
-    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
+    
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 0x1, 0x1);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     
     Camera cam = scene_->ActiveCamera();
     // Combine this into one function that returns on object?
@@ -349,13 +368,24 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     deferredGBufferCreationShader_.Use();
     deferredGBufferCreationShader_.BindUniformBlock("Matrices", matrixBindIndex);
     deferredGBufferCreationShader_.SetVec3("camPosition", camPos.x, camPos.y, camPos.z);
-//    deferredGBufferCreationShader_.BindUniformBlock("Lighting", lightingBindIndex);
     std::vector<std::vector<Object>> regularObjDrawLists = scene_->RegularObjectsDrawLists();
     if (regularObjDrawLists.size() > 0)
     {
         RenderDrawLists(regularObjDrawLists, deferredGBufferCreationShader_);
     }
     
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    deferredSkyboxShader_.Use();
+    deferredSkyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    Cubemap skybox = scene_->ActiveSkybox();
+#warning Why does this draw call mess up the black skybox?
+//    skybox.Draw(deferredSkyboxShader_);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
     
     // COMPOSITING STAGE
     // Composite deferred textures to one
@@ -363,23 +393,19 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     deferredGBufferCompositionShader_.BindUniformBlock("Matrices", matrixBindIndex);
     deferredGBufferCompositionShader_.BindUniformBlock("Lighting", lightingBindIndex);
     deferredGBufferCompositionShader_.SetVec3("camPosition", camPos.x, camPos.y, camPos.z);
-    Cubemap skybox = scene_->ActiveSkybox();
     skybox.Activate(deferredGBufferCompositionShader_);
 
     compositeBuffer.Use();
     
+    CompositeDeferredRenderTextures(gBuffer, deferredGBufferCompositionShader_);
     
     // Can wait until the draw calls
     glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // state setter
     glClearDepth(1.0f);
-    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // state user
     glDisable(GL_DEPTH_TEST);
+    scrRenderer_->DrawPostProcessScreenQuad();
     
-    // Draw skybox during composite
-    CompositeDeferredRenderTextures(gBuffer, deferredGBufferCompositionShader_);
-    
-    glEnable(GL_DEPTH_TEST);
     // Draw lights
     
     // Draw transparent objects
@@ -390,7 +416,6 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
 //    lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
 //    lightsShader_.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
 //    DrawLights(lighting, lightsShader_);
-    
 }
 
 void SceneRenderer::CompositeDeferredRenderTextures(Framebuffer& gBuffer, Shader& compositionShader)

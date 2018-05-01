@@ -16,29 +16,31 @@
 #include "Headers/Framebuffer.h"
 #include "Headers/RenderConfig.h"
 #include "Headers/SceneRenderer.h"
+#include "Headers/ScreenRenderer.h"
 #include "Headers/Shader.h"
 
 class Renderer {
-    GLuint screenQuadVAO_;
-    std::vector<Framebuffer> mainBuffers_;
-    Shader screenQuadShader_;
+    ScreenRenderer* scrRenderer_;
     
-    std::vector<Framebuffer> supportBuffers_;
     Shader blurShader_;
     Shader combineShader_;
     
     bool renderDeferred_;
     bool bloom_;
+    
+    std::vector<Framebuffer> mainBuffers_;
+    std::vector<Framebuffer> supportBuffers_;
+    
+    std::vector<Framebuffer> mainBuffers_Deferred_;
 public:
-    Renderer(RenderConfig& config);
+    Renderer(RenderConfig& config, ScreenRenderer* scrRenderer);
     void RenderScene(SceneRenderer& sceneRenderer);
+    void SwitchRenderMethod();
     
 private:
     // Initialization
-    GLuint CreateScreenQuadVAO();
-    
-    // Drawing
-    void DrawScreenQuad();
+    void SetupForwardBuffers(RenderConfig& config);
+    void SetupDeferredBuffers(RenderConfig& config);
     
     // Utility
     GLuint BlurTexture(GLuint textureName);

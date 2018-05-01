@@ -12,6 +12,7 @@
 		9007B8A1208AAA05000C2D05 /* SceneRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9007B89F208AAA05000C2D05 /* SceneRenderer.cpp */; };
 		903AA8332042342F00A1B7F9 /* InputWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 903AA8322042342F00A1B7F9 /* InputWrapper.cpp */; };
 		903AA836204237DB00A1B7F9 /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 903AA835204237DB00A1B7F9 /* Input.cpp */; };
+		90708D552099298100024A1D /* ScreenRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90708D532099298100024A1D /* ScreenRenderer.cpp */; };
 		90B14F29207FBFA2004F418C /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90B14F27207FBFA2004F418C /* Timer.cpp */; };
 		90B14F2C20800279004F418C /* RenderConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90B14F2A20800279004F418C /* RenderConfig.cpp */; };
 		90E9061A202D1FAC00374F51 /* Resources in Copy Files */ = {isa = PBXBuildFile; fileRef = 90E90616202D1FA200374F51 /* Resources */; };
@@ -69,6 +70,8 @@
 		903AA8342042349100A1B7F9 /* Input.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Input.h; sourceTree = "<group>"; };
 		903AA835204237DB00A1B7F9 /* Input.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Input.cpp; sourceTree = "<group>"; };
 		903AA8372048A5A200A1B7F9 /* ToDo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ToDo.txt; sourceTree = "<group>"; };
+		90708D532099298100024A1D /* ScreenRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScreenRenderer.cpp; sourceTree = "<group>"; };
+		90708D542099298100024A1D /* ScreenRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScreenRenderer.h; sourceTree = "<group>"; };
 		90743CFB20278FBF0041BE49 /* FirstTutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FirstTutorial; sourceTree = BUILT_PRODUCTS_DIR; };
 		90B14F27207FBFA2004F418C /* Timer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Timer.cpp; sourceTree = "<group>"; };
 		90B14F28207FBFA2004F418C /* Timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
@@ -190,6 +193,7 @@
 				90E90623202D20A700374F51 /* SceneGraph.cpp */,
 				90E9062F202D20A800374F51 /* SceneLighting.cpp */,
 				9007B89F208AAA05000C2D05 /* SceneRenderer.cpp */,
+				90708D532099298100024A1D /* ScreenRenderer.cpp */,
 				90E90630202D20A800374F51 /* Shader.cpp */,
 				9007B89C208A9C0F000C2D05 /* Texture.cpp */,
 				90B14F27207FBFA2004F418C /* Timer.cpp */,
@@ -219,6 +223,7 @@
 				90E90642202D20DB00374F51 /* SceneGraph.h */,
 				90E90644202D20DC00374F51 /* SceneLighting.h */,
 				9007B8A0208AAA05000C2D05 /* SceneRenderer.h */,
+				90708D542099298100024A1D /* ScreenRenderer.h */,
 				90E90645202D20DC00374F51 /* Shader.h */,
 				90E90646202D20DC00374F51 /* stb_image.h */,
 				90E9064D202D20DD00374F51 /* Structs_Inline.h */,
@@ -316,6 +321,7 @@
 				90E90640202D20A900374F51 /* Framebuffer.cpp in Sources */,
 				90E90632202D20A900374F51 /* SceneGraph.cpp in Sources */,
 				90E9063C202D20A900374F51 /* PrimitivesLoader.cpp in Sources */,
+				90708D552099298100024A1D /* ScreenRenderer.cpp in Sources */,
 				9007B8A1208AAA05000C2D05 /* SceneRenderer.cpp in Sources */,
 				90E9063B202D20A900374F51 /* glad.c in Sources */,
 				90E90638202D20A900374F51 /* main.cpp in Sources */,

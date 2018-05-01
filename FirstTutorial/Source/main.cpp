@@ -20,6 +20,7 @@
 #include "Headers/Renderer.h"
 #include "Headers/Scene.h"
 #include "Headers/SceneGraph.h"
+#include "Headers/ScreenRenderer.h"
 #include "Headers/Shader.h"
 #include "Headers/Structs.h"
 #include "Headers/Timer.h"
@@ -66,9 +67,6 @@ int main()
 		std::cerr << "Error creating window" << std::endl;
 		return -1;
 	}
-    
-    Renderer renderer = Renderer(config);
-    
     Scene scene = load_scene();
 //    Scene scene = load_normal_scene();
     
@@ -79,7 +77,9 @@ int main()
 //        scene.GenerateShadowMaps(shadow_map_buffer);
 //    }
     
-    SceneRenderer sceneRenderer = SceneRenderer(&scene, SHADOW_RES);
+    ScreenRenderer scrRenderer = ScreenRenderer(config);
+    SceneRenderer sceneRenderer = SceneRenderer(&scene, SHADOW_RES, &scrRenderer);
+    Renderer renderer = Renderer(config, &scrRenderer);
     
     Timer frame_timer = Timer();
     // main loop
@@ -88,6 +88,11 @@ int main()
         frame_timer.Start();
         // process any input
         Input input = inputWrapper.TakeInput(window);
+        if (input.ChangeRenderMethod())
+        {
+            renderer.SwitchRenderMethod();
+            sceneRenderer.RenderChanged();
+        }
         scene.TakeInput(input);
         
         scene.Simulate();

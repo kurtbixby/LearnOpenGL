@@ -24,3 +24,8 @@ bool Input::BlinnLighting() const
 {
     return blinnLighting_;
 }
+
+bool Input::ChangeRenderMethod() const
+{
+    return changeRenderMethod_;
+}

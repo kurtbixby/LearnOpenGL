@@ -10,57 +10,22 @@
 
 #include "Headers/RenderConfig.h"
 #include "Headers/SceneRenderer.h"
+#include "Headers/ScreenRenderer.h"
 #include "Headers/Shader.h"
 
 #define PINGBUFFER 0
 #define PONGBUFFER 1
 #define COMPBUFFER 2
 
-Renderer::Renderer(RenderConfig& config)
+Renderer::Renderer(RenderConfig& config, ScreenRenderer* scrRenderer)
 {
+    scrRenderer_ = scrRenderer;
     renderDeferred_ = config.DeferredRenderingEnabled();
 
-    if (renderDeferred_)
-    {
-        Framebuffer compositeBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
-        compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-        compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-        compositeBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-        mainBuffers_.push_back(compositeBuffer);
-        
-        Framebuffer gBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
-        for (int i = 0; i < SceneRenderer::DeferredFramebuffersNumber(); i++)
-        {
-            gBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-        }
-        gBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-        mainBuffers_.push_back(gBuffer);
-    }
-    else
-    {
-        Framebuffer renderBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
-        renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-        renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-        renderBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-        mainBuffers_.push_back(renderBuffer);
-    }
+    SetupForwardBuffers(config);
+    SetupDeferredBuffers(config);
     
     boost::filesystem::path screen_vertex_shader_path = boost::filesystem::path(config.ScreenVertShaderPath()).make_preferred();
-    boost::filesystem::path screen_fragment_shader_path = boost::filesystem::path(config.ScreenFragShaderPath()).make_preferred();
-    screenQuadShader_ = Shader(screen_vertex_shader_path.string().c_str(), screen_fragment_shader_path.string().c_str());
-    
-    screenQuadShader_.Use();
-    screenQuadShader_.SetFloat("gamma", config.ScreenGamma());
-    screenQuadShader_.SetFloat("exposure", config.ScreenExposure());
-    
-    std::vector<float> kernel = config.ScreenFXKernel();
-    while (kernel.size() < 9)
-    {
-        kernel.push_back(0);
-    }
-    screenQuadShader_.SetFloats("kernel", 9, kernel.data());
-    
-    screenQuadVAO_ = CreateScreenQuadVAO();
     
     if (config.RenderSamples() > 1)
     {
@@ -98,50 +63,54 @@ Renderer::Renderer(RenderConfig& config)
     }
 }
 
-GLuint Renderer::CreateScreenQuadVAO()
+void Renderer::SetupForwardBuffers(RenderConfig& config)
 {
-    float quadVertices[] = {
-        // positions   // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-        1.0f, -1.0f,  1.0f, 0.0f,
-        
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        1.0f, -1.0f,  1.0f, 0.0f,
-        1.0f,  1.0f,  1.0f, 1.0f
-    };
+    // Forward Render Setup
+    Framebuffer renderBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
+    renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+    renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+    renderBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    mainBuffers_.push_back(renderBuffer);
+}
+
+void Renderer::SetupDeferredBuffers(RenderConfig& config)
+{
+    // Deferred Render Setup
+    Framebuffer compositeBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
+    compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+    compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+    compositeBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    mainBuffers_Deferred_.push_back(compositeBuffer);
     
-    GLuint quadVAO;
-    glGenVertexArrays(1, &quadVAO);
-    GLuint quadVBO;
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
-    glBindVertexArray(0);
-    
-    return quadVAO;
+    Framebuffer gBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
+    for (int i = 0; i < SceneRenderer::DeferredFramebuffersNumber(); i++)
+    {
+        gBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+    }
+    gBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    mainBuffers_Deferred_.push_back(gBuffer);
+}
+
+void Renderer::SwitchRenderMethod()
+{
+    renderDeferred_ = !renderDeferred_;
 }
 
 void Renderer::RenderScene(SceneRenderer& sceneRenderer)
 {
-    Framebuffer* resultBuffer = &mainBuffers_.front();
-
-    // Need to specify if bloom is enabled
+    Framebuffer* resultBuffer;
+    
     glEnable(GL_DEPTH_TEST);
     if (renderDeferred_)
     {
-        Framebuffer* gBuffer = &mainBuffers_[1];
+        resultBuffer = &mainBuffers_Deferred_.front();
+        Framebuffer* gBuffer = &mainBuffers_Deferred_[1];
         sceneRenderer.Render_Deferred(*resultBuffer, *gBuffer);
-        DrawScreenQuad();
 //        resultBuffer = gBuffer;
     }
     else
     {
+        resultBuffer = &mainBuffers_.front();
         sceneRenderer.Render_Forward(*resultBuffer);
     }
     glDisable(GL_DEPTH_TEST);
@@ -166,20 +135,7 @@ void Renderer::RenderScene(SceneRenderer& sceneRenderer)
         finalFrame = CombineTextures(textures);
     }
     
-    Framebuffer::UseDefault();
-    glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    screenQuadShader_.Use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, finalFrame);
-    DrawScreenQuad();
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void Renderer::DrawScreenQuad()
-{
-    glBindVertexArray(screenQuadVAO_);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    scrRenderer_->DrawFinalScreenQuad(finalFrame);
 }
 
 GLuint Renderer::BlurTexture(GLuint textureName)
@@ -188,7 +144,6 @@ GLuint Renderer::BlurTexture(GLuint textureName)
     glClear(GL_COLOR_BUFFER_BIT);
     supportBuffers_[PONGBUFFER].Use();
     glClear(GL_COLOR_BUFFER_BIT);
-    glBindVertexArray(screenQuadVAO_);
     glActiveTexture(GL_TEXTURE0);
     int amount = 6;
     GLuint readColorBuffer = textureName;
@@ -200,7 +155,7 @@ GLuint Renderer::BlurTexture(GLuint textureName)
         supportBuffers_[PINGBUFFER + bufferIndex].Use();
         blurShader_.SetBool("horizontal", horizontal);
         glBindTexture(GL_TEXTURE_2D, readColorBuffer);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        scrRenderer_->DrawPostProcessScreenQuad();
         horizontal = !horizontal;
         readColorBuffer = supportBuffers_[PINGBUFFER + bufferIndex].RetrieveColorBuffer(0).TargetName;
         bufferIndex = (bufferIndex + 1) % 2;
@@ -221,6 +176,6 @@ GLuint Renderer::CombineTextures(std::vector<GLuint> textures)
     combineShader_.SetInt("texture1", 1);
     
     supportBuffers_[COMPBUFFER].Use();
-    DrawScreenQuad();
+    scrRenderer_->DrawPostProcessScreenQuad();
     return supportBuffers_[COMPBUFFER].RetrieveColorBuffer(0).TargetName;
 }

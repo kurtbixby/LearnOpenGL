@@ -97,6 +97,14 @@ Input InputWrapper::TakeInput(GLFWwindow* window)
     {
         input_.blinnLighting_ ^= 1;
     }
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    {
+        input_.changeRenderMethod_ = 1;
+    }
+    else
+    {
+        input_.changeRenderMethod_ = 0;
+    }
     
     float x_delta = currentX_ - lastX_;
     float y_delta = lastY_ - currentY_;

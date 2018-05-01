@@ -19,6 +19,7 @@
 #include "Headers/Model.h"
 #include "Headers/ModelLoader.h"
 #include "Headers/Scene.h"
+#include "Headers/ScreenRenderer.h"
 #include "Headers/Shader.h"
 
 class SceneRenderer {
@@ -37,6 +38,8 @@ class SceneRenderer {
     const static glm::vec3 cubeShadMapDirections_[6];
     const static glm::vec3 cubeShadMapUps_[6];
     
+    ScreenRenderer* scrRenderer_;
+    
     Scene* scene_;
     ShadowMaps shadowMaps_;
     
@@ -48,6 +51,7 @@ class SceneRenderer {
     Shader deferredGBufferCreationShader_;
     Shader deferredGBufferCompositionShader_;
     Shader transparentShader_Deferred_;
+    Shader deferredSkyboxShader_;
     
     Shader lightsShader_;
     
@@ -58,9 +62,10 @@ class SceneRenderer {
     ModelLoader modelLoader_;
     
 public:
-    SceneRenderer(Scene* scene, uint32_t shadowRes);
+    SceneRenderer(Scene* scene, uint32_t shadowRes, ScreenRenderer* scrRenderer);
     static uint32_t DeferredFramebuffersNumber();
     
+    void RenderChanged();
     void Render_Forward(Framebuffer& mainBuffer);
     void Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& gBuffer);
     

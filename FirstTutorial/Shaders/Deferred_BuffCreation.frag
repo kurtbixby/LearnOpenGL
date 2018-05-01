@@ -77,5 +77,4 @@ void main()
     outColorSpec = vec4(specularValue, 1.0f);
     outReflectDir = vec4(normalize(reflectionDir), 1.0f);
     outReflectColor = vec4(reflectionColor, 1.0f);
-    
 }

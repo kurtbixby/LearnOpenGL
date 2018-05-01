@@ -203,7 +203,7 @@ vec3 global_lighting(Light light, sampler2D lightShadMap, mat4 lightSpaceMatrix,
     vec3 specular = light.specular * spec * specularValue;
 	vec3 result = ambient + shadowDensity * (diffuse + specular);
 
-	return result * shadowDensity;
+	return result;
 }
 
 vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap, vec3 diffuseValue, vec3 specularValue)

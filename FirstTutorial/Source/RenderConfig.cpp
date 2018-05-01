@@ -15,7 +15,7 @@ RenderConfig::RenderConfig()
     windowWidth_ = 800;
     windowHeight_ = 600;
     samples_ = 1;
-    bloom_ = false;
+    bloom_ = true;
     shadowmaps_ = true;
     deferredRendering_ = true;
     gamma_ = 2.2f;
