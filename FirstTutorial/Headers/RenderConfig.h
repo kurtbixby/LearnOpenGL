@@ -24,6 +24,7 @@ class RenderConfig {
     uint32_t windowHeight_;
     float gamma_;
     float exposure_;
+    bool deferredRendering_;
     std::vector<float> kernel_;
     std::string screenVertShaderPath_;
     std::string screenFragShaderPath_;
@@ -38,11 +39,16 @@ public:
     uint32_t RenderWidth();
     uint32_t RenderHeight();
     uint32_t RenderSamples();
+    
     bool BloomEnabled();
     bool ShadowmapsEnabled();
+    bool DeferredRenderingEnabled();
+    
     float ScreenGamma();
     float ScreenExposure();
+    
     std::vector<float> ScreenFXKernel();
+    
     std::string ScreenVertShaderPath();
     std::string ScreenFragShaderPath();
     std::string BlurFragShaderPath();

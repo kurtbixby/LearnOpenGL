@@ -22,6 +22,9 @@ Shader::Shader(const GLchar* vertex_shader_path, const GLchar* fragment_shader_p
     glAttachShader(shader_program, vertex_shader);
     glAttachShader(shader_program, fragment_shader);
     glLinkProgram(shader_program);
+    GLsizei length;
+    GLchar log[1000];
+    glGetProgramInfoLog(shader_program, 1000, &length, log);
 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);

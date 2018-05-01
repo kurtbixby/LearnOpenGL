@@ -1,10 +1,8 @@
 #version 330 core
-
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 BrightColor;
 
 in vec2 TexCoords;
-in vec3 CameraPosition;
 
 #define MAX_DIR_LIGHTS 1
 #define MAX_POINT_LIGHTS 4
@@ -33,6 +31,8 @@ uniform samplerCube pointLightShadowMaps_0;
 uniform samplerCube pointLightShadowMaps_1;
 
 uniform float spotFarPlane;
+
+uniform vec3 camPosition;
 
 uniform vec3 bloomThreshold;
 
@@ -88,9 +88,9 @@ layout (std140) uniform Lighting
 };                                            //488 =400 + ([MAX_SPOT_LIGHT - 1] * [sizeof(SpotLight) + padding]) + sizeof(SpotLight)
 //     400 + ([0] * [96]) + 88 = 400 + 88 = 488
 
-vec3 global_lighting(Light light, sampler2D lightShadMap, mat4 lightSpaceMatrix, vec3 diffuseValue, vec3 specularValue);
-vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap, vec3 diffuseValue, vec3 specularValue);
-vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue);
+vec3 global_lighting(Light light, sampler2D lightShadMap, mat4 lightSpaceMatrix);
+vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap);
+vec3 spot_lighting(SpotLight spotLight);
 
 float dir_shadow_calculation(vec4 fragLightPos, sampler2D lightShadMap);
 float point_shadow_calculation(vec3 fragPos, vec3 lightPos, samplerCube lightShadMap);
@@ -101,10 +101,10 @@ vec3 skybox_reflection();
 
 void main()
 {
-    vec3 fragPos = texture(worldPosition, TexCoords).rgb;
-    vec3 normal = texture(worldNormal, TexCoords).rgb;
-    vec3 diffuseValue = texture(colorDiffuse, TexCoords).rgb;
-    vec3 specularValue = texture(colorSpec, TexCoords).rgb;
+//    vec3 fragPos = texture(worldPosition, TexCoords).rgb;
+//    vec3 normal = texture(worldNormal, TexCoords).rgb;
+//    vec3 diffuseValue = texture(colorDiffuse, TexCoords).rgb;
+//    vec3 specularValue = texture(colorSpec, TexCoords).rgb;
     
     int i = 0;
     
@@ -114,18 +114,18 @@ void main()
     for (i = 0; i < DIR_LIGHTS; i++)
     {
         // Change shadowMap and FragLightPos for each light
-        global += global_lighting(lights[i], dirLightShadowMaps[i], dirLightSpaceMatrices[i], diffuseValue, specularValue);
+        global += global_lighting(lights[i], dirLightShadowMaps[i], dirLightSpaceMatrices[i]);
     }
     
     // Point Light
     vec3 point = vec3(0.0f);
-    point += point_lighting(pointLights[0], pointLightShadowMaps_0, diffuseValue, specularValue);
-    point += point_lighting(pointLights[1], pointLightShadowMaps_1, diffuseValue, specularValue);
+    point += point_lighting(pointLights[0], pointLightShadowMaps_0);
+    point += point_lighting(pointLights[1], pointLightShadowMaps_1);
     
     vec3 spot = vec3(0.0f);
     for (i = 0; i < SPOT_LIGHTS; i++)
     {
-        spot += spot_lighting(spotLights[i], diffuseValue, specularValue);
+        spot += spot_lighting(spotLights[i]);
     }
     
     vec3 reflection = skybox_reflection();
@@ -149,7 +149,7 @@ void main()
 vec3 global_lighting(Light light, sampler2D lightShadMap, mat4 lightSpaceMatrix)
 {
     vec4 fragLightPos = lightSpaceMatrix * FragWorldPosition;
-    float shadowDensity = 1.0f - dir_shadow_calculation(fragLightPos, lightShadMap, light.direction);
+    float shadowDensity = 1.0f - dir_shadow_calculation(fragLightPos, lightShadMap);
     
     vec3 ambient = 0.5f * (light.ambient * FragColorDiffuse);
     vec3 phongResult = phong_calculation(light);
@@ -164,14 +164,14 @@ vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap)
     
     float shadowDensity = 1.0f - point_shadow_calculation(vec3(FragWorldPosition), pointLight.position, lightShadMap);
     
-    Light light = { .ambient = pointLight.ambient, .diffuse = pointLight.diffuse, .specular = pointLight.specular };
-    light.direction = -(pointLight.position - FragWorldPosition);
+    Light light = Light(-(pointLight.position - vec3(FragWorldPosition)), pointLight.ambient, pointLight.diffuse, pointLight.specular);
+//    light.direction = -(pointLight.position - FragWorldPosition);
 //    light.ambient = pointLight.ambient;
 //    light.diffuse = pointLight.diffuse;
 //    light.specular = pointLight.specular;
     vec3 phongResult = phong_calculation(light);
     
-    float distance = length(pointLight.position - FragWorldPosition);
+    float distance = length(pointLight.position - vec3(FragWorldPosition));
     float attenuation = 1.0f / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * distance);
     
     vec3 ambient = 0.5f * (pointLight.ambient * FragColorDiffuse);
@@ -184,7 +184,7 @@ vec3 spot_lighting(SpotLight spotLight)
 {
     vec3 result = vec3(0.0f);
     
-    vec3 lightToFrag = FragWorldPosition - spotLight.position;
+    vec3 lightToFrag = vec3(FragWorldPosition) - spotLight.position;
     
     float fragDotProd = dot(normalize(lightToFrag), normalize(spotLight.direction));
     if (fragDotProd > spotLight.outerCutoff)
@@ -200,8 +200,8 @@ vec3 spot_lighting(SpotLight spotLight)
         
         vec3 ambient = 0.5f * (spotLight.ambient * FragColorDiffuse);
         
-        Light light = { .ambient = spotLight.ambient, .diffuse = spotLight.diffuse, .specular = spotLight.specular };
-        light.direction = -(spotLight.position - FragWorldPosition);
+        Light light = Light(-(spotLight.position - vec3(FragWorldPosition)), spotLight.ambient, spotLight.diffuse, spotLight.specular);
+        //    light.direction = -(spotLight.position - FragWorldPosition);
         //    light.ambient = spotLight.ambient;
         //    light.diffuse = spotLight.diffuse;
         //    light.specular = spotLight.specular;
@@ -216,7 +216,7 @@ float dir_shadow_calculation(vec4 fragPosLightSpace, sampler2D lightShadMap)
 {
     float bias = 0.0002f;
     // Perspective division
-    vec3 projCoords = fragLightPos.xyz / fragLightPos.w;
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // Map [-1, 1] -> [-0.5, 0.5] -> [0, 1]
     projCoords = projCoords * 0.5f + 0.5f;
     if (projCoords.z > 1.0f)
@@ -286,13 +286,13 @@ float point_shadow_calculation(vec3 fragPos, vec3 lightPos, samplerCube lightSha
 vec3 phong_calculation(Light light)
 {
     vec3 toLight = normalize(-light.direction);
-    vec3 toCamera = CameraPosition - FragWorldPosition;
     
     vec3 norm = normalize(FragWorldNormal);
     float diff = max(dot(norm, toLight), 0.0f);
     vec3 diffuse = light.diffuse * diff * FragColorDiffuse;
     
-    vec3 reflectLight = reflect(toLight, norm);
+    vec3 toCamera = normalize(camPosition - vec3(FragWorldPosition));
+    vec3 reflectLight = reflect(-toLight, norm);
     float spec = pow(max(dot(toCamera, reflectLight), 0.0f), 32);
     vec3 specular = light.specular * spec * FragColorSpec;
     

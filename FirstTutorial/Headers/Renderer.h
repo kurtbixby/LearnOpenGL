@@ -20,13 +20,14 @@
 
 class Renderer {
     GLuint screenQuadVAO_;
-    std::vector<Framebuffer> buffers_;
+    std::vector<Framebuffer> mainBuffers_;
     Shader screenQuadShader_;
     
     std::vector<Framebuffer> supportBuffers_;
     Shader blurShader_;
     Shader combineShader_;
     
+    bool renderDeferred_;
     bool bloom_;
 public:
     Renderer(RenderConfig& config);

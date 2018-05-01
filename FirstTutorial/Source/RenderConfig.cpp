@@ -14,9 +14,10 @@ RenderConfig::RenderConfig()
 {
     windowWidth_ = 800;
     windowHeight_ = 600;
-    samples_ = 4;
-    bloom_ = true;
+    samples_ = 1;
+    bloom_ = false;
     shadowmaps_ = true;
+    deferredRendering_ = true;
     gamma_ = 2.2f;
     exposure_ = 1.0f;
     kernel_ = {
@@ -64,6 +65,11 @@ bool RenderConfig::BloomEnabled()
 bool RenderConfig::ShadowmapsEnabled()
 {
     return shadowmaps_;
+}
+
+bool RenderConfig::DeferredRenderingEnabled()
+{
+    return deferredRendering_;
 }
 
 float RenderConfig::ScreenGamma()

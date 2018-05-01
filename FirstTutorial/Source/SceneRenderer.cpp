@@ -27,6 +27,9 @@
 #define SPT_LGHT_NEAR 0.01f
 #define SPT_LGHT_FAR 60.0f
 
+const GLuint MATRIX_BLOCK_IDX = 1;
+const GLuint LIGHTING_BLOCK_IDX = 2;
+
 const std::vector<std::string> SceneRenderer::deferredTextureNames_ = {
     "worldPosition",
     "worldNormal",
@@ -35,6 +38,11 @@ const std::vector<std::string> SceneRenderer::deferredTextureNames_ = {
     "reflectDir",
     "reflectColor"
 };
+
+uint32_t SceneRenderer::DeferredFramebuffersNumber()
+{
+    return deferredTextureNames_.size();
+}
 
 // Unit vector for greyScale conversion/brightness measurement
 const glm::vec3 SceneRenderer::bloomThreshold_ = glm::vec3(0.2126, 0.7152, 0.0722);
@@ -99,7 +107,17 @@ void SceneRenderer::MakeShaders()
     boost::filesystem::path lights_vert_shader_path = boost::filesystem::path("Shaders/Lights.vert").make_preferred();
     boost::filesystem::path lights_frag_shader_path = boost::filesystem::path("Shaders/Lights_Bloom.frag").make_preferred();
     lightsShader_ = Shader(lights_vert_shader_path.string().c_str(), lights_frag_shader_path.string().c_str());
+    
+    
+    boost::filesystem::path deferred_vert_shader_path = boost::filesystem::path("Shaders/Deferred_Vertex.vert").make_preferred();
+    boost::filesystem::path deferred_gbuffer_frag_shader_path = boost::filesystem::path("Shaders/Deferred_BuffCreation.frag").make_preferred();
+    deferredGBufferCreationShader_ = Shader(deferred_vert_shader_path.string().c_str(), deferred_gbuffer_frag_shader_path.string().c_str());
+    
+    boost::filesystem::path quad_vert_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
+    boost::filesystem::path gbuffer_comp_frag_shader_path = boost::filesystem::path("Shaders/Deferred_BufferComposition.frag").make_preferred();
+    deferredGBufferCompositionShader_ = Shader(quad_vert_shader_path.string().c_str(), gbuffer_comp_frag_shader_path.string().c_str());
 }
+
 
 void SceneRenderer::MakeShadowMaps(uint32_t shadowRes)
 {
@@ -200,8 +218,11 @@ void SceneRenderer::GeneratePntLightShadowMaps(const std::vector<PointLight>& li
     }
 }
 
-GLuint SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
+void SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
 {
+    mainBuffer.SetViewPort();
+    mainBuffer.Use();
+    
     // Can wait until the draw calls
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
     glClearDepth(1.0f);
@@ -213,7 +234,7 @@ GLuint SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
     glm::mat4 projection = cam.GetProjection();
     glm::mat4 view = cam.MakeViewMat();
     
-    const GLuint matrixBindIndex = 1;
+    const GLuint matrixBindIndex = MATRIX_BLOCK_IDX;
     UniformBlockBuffer<glm::mat4> matBuff = UniformBlockBuffer<glm::mat4>(2);
     matBuff.FillBuffer(projection);
     matBuff.FillBuffer(view);
@@ -231,7 +252,7 @@ GLuint SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
     
     
     SceneLighting lighting = scene_->ActiveLighting();
-    const GLuint lightingBindIndex = 2;
+    const GLuint lightingBindIndex = LIGHTING_BLOCK_IDX;
     UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
     sceneLighting.BindToIndex(lightingBindIndex);
     sceneLighting.FillBuffer(lighting);
@@ -253,22 +274,12 @@ GLuint SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
         RenderDrawLists(regularObjDrawLists, regularShader_);
     }
     
+    // Draw Lights
     lightsShader_.Use();
     lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
     lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
     lightsShader_.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
-    
-    // Draw Lights
-    std::vector<Object> light_list = std::vector<Object>();
-    std::vector<PointLight> pointLights = lighting.PntLights();
-    for (PointLight light : pointLights)
-    {
-        Object light_obj = Object(light.Position(), "Defaults/box", glm::vec3(0.5f), false);
-        light_list.push_back(light_obj);
-    }
-    RenderObjectsInstanced(light_list, lightsShader_);
-    
-    return 0;
+    DrawLights(lighting, lightsShader_);
 }
 
 void SceneRenderer::SendShadowMapsToShader(Shader& shader)
@@ -293,98 +304,113 @@ void SceneRenderer::SendShadowMapsToShader(Shader& shader)
     sentShadowMaps_ = true;
 }
 
-GLuint SceneRenderer::Render_Deferred(Framebuffer& mainBuffer)
+void SceneRenderer::DrawLights(SceneLighting& lighting, Shader& lightsShader)
 {
+    std::vector<Object> lightsList = std::vector<Object>();
+    std::vector<PointLight> pointLights = lighting.PntLights();
+    for (PointLight light : pointLights)
+    {
+        Object light_obj = Object(light.Position(), "Defaults/box", glm::vec3(0.5f), false);
+        lightsList.push_back(light_obj);
+    }
+    RenderObjectsInstanced(lightsList, lightsShader);
+}
+
+void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& gBuffer)
+{
+    gBuffer.SetViewPort();
+    gBuffer.Use();
     // Can wait until the draw calls
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
+    glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // state setter
     glClearDepth(1.0f);
-    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
     
     Camera cam = scene_->ActiveCamera();
     // Combine this into one function that returns on object?
     glm::mat4 projection = cam.GetProjection();
     glm::mat4 view = cam.MakeViewMat();
+    glm::vec3 camPos = cam.GetPosition();
     
-    const GLuint matrixBindIndex = 1;
+    const GLuint matrixBindIndex = MATRIX_BLOCK_IDX;
     UniformBlockBuffer<glm::mat4> matBuff = UniformBlockBuffer<glm::mat4>(2);
     matBuff.FillBuffer(projection);
     matBuff.FillBuffer(view);
     matBuff.BindToIndex(matrixBindIndex);
     
     SceneLighting lighting = scene_->ActiveLighting();
-    const GLuint lightingBindIndex = 2;
+    const GLuint lightingBindIndex = LIGHTING_BLOCK_IDX;
     UniformBlockBuffer<SceneLighting> sceneLighting = UniformBlockBuffer<SceneLighting>(1);
     sceneLighting.BindToIndex(lightingBindIndex);
     sceneLighting.FillBuffer(lighting);
     
-    // Use deferred texture creation shader
-    // Bind buffer block indices
-    Framebuffer deferredTextures = Framebuffer();
-    // Could do for (std::string name : deferredTextureNames_), but this uses less memory(?)
-    for (int i = 0; i < deferredTextureNames_.size(); i++)
-    {
-        deferredTextures.AddTextureAttachment(FBAttachment::ColorHDR);
-    }
-    deferredTextures.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-    deferredTextures.Use();
-    
-    deferredTextureCreationShader_.Use();
-    deferredTextureCreationShader_.BindUniformBlock("Matrices", matrixBindIndex);
-    deferredTextureCreationShader_.BindUniformBlock("Lighting", lightingBindIndex);
+    deferredGBufferCreationShader_.Use();
+    deferredGBufferCreationShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    deferredGBufferCreationShader_.SetVec3("camPosition", camPos.x, camPos.y, camPos.z);
+//    deferredGBufferCreationShader_.BindUniformBlock("Lighting", lightingBindIndex);
     std::vector<std::vector<Object>> regularObjDrawLists = scene_->RegularObjectsDrawLists();
     if (regularObjDrawLists.size() > 0)
     {
-        RenderDrawLists(regularObjDrawLists, deferredTextureCreationShader_);
+        RenderDrawLists(regularObjDrawLists, deferredGBufferCreationShader_);
     }
     
-    // Composite deferred textures to one
-    deferredTextureCompositionShader_.Use();
-    deferredTextureCreationShader_.BindUniformBlock("Matrices", matrixBindIndex);
-    deferredTextureCreationShader_.BindUniformBlock("Lighting", lightingBindIndex);
     
-    Framebuffer compositeBuffer = Framebuffer();
-    deferredTextures.AddTextureAttachment(FBAttachment::ColorHDR);
-    deferredTextures.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    // COMPOSITING STAGE
+    // Composite deferred textures to one
+    deferredGBufferCompositionShader_.Use();
+    deferredGBufferCompositionShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    deferredGBufferCompositionShader_.BindUniformBlock("Lighting", lightingBindIndex);
+    deferredGBufferCompositionShader_.SetVec3("camPosition", camPos.x, camPos.y, camPos.z);
+    Cubemap skybox = scene_->ActiveSkybox();
+    skybox.Activate(deferredGBufferCompositionShader_);
+
     compositeBuffer.Use();
     
-    // Draw skybox during composite
-    CompositeDeferredRenderTextures(deferredTextures, deferredTextureCompositionShader_);
     
+    // Can wait until the draw calls
+    glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // state setter
+    glClearDepth(1.0f);
+    // glClearDepth(1.0f); // glClearDepth(0.0f); is default clear
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state user
+    glDisable(GL_DEPTH_TEST);
+    
+    // Draw skybox during composite
+    CompositeDeferredRenderTextures(gBuffer, deferredGBufferCompositionShader_);
+    
+    glEnable(GL_DEPTH_TEST);
     // Draw lights
     
     // Draw transparent objects
     
-    return 0;
+    // Draw Lights
+//    lightsShader_.Use();
+//    lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
+//    lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
+//    lightsShader_.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
+//    DrawLights(lighting, lightsShader_);
+    
 }
 
-void SceneRenderer::CompositeDeferredRenderTextures(Framebuffer& deferredBuffer, Shader& compositionShader)
+void SceneRenderer::CompositeDeferredRenderTextures(Framebuffer& gBuffer, Shader& compositionShader)
 {
     for (int i = 0; i < deferredTextureNames_.size(); i++)
     {
-        GLuint textureUnitNumber = GL_TEXTURE0 + DEFERRED_RENDER_TEX_UNIT + i;
-        GLuint textureName = deferredBuffer.RetrieveColorBuffer(i).TargetName;
-        glActiveTexture(textureUnitNumber);
+        GLuint textureUnitNumber = DEFERRED_RENDER_TEX_UNIT + i;
+        GLuint textureName = gBuffer.RetrieveColorBuffer(i).TargetName;
+        glActiveTexture(GL_TEXTURE0 + textureUnitNumber);
         glBindTexture(GL_TEXTURE_2D, textureName);
         compositionShader.SetInt(deferredTextureNames_[i], textureUnitNumber);
     }
     
-//#warning Refactor this for a dynamic # of shadow maps. (Requires code gen?)
-//    compositionShader.SetMatrix4fv("dirLightSpaceMatrices[0]", glm::value_ptr(lightSpaceMats_.front()));
-//    compositionShader.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
-//    glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);
-//    glBindTexture(GL_TEXTURE_2D, lightShadowMaps_[0]);
-//
-//    compositionShader.SetFloat("spotFarPlane", 40.0f);
-//    for (int i = 0; i < pointLightShadowMaps_.size(); i++)
-//    {
-//        std::string samplerCube = "pointLightShadowMaps_" + std::to_string(i);
-//        glActiveTexture(GL_TEXTURE0 + PNT_SHAD_MAP_TEX_START + i);
-//        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMaps_[i]);
-//        compositionShader.SetInt(samplerCube, PNT_SHAD_MAP_TEX_START + i);
-//    }
+    // Only have to do this when the shadow maps change
+    if (scene_->LightingChanged() || !sentShadowMaps_)
+    {
+        SendShadowMapsToShader(compositionShader);
+    }
     
-    // Skybox rendering
+    compositionShader.SetVec3("OutColor", 1.0f, 0.0f, 0.0f);
 }
 
 void SceneRenderer::RenderDrawLists(std::vector<std::vector<Object>> drawLists, Shader& shader)

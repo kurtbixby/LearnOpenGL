@@ -18,12 +18,31 @@
 
 Renderer::Renderer(RenderConfig& config)
 {
+    renderDeferred_ = config.DeferredRenderingEnabled();
+
+    if (renderDeferred_)
     {
-        Framebuffer primaryBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
-        primaryBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-        primaryBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-        primaryBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-        buffers_.push_back(primaryBuffer);
+        Framebuffer compositeBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
+        compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+        compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+        compositeBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+        mainBuffers_.push_back(compositeBuffer);
+        
+        Framebuffer gBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
+        for (int i = 0; i < SceneRenderer::DeferredFramebuffersNumber(); i++)
+        {
+            gBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+        }
+        gBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+        mainBuffers_.push_back(gBuffer);
+    }
+    else
+    {
+        Framebuffer renderBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
+        renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+        renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
+        renderBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+        mainBuffers_.push_back(renderBuffer);
     }
     
     boost::filesystem::path screen_vertex_shader_path = boost::filesystem::path(config.ScreenVertShaderPath()).make_preferred();
@@ -49,7 +68,7 @@ Renderer::Renderer(RenderConfig& config)
         intermediateBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
         intermediateBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
         intermediateBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-        buffers_.push_back(intermediateBuffer);
+        mainBuffers_.push_back(intermediateBuffer);
     }
     
     if (config.BloomEnabled())
@@ -110,37 +129,45 @@ GLuint Renderer::CreateScreenQuadVAO()
 
 void Renderer::RenderScene(SceneRenderer& sceneRenderer)
 {
-    Framebuffer& primaryBuffer = buffers_.front();
-    primaryBuffer.SetViewPort();
-    primaryBuffer.Use();
+    Framebuffer* resultBuffer = &mainBuffers_.front();
 
     // Need to specify if bloom is enabled
     glEnable(GL_DEPTH_TEST);
-    sceneRenderer.Render_Forward(primaryBuffer);
+    if (renderDeferred_)
+    {
+        Framebuffer* gBuffer = &mainBuffers_[1];
+        sceneRenderer.Render_Deferred(*resultBuffer, *gBuffer);
+        DrawScreenQuad();
+//        resultBuffer = gBuffer;
+    }
+    else
+    {
+        sceneRenderer.Render_Forward(*resultBuffer);
+    }
     glDisable(GL_DEPTH_TEST);
  
-    Framebuffer workingBuffer;
-    if (primaryBuffer.IsMultiSample())
+    Framebuffer* workingBuffer;
+    if (resultBuffer->IsMultiSample())
     {
-        Framebuffer& intermediateBuffer = buffers_[1];
-        primaryBuffer.DownsampleToFramebuffer(intermediateBuffer);
+        Framebuffer* intermediateBuffer = &mainBuffers_.back();
+        resultBuffer->DownsampleToFramebuffer(*intermediateBuffer);
         workingBuffer = intermediateBuffer;
     }
     else
     {
-        workingBuffer = primaryBuffer;
+        workingBuffer = resultBuffer;
     }
     
-    GLuint finalFrame = workingBuffer.RetrieveColorBuffer(0).TargetName;
+    GLuint finalFrame = workingBuffer->RetrieveColorBuffer(0).TargetName;
     if (bloom_)
     {
-        GLuint blurredBloom = BlurTexture(workingBuffer.RetrieveColorBuffer(1).TargetName);
+        GLuint blurredBloom = BlurTexture(workingBuffer->RetrieveColorBuffer(1).TargetName);
         std::vector<GLuint> textures = {finalFrame, blurredBloom};
         finalFrame = CombineTextures(textures);
     }
     
     Framebuffer::UseDefault();
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     screenQuadShader_.Use();
     glActiveTexture(GL_TEXTURE0);

@@ -45,8 +45,8 @@ class SceneRenderer {
     Shader outlineShader_;
     Shader skyboxShader_;
     
-    Shader deferredTextureCreationShader_;
-    Shader deferredTextureCompositionShader_;
+    Shader deferredGBufferCreationShader_;
+    Shader deferredGBufferCompositionShader_;
     Shader transparentShader_Deferred_;
     
     Shader lightsShader_;
@@ -59,9 +59,10 @@ class SceneRenderer {
     
 public:
     SceneRenderer(Scene* scene, uint32_t shadowRes);
+    static uint32_t DeferredFramebuffersNumber();
     
-    GLuint Render_Forward(Framebuffer& mainBuffer);
-    GLuint Render_Deferred(Framebuffer& mainBuffer);
+    void Render_Forward(Framebuffer& mainBuffer);
+    void Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& gBuffer);
     
 private:
     // Should only be called during construction
@@ -74,7 +75,9 @@ private:
     bool sentShadowMaps_;
     void SendShadowMapsToShader(Shader& shader);
     
-    void CompositeDeferredRenderTextures(Framebuffer& deferredBuffer, Shader& compositionShader);
+    void DrawLights(SceneLighting& lighting, Shader& lightsShader);
+    
+    void CompositeDeferredRenderTextures(Framebuffer& gBuffer, Shader& compositionShader);
     void RenderDrawLists(std::vector<std::vector<Object>> drawLists, Shader& shader);
     void RenderObjectsInstanced(std::vector<Object> drawList, Shader& shader);
 };

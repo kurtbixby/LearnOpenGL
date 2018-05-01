@@ -14,7 +14,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
 	initializeMesh();
 }
 
-void Mesh::Draw(Shader shader, vector<Texture> textures)
+void Mesh::Draw(const Shader& shader, vector<Texture> textures)
 {
     PrepareTextures(shader, textures);
     PrepareTangentSpace();
@@ -25,7 +25,7 @@ void Mesh::Draw(Shader shader, vector<Texture> textures)
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Mesh::DrawInstanced(Shader shader, vector<Texture> textures, vector<glm::mat4> instance_matrices)
+void Mesh::DrawInstanced(const Shader& shader, vector<Texture> textures, vector<glm::mat4> instance_matrices)
 {
     glBindVertexArray(vao_);
     PrepareTextures(shader, textures);
@@ -37,7 +37,7 @@ void Mesh::DrawInstanced(Shader shader, vector<Texture> textures, vector<glm::ma
     glBindVertexArray(0);
 }
 
-void Mesh::PrepareTextures(Shader& shader, vector<Texture>& textures)
+void Mesh::PrepareTextures(const Shader& shader, vector<Texture>& textures)
 {
     unsigned int diffuseTexs = 0;
     unsigned int specularTexs = 0;

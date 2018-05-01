@@ -96,6 +96,7 @@ SceneGraph::SceneGraph(uint32_t number)
         {
             // Nanosuit
             objects_.push_back(Object(glm::vec3(0.0f), "nanosuit_reflection/nanosuit.obj", glm::vec3(1.0f), false));
+            objects_.push_back(Object(glm::vec3(-7.0f, 0.0f, 0.0f), "nanosuit_reflection/nanosuit.obj", glm::vec3(1.0f), false));
             
             glm::vec3 orbit_axis = glm::vec3(0.0f, 1.0f, 0.0f);
             srand(11101991);

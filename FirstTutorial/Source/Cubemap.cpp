@@ -61,7 +61,7 @@ Cubemap::Cubemap() : Cubemap(std::vector<std::string>
 	{ "Resources/skybox/right.jpg", "Resources/skybox/left.jpg", "Resources/skybox/top.jpg", "Resources/skybox/bottom.jpg", "Resources/skybox/back.jpg", "Resources/skybox/front.jpg" }
 ) {}
 
-Cubemap::Cubemap(uint32_t cubemapName)
+Cubemap::Cubemap(uint32_t cubemapTextureName)
 {
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);
@@ -74,21 +74,22 @@ Cubemap::Cubemap(uint32_t cubemapName)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, reinterpret_cast<void*>(0));
     glBindVertexArray(0);
     
-    texId_ = cubemapName;
+    texId_ = cubemapTextureName;
 }
 
 Cubemap::Cubemap(std::vector<std::string> textureFiles) : Cubemap::Cubemap(load_cubemap(textureFiles))
 {}
 
-void Cubemap::Activate(Shader& shader, std::string cubemapName)
+void Cubemap::Activate(Shader& shader, std::string cubemapUniformName)
 {
-    shader.SetInt(cubemapName, SKYBOX_TEX_UNIT);
+    shader.SetInt(cubemapUniformName, SKYBOX_TEX_UNIT);
     glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texId_);
 }
 
 void Cubemap::Deactivate()
 {
+    glActiveTexture(GL_TEXTURE0 + SKYBOX_TEX_UNIT);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 

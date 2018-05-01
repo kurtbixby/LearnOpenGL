@@ -27,7 +27,7 @@ void main()
 	vec3 samples[9];
 	for (int i = 0; i < 9; i++)
 	{
-		samples[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]).rgb);
+		samples[i] = texture(screenTexture, TexCoords.st + offsets[i]).rgb;
 	}
 
 	vec3 color = vec3(0.0f);

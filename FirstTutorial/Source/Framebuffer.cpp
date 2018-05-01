@@ -67,7 +67,7 @@ void Framebuffer::Use(GLenum target)
     target_ = target;
     glBindFramebuffer(target_, fbo_);
     
-    if (colorAttachmentCount_ > 1)
+    if (colorAttachmentCount_ > 0)
     {
         std::vector<unsigned int> attachments = std::vector<unsigned int>();
         for (int i = 0; i < colorAttachmentCount_; i++)
