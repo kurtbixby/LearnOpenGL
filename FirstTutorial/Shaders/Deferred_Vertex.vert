@@ -9,6 +9,8 @@ out VS_OUT
     vec2 TexCoords;
     vec4 FragWorldPos;
     vec3 WorldNormal;
+    vec4 FragViewPos;
+    vec3 ViewNormal;
 } vs_out;
 
 layout (std140) uniform Matrices
@@ -23,4 +25,6 @@ void main()
     vs_out.TexCoords = aTexCoords;
     vs_out.FragWorldPos = instanceMatrix * vec4(aPos, 1.0f);
     vs_out.WorldNormal = mat3(transpose(inverse(instanceMatrix))) * aNorm;
+    vs_out.FragViewPos = view * instanceMatrix * vec4(aPos, 1.0f);
+    vs_out.ViewNormal = mat3(transpose(inverse(view * instanceMatrix))) * aNorm;
 }

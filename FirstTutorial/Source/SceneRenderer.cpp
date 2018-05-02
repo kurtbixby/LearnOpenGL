@@ -37,7 +37,8 @@ const std::vector<std::string> SceneRenderer::deferredTextureNames_ = {
     "colorSpec",
     "reflectDir",
     "reflectColor",
-    "skyboxColor"
+    "viewPosition",
+    "viewNormal"
 };
 
 uint32_t SceneRenderer::DeferredFramebuffersNumber()

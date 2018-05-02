@@ -14,7 +14,6 @@ in vec2 TexCoords;
 #define FragColorSpec texture(colorSpec, TexCoords).rgb
 #define FragReflectDir texture(reflectDir, TexCoords).xyz
 #define FragReflectColor texture(reflectColor, TexCoords).rgb
-#define FragSkyboxColor texture(skyboxColor, TexCoords).rgb
 
 uniform sampler2D worldPosition;
 uniform sampler2D worldNormal;
@@ -22,7 +21,6 @@ uniform sampler2D colorDiffuse;
 uniform sampler2D colorSpec;
 uniform sampler2D reflectDir;
 uniform sampler2D reflectColor;
-uniform sampler2D skyboxColor;
 
 uniform samplerCube skybox;
 
@@ -132,7 +130,7 @@ void main()
     
     vec3 reflection = skybox_reflection();
     
-    vec3 result = global + point + spot + reflection + FragSkyboxColor;
+    vec3 result = global + point + spot + reflection;
     
     FragColor = vec4(result, 1.0f);
     

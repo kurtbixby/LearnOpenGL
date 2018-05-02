@@ -12,6 +12,8 @@ layout (location = 3) out vec4 outColorSpec;
 layout (location = 4) out vec4 outReflectDir;
 // Change reflect map to be coef for reflect color
 layout (location = 5) out vec4 outReflectColor;
+layout (location = 6) out vec4 outViewPosition;
+layout (location = 7) out vec4 outViewNormal;
 
 struct Material {
     sampler2D diffuse[MAX_DIFFUSE_TEXS];
@@ -25,6 +27,8 @@ in VS_OUT
     vec2 TexCoords;
     vec4 FragWorldPos;
     vec3 WorldNormal;
+    vec4 FragViewPos;
+    vec3 ViewNormal;
 } fs_in;
 
 layout (std140) uniform Matrices
@@ -77,4 +81,6 @@ void main()
     outColorSpec = vec4(specularValue, 1.0f);
     outReflectDir = vec4(normalize(reflectionDir), 1.0f);
     outReflectColor = vec4(reflectionColor, 1.0f);
+    outViewPosition = fs_in.FragViewPos;
+    outViewNormal = vec4(normalize(fs_in.ViewNormal), 1.0f);
 }
