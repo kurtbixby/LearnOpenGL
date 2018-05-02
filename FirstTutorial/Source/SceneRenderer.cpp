@@ -400,22 +400,25 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     CompositeDeferredRenderTextures(gBuffer, deferredGBufferCompositionShader_);
     
     // Can wait until the draw calls
-    glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // state setter
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f); // state setter
     glClearDepth(1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // state user
+    glClear(GL_COLOR_BUFFER_BIT); // state user
     glDisable(GL_DEPTH_TEST);
     scrRenderer_->DrawPostProcessScreenQuad();
     
+    gBuffer.CopyAttachmentToFramebuffer(compositeBuffer, GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH_STENCIL_ATTACHMENT);
+    compositeBuffer.Use();
+    glEnable(GL_DEPTH_TEST);
     // Draw lights
     
     // Draw transparent objects
     
     // Draw Lights
-//    lightsShader_.Use();
-//    lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
-//    lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
-//    lightsShader_.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
-//    DrawLights(lighting, lightsShader_);
+    lightsShader_.Use();
+    lightsShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
+    lightsShader_.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
+    DrawLights(lighting, lightsShader_);
 }
 
 void SceneRenderer::CompositeDeferredRenderTextures(Framebuffer& gBuffer, Shader& compositionShader)

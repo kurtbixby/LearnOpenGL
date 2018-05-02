@@ -143,6 +143,22 @@ void Framebuffer::DownsampleToFramebuffer(Framebuffer& other_fb)
     }
 }
 
+void Framebuffer::CopyAttachmentToFramebuffer(Framebuffer& other_fb, GLuint srcAttachmentPoint, GLuint dstAttachmentPoint)
+{
+    if (!ValidateBufferCopy(srcAttachmentPoint, dstAttachmentPoint, other_fb))
+    {
+        return;
+    }
+    GLuint bufferBit = BufferBitForAttachmentPoint(srcAttachmentPoint);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, this->fbo_);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, other_fb.fbo_);
+    {
+        glReadBuffer(srcAttachmentPoint);
+        glReadBuffer(dstAttachmentPoint);
+        glBlitFramebuffer(0, 0, this->width_, this->height_, 0, 0, other_fb.width_, other_fb.height_, bufferBit, GL_NEAREST);
+    }
+}
+
 RenderTarget Framebuffer::RetrieveDepthBuffer()
 {
     return depthAttachment_;
@@ -386,4 +402,91 @@ unsigned int Framebuffer::GenCubemapTexture(GLint internalFormat, GLenum format,
     
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     return cubemap;
+}
+
+bool Framebuffer::ValidateBufferCopy(GLuint srcAttachmentPoint, GLuint dstAttachmentPoint, Framebuffer& otherFb)
+{
+    if (CheckAttachmentPointType(srcAttachmentPoint) != CheckAttachmentPointType(dstAttachmentPoint) || srcAttachmentPoint == 0)
+    {
+        // Different types
+        return false;
+    }
+    
+    // Ensure both buffers have the attachment
+    if (!HasAttachment(srcAttachmentPoint) || !otherFb.HasAttachment(dstAttachmentPoint))
+    {
+        return false;
+    }
+    return true;
+}
+
+GLuint Framebuffer::CheckAttachmentPointType(GLuint attachmentPoint)
+{
+    if (GL_COLOR_ATTACHMENT0 <= attachmentPoint && attachmentPoint <= GL_COLOR_ATTACHMENT31)
+    {
+        return GL_COLOR_ATTACHMENT0;
+    }
+    if (GL_DEPTH_ATTACHMENT == attachmentPoint)
+    {
+        return GL_DEPTH_ATTACHMENT;
+    }
+    if (GL_STENCIL_ATTACHMENT == attachmentPoint)
+    {
+        return GL_STENCIL_ATTACHMENT;
+    }
+    if (GL_DEPTH_STENCIL_ATTACHMENT == attachmentPoint)
+    {
+        return GL_DEPTH_STENCIL_ATTACHMENT;
+    }
+    return 0;
+}
+
+bool Framebuffer::HasAttachment(GLuint attachmentPoint)
+{
+    if (attachmentPoint == GL_DEPTH_ATTACHMENT)
+    {
+        return depthAttachment_.TargetType != RenderTargetType::None;
+    }
+    if (attachmentPoint == GL_DEPTH_STENCIL_ATTACHMENT)
+    {
+        return depthStencilAttachment_.TargetType != RenderTargetType::None;
+    }
+#warning CHANGE IF STENCIL ATTACHMENT IS IMPLEMENTED
+    if (attachmentPoint == GL_STENCIL_ATTACHMENT)
+    {
+        return false;
+    }
+    if (GL_COLOR_ATTACHMENT0 <= attachmentPoint && attachmentPoint <= GL_COLOR_ATTACHMENT31)
+    {
+        // Is color attachment
+        if (colorAttachmentCount_ == 0)
+        {
+            // No color attachments
+            return false;
+        }
+        uint32_t attachmentNumber = attachmentPoint - GL_COLOR_ATTACHMENT0;
+        return attachmentNumber <= colorAttachmentCount_ - 1;
+    }
+    return false;
+}
+
+GLuint Framebuffer::BufferBitForAttachmentPoint(GLuint attachmentPoint)
+{
+    if (GL_COLOR_ATTACHMENT0 <= attachmentPoint && attachmentPoint <= GL_COLOR_ATTACHMENT31)
+    {
+        return GL_COLOR_BUFFER_BIT;
+    }
+    if (GL_DEPTH_ATTACHMENT == attachmentPoint)
+    {
+        return GL_DEPTH_BUFFER_BIT;
+    }
+    if (GL_STENCIL_ATTACHMENT == attachmentPoint)
+    {
+        return GL_STENCIL_BUFFER_BIT;
+    }
+    if (GL_DEPTH_STENCIL_ATTACHMENT == attachmentPoint)
+    {
+        return GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    }
+    return 0;
 }

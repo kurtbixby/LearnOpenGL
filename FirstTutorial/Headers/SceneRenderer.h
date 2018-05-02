@@ -41,7 +41,9 @@ class SceneRenderer {
     ScreenRenderer* scrRenderer_;
     
     Scene* scene_;
+    
     ShadowMaps shadowMaps_;
+    bool sentShadowMaps_;
     
     Shader regularShader_;
     Shader transparentShader_;
@@ -77,7 +79,6 @@ private:
     void GenerateDirLightShadowMaps(const std::vector<Light>& lights, const std::vector<std::vector<Object>> &regularDrawLists, Framebuffer& shadowFramebuffer);
     void GeneratePntLightShadowMaps(const std::vector<PointLight>& lights, const std::vector<std::vector<Object>> &regularDrawLists, Framebuffer& shadowFramebuffer);
     
-    bool sentShadowMaps_;
     void SendShadowMapsToShader(Shader& shader);
     
     void DrawLights(SceneLighting& lighting, Shader& lightsShader);

@@ -32,6 +32,7 @@ public:
 	RenderTarget RetrieveDepthStencilBuffer();
 
     void DownsampleToFramebuffer(Framebuffer& other_fb);
+    void CopyAttachmentToFramebuffer(Framebuffer& other_fb, GLuint srcAttachmentPoint, GLuint dstAttachmentPoint);
     
 	void AddTextureAttachment(FBAttachment attachmentType);
 	void AddRenderbufferAttachment(FBAttachment attachmentType);
@@ -58,6 +59,10 @@ private:
 	unsigned int GenFramebufferTexture(GLint internalFormat, GLenum format, GLenum dataType);
 	unsigned int GenRenderbuffer(GLenum internalFormat);
     unsigned int GenCubemapTexture(GLint internalFormat, GLenum format, GLenum dataType);
+    bool ValidateBufferCopy(GLuint srcAttachmentPoint, GLuint dstAttachmentPoint, Framebuffer& otherFb);
+    GLuint CheckAttachmentPointType(GLuint attachmentPoint);
+    bool HasAttachment(GLuint attachmentPoint);
+    GLuint BufferBitForAttachmentPoint(GLuint attachmentPoint);
 };
 
 #endif
