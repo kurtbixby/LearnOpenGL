@@ -93,8 +93,8 @@ void SceneRenderer::MakeShaders()
     boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
     skyboxShader_ = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
     
-    boost::filesystem::path deff_skybox_fragment_shader_path = boost::filesystem::path("Shaders/Deferred_Skybox.frag").make_preferred();
-    deferredSkyboxShader_ = Shader(skybox_vertex_shader_path.string().c_str(), deff_skybox_fragment_shader_path.string().c_str());
+    boost::filesystem::path defer_skybox_fragment_shader_path = boost::filesystem::path("Shaders/Deferred_Skybox.frag").make_preferred();
+    deferredSkyboxShader_ = Shader(skybox_vertex_shader_path.string().c_str(), defer_skybox_fragment_shader_path.string().c_str());
     
     boost::filesystem::path shadow_map_vertex_shader_path = boost::filesystem::path("Shaders/Dir_ShadowsInstanced.vert").make_preferred();
     boost::filesystem::path shadow_map_fragment_shader_path = boost::filesystem::path("Shaders/Dir_Shadows.frag").make_preferred();
@@ -374,18 +374,8 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
         RenderDrawLists(regularObjDrawLists, deferredGBufferCreationShader_);
     }
     
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-    glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-    deferredSkyboxShader_.Use();
-    deferredSkyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
-    Cubemap skybox = scene_->ActiveSkybox();
-#warning Why does this draw call mess up the black skybox?
-//    skybox.Draw(deferredSkyboxShader_);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
+    glDisable(GL_DEPTH_TEST);
     
     // COMPOSITING STAGE
     // Composite deferred textures to one
@@ -393,6 +383,7 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     deferredGBufferCompositionShader_.BindUniformBlock("Matrices", matrixBindIndex);
     deferredGBufferCompositionShader_.BindUniformBlock("Lighting", lightingBindIndex);
     deferredGBufferCompositionShader_.SetVec3("camPosition", camPos.x, camPos.y, camPos.z);
+    Cubemap skybox = scene_->ActiveSkybox();
     skybox.Activate(deferredGBufferCompositionShader_);
 
     compositeBuffer.Use();
@@ -403,12 +394,13 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f); // state setter
     glClearDepth(1.0f);
     glClear(GL_COLOR_BUFFER_BIT); // state user
-    glDisable(GL_DEPTH_TEST);
     scrRenderer_->DrawPostProcessScreenQuad();
     
     gBuffer.CopyAttachmentToFramebuffer(compositeBuffer, GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH_STENCIL_ATTACHMENT);
     compositeBuffer.Use();
+    
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
     // Draw lights
     
     // Draw transparent objects
@@ -419,6 +411,17 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     lightsShader_.BindUniformBlock("Lighting", lightingBindIndex);
     lightsShader_.SetVec3("bloomThreshold", bloomThreshold_.r, bloomThreshold_.g, bloomThreshold_.b);
     DrawLights(lighting, lightsShader_);
+    
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    deferredSkyboxShader_.Use();
+    deferredSkyboxShader_.BindUniformBlock("Matrices", matrixBindIndex);
+    skybox.Draw(deferredSkyboxShader_);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
 }
 
 void SceneRenderer::CompositeDeferredRenderTextures(Framebuffer& gBuffer, Shader& compositionShader)

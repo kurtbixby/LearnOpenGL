@@ -98,6 +98,6 @@ void Cubemap::Draw(Shader& shader)
 	Activate(shader);
 	glBindVertexArray(vao_);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
+    glBindVertexArray(0);
 	Deactivate();
 }
