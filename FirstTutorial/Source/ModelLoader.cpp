@@ -21,7 +21,7 @@
 #include "Headers/Structs_Inline.h"
 
 // Not thread-safe
-unordered_map<string, Texture> ModelLoader::loaded_textures_ = unordered_map<string, Texture>();
+unordered_map<string, ModelTexture> ModelLoader::loaded_textures_ = unordered_map<string, ModelTexture>();
 
 // Not thread-safe
 unordered_map<string, Model> ModelLoader::loaded_models_ = unordered_map<string, Model>();
@@ -59,7 +59,7 @@ Model ModelLoader::LoadModel(std::string file)
     aiSceneWrapper wrapped_scene = aiSceneWrapper{boost::filesystem::path(file).make_preferred().remove_filename().string(), scene};
 
     std::vector<Mesh> meshes = std::vector<Mesh>();
-    std::vector<std::vector<Texture>> mesh_textures = std::vector<std::vector<Texture>>();
+    std::vector<std::vector<ModelTexture>> mesh_textures = std::vector<std::vector<ModelTexture>>();
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -82,12 +82,12 @@ Model ModelLoader::loadDefaultModel(std::string file)
     return PrimitivesLoader::LoadPrimitive(modelName);
 }
 
-void ModelLoader::processNode(aiNode* node, aiSceneWrapper wrapped_scene, std::vector<Mesh>& meshes, std::vector<std::vector<Texture>>& mesh_textures)
+void ModelLoader::processNode(aiNode* node, aiSceneWrapper wrapped_scene, std::vector<Mesh>& meshes, std::vector<std::vector<ModelTexture>>& mesh_textures)
 {
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = wrapped_scene.scene->mMeshes[node->mMeshes[i]];
-        std::vector<Texture> new_mesh_textures = std::vector<Texture>();
+        std::vector<ModelTexture> new_mesh_textures = std::vector<ModelTexture>();
         meshes.push_back(processMesh(mesh, wrapped_scene, new_mesh_textures));
         mesh_textures.push_back(new_mesh_textures);
     }
@@ -98,7 +98,7 @@ void ModelLoader::processNode(aiNode* node, aiSceneWrapper wrapped_scene, std::v
     }
 }
 
-Mesh ModelLoader::processMesh(aiMesh* mesh, aiSceneWrapper wrapped_scene, std::vector<Texture>& textures)
+Mesh ModelLoader::processMesh(aiMesh* mesh, aiSceneWrapper wrapped_scene, std::vector<ModelTexture>& textures)
 {
     // Vertices
     std::vector<Vertex> vertices;
@@ -138,20 +138,20 @@ Mesh ModelLoader::processMesh(aiMesh* mesh, aiSceneWrapper wrapped_scene, std::v
     {
         aiMaterial* material = wrapped_scene.scene->mMaterials[mesh->mMaterialIndex];
         std::string relative_dir = wrapped_scene.relative_dir;
-        vector<Texture> diffuseMaps = loadMaterialTextures(relative_dir, material, aiTextureType_DIFFUSE, TextureType::Diffuse);
+        vector<ModelTexture> diffuseMaps = loadMaterialTextures(relative_dir, material, aiTextureType_DIFFUSE, ModelTextureType::DiffuseMap);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        vector<Texture> specularMaps = loadMaterialTextures(relative_dir, material, aiTextureType_SPECULAR, TextureType::Specular);
+        vector<ModelTexture> specularMaps = loadMaterialTextures(relative_dir, material, aiTextureType_SPECULAR, ModelTextureType::SpecularMap);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-        vector<Texture> reflectionMaps = loadMaterialTextures(relative_dir, material, aiTextureType_AMBIENT, TextureType::Reflection);
+        vector<ModelTexture> reflectionMaps = loadMaterialTextures(relative_dir, material, aiTextureType_AMBIENT, ModelTextureType::ReflectionMap);
         textures.insert(textures.end(), reflectionMaps.begin(), reflectionMaps.end());
     }
 
     return Mesh(vertices, indices);
 }
 
-std::vector<Texture> ModelLoader::loadMaterialTextures(std::string relative_dir, aiMaterial* mat, aiTextureType type, TextureType texType)
+std::vector<ModelTexture> ModelLoader::loadMaterialTextures(std::string relative_dir, aiMaterial* mat, aiTextureType type, ModelTextureType texType)
 {
-    std::vector<Texture> textures;
+    std::vector<ModelTexture> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;
@@ -166,10 +166,10 @@ std::vector<Texture> ModelLoader::loadMaterialTextures(std::string relative_dir,
         {
             // Not loaded
             std::cerr << pathString << " not loaded" << std::endl;
-            Texture texture;
+            ModelTexture texture;
             
             // Assume only diffuse textures aren't in linear space
-            if (texType == TextureType::Diffuse)
+            if (texType == ModelTextureType::DiffuseMap)
             {
                 texture.id = load_texture(pathString.c_str(), false);
             }

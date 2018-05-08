@@ -1,12 +1,12 @@
 //
-//  Texture.cpp
+//  ModelTexture.cpp
 //  FirstTutorial
 //
 //  Created by Kurt Bixby on 4/20/18.
 //  Copyright © 2018 Bixby Productions. All rights reserved.
 //
 
-#include "Headers/Texture.h"
+#include "Headers/ModelTexture.h"
 
 #include <glad/glad.h>
 #include <iostream>

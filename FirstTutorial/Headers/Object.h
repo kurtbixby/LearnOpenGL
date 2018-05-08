@@ -20,7 +20,7 @@ public:
     // Have a tree-like structure for
 
     Object() : Object(glm::vec3(1.0f), "Defaults/box", glm::vec3(1.0f), false) {};
-    Object(const glm::vec3 transform, std::string model, const glm::vec3 scale, const bool outline, const bool is2D = false, const bool isTransparent = false)
+    Object(const glm::vec3 transform, std::string model, const glm::vec3 scale, const bool outline = false, const bool is2D = false, const bool isTransparent = false)
     {
         Transform_ = transform;
         Model_ = model;

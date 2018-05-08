@@ -17,14 +17,16 @@
 #include <string>
 
 class RenderConfig {
-    bool bloom_;
     uint32_t samples_;
-    bool shadowmaps_;
-    uint32_t windowWidth_;
-    uint32_t windowHeight_;
+    uint32_t renderWidth_;
+    uint32_t renderHeight_;
+    uint32_t shadowMapRes_;
     float gamma_;
     float exposure_;
+    bool shadowmaps_;
+    bool bloom_;
     bool deferredRendering_;
+    bool ssao_;
     std::vector<float> kernel_;
     std::string screenVertShaderPath_;
     std::string screenFragShaderPath_;
@@ -33,16 +35,19 @@ class RenderConfig {
     
 public:
     RenderConfig();
+    RenderConfig(uint32_t renderWidth, uint32_t renderHeight);
     
     uint32_t WindowWidth();
     uint32_t WindowHeight();
     uint32_t RenderWidth();
     uint32_t RenderHeight();
     uint32_t RenderSamples();
+    uint32_t ShadowMapRes();
     
     bool BloomEnabled();
     bool ShadowmapsEnabled();
     bool DeferredRenderingEnabled();
+    bool SSAOEnabled();
     
     float ScreenGamma();
     float ScreenExposure();

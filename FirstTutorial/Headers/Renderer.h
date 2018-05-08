@@ -38,10 +38,6 @@ public:
     void SwitchRenderMethod();
     
 private:
-    // Initialization
-    void SetupForwardBuffers(RenderConfig& config);
-    void SetupDeferredBuffers(RenderConfig& config);
-    
     // Utility
     GLuint BlurTexture(GLuint textureName);
     GLuint CombineTextures(std::vector<GLuint> textures);

@@ -8,11 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		9007B8972089196E000C2D05 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9007B8952089196D000C2D05 /* Renderer.cpp */; };
-		9007B89D208A9C0F000C2D05 /* Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9007B89C208A9C0F000C2D05 /* Texture.cpp */; };
+		9007B89D208A9C0F000C2D05 /* ModelTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9007B89C208A9C0F000C2D05 /* ModelTexture.cpp */; };
 		9007B8A1208AAA05000C2D05 /* SceneRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9007B89F208AAA05000C2D05 /* SceneRenderer.cpp */; };
 		903AA8332042342F00A1B7F9 /* InputWrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 903AA8322042342F00A1B7F9 /* InputWrapper.cpp */; };
 		903AA836204237DB00A1B7F9 /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 903AA835204237DB00A1B7F9 /* Input.cpp */; };
 		90708D552099298100024A1D /* ScreenRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90708D532099298100024A1D /* ScreenRenderer.cpp */; };
+		90708D58209A69A100024A1D /* TextureCreator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90708D56209A69A100024A1D /* TextureCreator.cpp */; };
 		90B14F29207FBFA2004F418C /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90B14F27207FBFA2004F418C /* Timer.cpp */; };
 		90B14F2C20800279004F418C /* RenderConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 90B14F2A20800279004F418C /* RenderConfig.cpp */; };
 		90E9061A202D1FAC00374F51 /* Resources in Copy Files */ = {isa = PBXBuildFile; fileRef = 90E90616202D1FA200374F51 /* Resources */; };
@@ -59,9 +60,9 @@
 /* Begin PBXFileReference section */
 		9007B8952089196D000C2D05 /* Renderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Renderer.cpp; sourceTree = "<group>"; };
 		9007B8962089196D000C2D05 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
-		9007B89B208A9A68000C2D05 /* Texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Texture.h; sourceTree = "<group>"; };
-		9007B89C208A9C0F000C2D05 /* Texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Texture.cpp; sourceTree = "<group>"; };
-		9007B89E208A9C82000C2D05 /* Texture_Inline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Texture_Inline.h; sourceTree = "<group>"; };
+		9007B89B208A9A68000C2D05 /* ModelTexture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelTexture.h; sourceTree = "<group>"; };
+		9007B89C208A9C0F000C2D05 /* ModelTexture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelTexture.cpp; sourceTree = "<group>"; };
+		9007B89E208A9C82000C2D05 /* ModelTexture_Inline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelTexture_Inline.h; sourceTree = "<group>"; };
 		9007B89F208AAA05000C2D05 /* SceneRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SceneRenderer.cpp; sourceTree = "<group>"; };
 		9007B8A0208AAA05000C2D05 /* SceneRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneRenderer.h; sourceTree = "<group>"; };
 		90116DFD2040D813001C6999 /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
@@ -72,6 +73,8 @@
 		903AA8372048A5A200A1B7F9 /* ToDo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ToDo.txt; sourceTree = "<group>"; };
 		90708D532099298100024A1D /* ScreenRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScreenRenderer.cpp; sourceTree = "<group>"; };
 		90708D542099298100024A1D /* ScreenRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScreenRenderer.h; sourceTree = "<group>"; };
+		90708D56209A69A100024A1D /* TextureCreator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextureCreator.cpp; sourceTree = "<group>"; };
+		90708D57209A69A100024A1D /* TextureCreator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextureCreator.h; sourceTree = "<group>"; };
 		90743CFB20278FBF0041BE49 /* FirstTutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FirstTutorial; sourceTree = BUILT_PRODUCTS_DIR; };
 		90B14F27207FBFA2004F418C /* Timer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Timer.cpp; sourceTree = "<group>"; };
 		90B14F28207FBFA2004F418C /* Timer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
@@ -185,6 +188,7 @@
 				90E90629202D20A700374F51 /* main.cpp */,
 				90E9062B202D20A800374F51 /* Mesh.cpp */,
 				90E90627202D20A700374F51 /* Model.cpp */,
+				9007B89C208A9C0F000C2D05 /* ModelTexture.cpp */,
 				90E90625202D20A700374F51 /* ModelLoader.cpp */,
 				90E9062D202D20A800374F51 /* PrimitivesLoader.cpp */,
 				90B14F2A20800279004F418C /* RenderConfig.cpp */,
@@ -195,7 +199,7 @@
 				9007B89F208AAA05000C2D05 /* SceneRenderer.cpp */,
 				90708D532099298100024A1D /* ScreenRenderer.cpp */,
 				90E90630202D20A800374F51 /* Shader.cpp */,
-				9007B89C208A9C0F000C2D05 /* Texture.cpp */,
+				90708D56209A69A100024A1D /* TextureCreator.cpp */,
 				90B14F27207FBFA2004F418C /* Timer.cpp */,
 			);
 			path = Source;
@@ -215,6 +219,8 @@
 				90E9064F202D20DD00374F51 /* Mesh.h */,
 				90E9064B202D20DD00374F51 /* Model.h */,
 				90E9064A202D20DC00374F51 /* ModelLoader.h */,
+				9007B89E208A9C82000C2D05 /* ModelTexture_Inline.h */,
+				9007B89B208A9A68000C2D05 /* ModelTexture.h */,
 				90E90653202D20DE00374F51 /* Object.h */,
 				90E90647202D20DC00374F51 /* PrimitivesLoader.h */,
 				90B14F2B20800279004F418C /* RenderConfig.h */,
@@ -228,8 +234,7 @@
 				90E90646202D20DC00374F51 /* stb_image.h */,
 				90E9064D202D20DD00374F51 /* Structs_Inline.h */,
 				90E90651202D20DE00374F51 /* Structs.h */,
-				9007B89E208A9C82000C2D05 /* Texture_Inline.h */,
-				9007B89B208A9A68000C2D05 /* Texture.h */,
+				90708D57209A69A100024A1D /* TextureCreator.h */,
 				90B14F28207FBFA2004F418C /* Timer.h */,
 				90E9064C202D20DD00374F51 /* UniformBlockBuffer.h */,
 			);
@@ -325,11 +330,12 @@
 				9007B8A1208AAA05000C2D05 /* SceneRenderer.cpp in Sources */,
 				90E9063B202D20A900374F51 /* glad.c in Sources */,
 				90E90638202D20A900374F51 /* main.cpp in Sources */,
-				9007B89D208A9C0F000C2D05 /* Texture.cpp in Sources */,
+				9007B89D208A9C0F000C2D05 /* ModelTexture.cpp in Sources */,
 				90E90637202D20A900374F51 /* Camera.cpp in Sources */,
 				9007B8972089196E000C2D05 /* Renderer.cpp in Sources */,
 				90B14F29207FBFA2004F418C /* Timer.cpp in Sources */,
 				90E90639202D20A900374F51 /* Lights.cpp in Sources */,
+				90708D58209A69A100024A1D /* TextureCreator.cpp in Sources */,
 				90E90634202D20A900374F51 /* ModelLoader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

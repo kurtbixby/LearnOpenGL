@@ -10,7 +10,7 @@
 
 #include <glad/glad.h>
 
-#include "Headers/Texture.h"
+#include "Headers/ModelTexture.h"
 
 const float Cubemap::Vertices_[] = {
 	// positions          

@@ -36,10 +36,8 @@
 
 #include "Headers/ModelLoader.h"
 
-#define WIDTH 800
-#define HEIGHT 600
-
-#define SHADOW_RES 2048
+#define WIDTH 1280
+#define HEIGHT 720
 
 int create_window(GLFWwindow** foo, InputWrapper& inputWrapper, uint32_t width, uint32_t height);
 Input get_input(GLFWwindow* window);
@@ -57,7 +55,7 @@ void timer_message(std::chrono::steady_clock::time_point start, std::chrono::ste
 int main()
 {
     // Change to load config from disk
-    RenderConfig config = RenderConfig();
+    RenderConfig config = RenderConfig(WIDTH, HEIGHT);
     
     // Create InputWrapper?
     InputWrapper inputWrapper = InputWrapper();
@@ -78,7 +76,7 @@ int main()
 //    }
     
     ScreenRenderer scrRenderer = ScreenRenderer(config);
-    SceneRenderer sceneRenderer = SceneRenderer(&scene, SHADOW_RES, &scrRenderer);
+    SceneRenderer sceneRenderer = SceneRenderer(&scene, &scrRenderer, &config);
     Renderer renderer = Renderer(config, &scrRenderer);
     
     Timer frame_timer = Timer();

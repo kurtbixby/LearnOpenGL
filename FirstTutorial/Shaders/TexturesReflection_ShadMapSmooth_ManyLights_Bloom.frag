@@ -4,6 +4,8 @@
 #define MAX_SPECULAR_TEXS 1
 #define MAX_REFLECTION_MAPS 1
 
+#define AMBIENT_COEF 0.35f
+
 #define MAX_DIR_LIGHTS 1
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 1
@@ -190,7 +192,7 @@ vec3 global_lighting(Light light, sampler2D lightShadMap, mat4 lightSpaceMatrix,
     vec4 fragLightPos = lightSpaceMatrix * fs_in.FragWorldPos;
     float shadowDensity = 1.0f - dir_shadow_calculation(fragLightPos, lightShadMap, light.direction);
     
-    vec3 ambient = 0.5f * (light.ambient * diffuseValue);
+    vec3 ambient = AMBIENT_COEF * (light.ambient * diffuseValue);
 
 	vec3 viewLightDir = normalize(-vec3(view * vec4(light.direction, 0.0f)));
 	vec3 norm = normalize(fs_in.Normal);
@@ -212,7 +214,7 @@ vec3 point_lighting(PointLight pointLight, samplerCube lightShadMap, vec3 diffus
 
     float shadowDensity = 1.0f - point_shadow_calculation(vec3(fs_in.FragWorldPos), pointLight.position, lightShadMap);
 
-    vec3 ambient = 0.5f * (pointLight.ambient * diffuseValue);
+    vec3 ambient = AMBIENT_COEF * (pointLight.ambient * diffuseValue);
 
     vec3 norm = normalize(fs_in.Normal);
     vec3 lightDir = normalize(viewLightPos - fs_in.FragPos);
@@ -252,7 +254,7 @@ vec3 spot_lighting(SpotLight spotLight, vec3 diffuseValue, vec3 specularValue)
             intensity = (fragDotProd - spotLight.outerCutoff) / (spotLight.innerCutoff - spotLight.outerCutoff);
         }
 
-        vec3 ambient = spotLight.ambient * diffuseValue;
+        vec3 ambient = AMBIENT_COEF * spotLight.ambient * diffuseValue;
 
         vec3 norm = normalize(fs_in.Normal);
         float diff = max(dot(norm, lightDir), 0.0f);

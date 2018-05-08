@@ -13,6 +13,8 @@ Input::Input()
     cameraInput_ = CameraInput();
     textureMix_ = 0.5f;
     blinnLighting_ = false;
+    changeRenderMethod_ = false;
+    changePolyFill_ = false;
 }
 
 CameraInput Input::CameraInput() const
@@ -28,4 +30,9 @@ bool Input::BlinnLighting() const
 bool Input::ChangeRenderMethod() const
 {
     return changeRenderMethod_;
+}
+
+bool Input::ChangePolygonFill() const
+{
+    return changePolyFill_;
 }

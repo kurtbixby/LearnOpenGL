@@ -8,13 +8,7 @@
 
 //#include "Headers/Debug.h"
 #include "Headers/Structs.h"
-
-// Texture size has to change on Mac. Cause of skybox issue?
-#ifdef __APPLE__
-#define FRAMEBUFFERMULTIPLIER 2
-#else
-#define FRAMEBUFFERMULTIPLIER 1
-#endif
+#include "Headers/TextureCreator.h"
 
 Framebuffer::Framebuffer(): Framebuffer(800, 600, 1, true, GL_FRAMEBUFFER) {}
 
@@ -22,8 +16,8 @@ Framebuffer::Framebuffer(uint32_t width, uint32_t height): Framebuffer(width, he
 
 Framebuffer::Framebuffer(unsigned int width, unsigned int height, uint32_t samples, bool useColorBuffer, GLenum target)
 {
-    width_ = FRAMEBUFFERMULTIPLIER * width;
-    height_ = FRAMEBUFFERMULTIPLIER * height;
+    width_ = width;
+    height_ = height;
     target_ = target;
     noColor_ = !useColorBuffer;
     samples_ = samples;
@@ -57,15 +51,30 @@ void Framebuffer::SetSamples(uint32_t samples)
     }
 }
 
-void Framebuffer::Use()
+void Framebuffer::SetBufferClear(uint32_t clearBits, glm::vec4 clearColor, uint32_t stencilClear, float depthClear)
+{
+    clearBits_ = clearBits;
+    colorClearValue_ = clearColor;
+    depthClearValue_ = depthClear;
+    stencilClearValue_ = stencilClear;
+}
+
+void Framebuffer::Clear()
+{
+    glClearColor(colorClearValue_.r, colorClearValue_.g, colorClearValue_.b, colorClearValue_.a);
+    glClearDepth(depthClearValue_);
+    glClearStencil(stencilClearValue_);
+    glClear(clearBits_);
+}
+
+void Framebuffer::Use() const
 {
     Use(target_);
 }
 
-void Framebuffer::Use(GLenum target)
+void Framebuffer::Use(GLenum target) const
 {
-    target_ = target;
-    glBindFramebuffer(target_, fbo_);
+    glBindFramebuffer(target, fbo_);
     
     if (colorAttachmentCount_ > 0)
     {
@@ -88,7 +97,7 @@ void Framebuffer::SetViewPort()
     glViewport(0, 0, width_, height_);
 }
 
-bool Framebuffer::IsComplete()
+bool Framebuffer::IsComplete() const
 {
     glBindFramebuffer(target_, fbo_);
     bool isComplete = glCheckFramebufferStatus(target_) == GL_FRAMEBUFFER_COMPLETE;
@@ -97,22 +106,22 @@ bool Framebuffer::IsComplete()
     return isComplete;
 }
 
-bool Framebuffer::IsMultiSample()
+bool Framebuffer::IsMultiSample() const
 {
     return samples_ > 1;
 }
 
-float Framebuffer::AspectRatio()
+float Framebuffer::AspectRatio() const
 {
     return float(width_) / float(height_);
 }
 
-glm::vec2 Framebuffer::Center()
+glm::vec2 Framebuffer::Center() const
 {
     return glm::vec2(width_ / 2, height_ / 2);
 }
 
-RenderTarget Framebuffer::RetrieveColorBuffer(unsigned int bufferNumber)
+RenderTarget Framebuffer::RetrieveColorBuffer(unsigned int bufferNumber) const
 {
     if (colorAttachmentCount_ == 0)
     {
@@ -125,7 +134,7 @@ RenderTarget Framebuffer::RetrieveColorBuffer(unsigned int bufferNumber)
     return attachment;
 }
 
-void Framebuffer::DownsampleToFramebuffer(Framebuffer& other_fb)
+void Framebuffer::DownsampleToFramebuffer(Framebuffer& other_fb) const
 {
     if (this->width_ == other_fb.width_ && this->height_ == other_fb.height_ && this->samples_ == other_fb.samples_)
     {
@@ -143,7 +152,7 @@ void Framebuffer::DownsampleToFramebuffer(Framebuffer& other_fb)
     }
 }
 
-void Framebuffer::CopyAttachmentToFramebuffer(Framebuffer& other_fb, GLuint srcAttachmentPoint, GLuint dstAttachmentPoint)
+void Framebuffer::CopyAttachmentToFramebuffer(Framebuffer& other_fb, GLuint srcAttachmentPoint, GLuint dstAttachmentPoint) const
 {
     if (!ValidateBufferCopy(srcAttachmentPoint, dstAttachmentPoint, other_fb))
     {
@@ -159,12 +168,12 @@ void Framebuffer::CopyAttachmentToFramebuffer(Framebuffer& other_fb, GLuint srcA
     }
 }
 
-RenderTarget Framebuffer::RetrieveDepthBuffer()
+RenderTarget Framebuffer::RetrieveDepthBuffer() const
 {
     return depthAttachment_;
 }
 
-RenderTarget Framebuffer::RetrieveDepthStencilBuffer()
+RenderTarget Framebuffer::RetrieveDepthStencilBuffer() const
 {
     return depthStencilAttachment_;
 }
@@ -195,6 +204,7 @@ void Framebuffer::AddTextureAttachment(FBAttachment attachmentType)
             glFramebufferTexture2D(target_, GL_DEPTH_STENCIL_ATTACHMENT, textureSampleType, fbTexture, 0);
             depthStencilAttachment_ = renderTarget;
             break;
+        case FBAttachment::DepthHiRes:
         case FBAttachment::Depth:
             glFramebufferTexture2D(target_, GL_DEPTH_ATTACHMENT, textureSampleType, fbTexture, 0);
             depthAttachment_ = renderTarget;
@@ -224,6 +234,7 @@ void Framebuffer::AddRenderbufferAttachment(FBAttachment attachmentType)
             glFramebufferRenderbuffer(target_, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
             depthStencilAttachment_ = renderTarget;
             break;
+        case FBAttachment::DepthHiRes:
         case FBAttachment::Depth:
             glFramebufferRenderbuffer(target_, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
             depthAttachment_ = renderTarget;
@@ -254,6 +265,7 @@ void Framebuffer::AddCubemapAttachment(FBAttachment attachmentType)
             glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, cubemap, 0);
             depthStencilAttachment_ = renderTarget;
             break;
+        case FBAttachment::DepthHiRes:
         case FBAttachment::Depth:
             glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubemap, 0);
             depthAttachment_ = renderTarget;
@@ -268,19 +280,21 @@ unsigned int Framebuffer::CreateFramebufferTexture(FBAttachment attachmentType)
 {
     unsigned int fbTex;
 
+    TextureOptions options = ConfigureTextureOptions(attachmentType);
     switch(attachmentType)
     {
         case FBAttachment::Color:
-            fbTex = GenFramebufferTexture(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+            fbTex = TextureCreator::CreateTexture(options, width_, height_, samples_);
             break;
         case FBAttachment::ColorHDR:
-            fbTex = GenFramebufferTexture(GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE);
+            fbTex = TextureCreator::CreateTexture(options, width_, height_, samples_);
             break;
         case FBAttachment::DepthStencil:
-            fbTex = GenFramebufferTexture(GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+            fbTex = TextureCreator::CreateTexture(options, width_, height_, samples_);
             break;
+        case FBAttachment::DepthHiRes:
         case FBAttachment::Depth:
-            fbTex = GenFramebufferTexture(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT);
+            fbTex = TextureCreator::CreateTexture(options, width_, height_, samples_);
             break;
     }
 
@@ -305,6 +319,9 @@ unsigned int Framebuffer::CreateRenderBuffer(FBAttachment attachmentType)
         case FBAttachment::Depth:
             renderbuffer = GenRenderbuffer(GL_DEPTH_COMPONENT);
             break;
+        case FBAttachment::DepthHiRes:
+            renderbuffer = GenRenderbuffer(GL_DEPTH_COMPONENT32);
+            break;
     }
 
     return renderbuffer;
@@ -314,55 +331,79 @@ unsigned int Framebuffer::CreateCubemapTexture(FBAttachment attachmentType)
 {
     unsigned int cubemapTex;
     
+    TextureOptions options = ConfigureTextureOptions(attachmentType);
+    // Overwrite to cubemap config
+    options.MinFilter = GL_NEAREST;
+    options.MagFilter = GL_NEAREST;
+    options.WrapType = GL_CLAMP_TO_EDGE;
+    
     switch(attachmentType)
     {
         case FBAttachment::Color:
-            cubemapTex = GenCubemapTexture(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+            cubemapTex = TextureCreator::CreateCubemapTexture(options, width_, height_);
             break;
         case FBAttachment::ColorHDR:
-            cubemapTex = GenCubemapTexture(GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE);
+            cubemapTex = TextureCreator::CreateCubemapTexture(options, width_, height_);
             break;
         case FBAttachment::DepthStencil:
-            cubemapTex = GenCubemapTexture(GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+            cubemapTex = TextureCreator::CreateCubemapTexture(options, width_, height_);
             break;
+        case FBAttachment::DepthHiRes:
         case FBAttachment::Depth:
-            cubemapTex = GenCubemapTexture(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT);
+            cubemapTex = TextureCreator::CreateCubemapTexture(options, width_, height_);
             break;
     }
     
     return cubemapTex;
 }
 
-unsigned int Framebuffer::GenFramebufferTexture(GLint internalFormat, GLenum format, GLenum dataType)
+TextureOptions Framebuffer::ConfigureTextureOptions(FBAttachment attachmentType)
 {
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    
-    bool multisampled = samples_ > 1;
-    auto sampleType = multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
-    
-    glBindTexture(sampleType, texture);
-    
-    if (multisampled)
+    TextureOptions options;
+    switch (attachmentType)
     {
-        glTexImage2DMultisample(sampleType, samples_, internalFormat, width_, height_, GL_TRUE);
+        case FBAttachment::Color:
+            options.TexFormat = GL_RGB;
+            options.SourceDataFormat = GL_RGB;
+            options.SourceDataType = GL_UNSIGNED_BYTE;
+            options.MinFilter = GL_LINEAR;
+            options.MagFilter = GL_LINEAR;
+            options.WrapType = GL_CLAMP_TO_EDGE;
+            break;
+        case FBAttachment::ColorHDR:
+            options.TexFormat = GL_RGB16F;
+            options.SourceDataFormat = GL_RGB;
+            options.SourceDataType = GL_FLOAT;
+            options.MinFilter = GL_LINEAR;
+            options.MagFilter = GL_LINEAR;
+            options.WrapType = GL_CLAMP_TO_EDGE;
+            break;
+        case FBAttachment::DepthStencil:
+            options.TexFormat = GL_DEPTH24_STENCIL8;
+            options.SourceDataFormat = GL_DEPTH_STENCIL;
+            options.SourceDataType = GL_UNSIGNED_INT_24_8;
+            options.MinFilter = GL_NEAREST;
+            options.MagFilter = GL_NEAREST;
+            options.WrapType = GL_CLAMP_TO_BORDER;
+            break;
+        case FBAttachment::Depth:
+            options.TexFormat = GL_DEPTH_COMPONENT;
+            options.SourceDataFormat = GL_DEPTH_COMPONENT;
+            options.SourceDataType = GL_FLOAT;
+            options.MinFilter = GL_NEAREST;
+            options.MagFilter = GL_NEAREST;
+            options.WrapType = GL_CLAMP_TO_BORDER;
+            break;
+        case FBAttachment::DepthHiRes:
+            options.TexFormat = GL_DEPTH_COMPONENT16;
+            options.SourceDataFormat = GL_DEPTH_COMPONENT;
+            options.SourceDataType = GL_FLOAT;
+            options.MinFilter = GL_NEAREST;
+            options.MagFilter = GL_NEAREST;
+            options.WrapType = GL_CLAMP_TO_BORDER;
+            break;
     }
-    else
-    {
-        glTexImage2D(sampleType, 0, internalFormat, width_, height_, 0, format, dataType, nullptr);
-        glTexParameteri(sampleType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(sampleType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    
-    if (format == GL_DEPTH_COMPONENT || format == GL_DEPTH_STENCIL)
-    {
-        glTexParameteri(sampleType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(sampleType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glTexParameterfv(sampleType, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(glm::vec4(1.0f)));
-    }
-    
-    glBindTexture(sampleType, 0);
-    return texture;
+    return options;
 }
 
 unsigned int Framebuffer::GenRenderbuffer(GLenum internalFormat)
@@ -384,27 +425,7 @@ unsigned int Framebuffer::GenRenderbuffer(GLenum internalFormat)
     return rbo;
 }
 
-unsigned int Framebuffer::GenCubemapTexture(GLint internalFormat, GLenum format, GLenum dataType)
-{
-    unsigned int cubemap;
-    glGenTextures(1, &cubemap);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-    for (int i = 0; i < 6; i++)
-    {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width_, height_, 0, format, dataType, nullptr);
-    }
-    
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    return cubemap;
-}
-
-bool Framebuffer::ValidateBufferCopy(GLuint srcAttachmentPoint, GLuint dstAttachmentPoint, Framebuffer& otherFb)
+bool Framebuffer::ValidateBufferCopy(GLuint srcAttachmentPoint, GLuint dstAttachmentPoint, Framebuffer& otherFb) const
 {
     if (CheckAttachmentPointType(srcAttachmentPoint) != CheckAttachmentPointType(dstAttachmentPoint) || srcAttachmentPoint == 0)
     {
@@ -441,7 +462,7 @@ GLuint Framebuffer::CheckAttachmentPointType(GLuint attachmentPoint)
     return 0;
 }
 
-bool Framebuffer::HasAttachment(GLuint attachmentPoint)
+bool Framebuffer::HasAttachment(GLuint attachmentPoint) const
 {
     if (attachmentPoint == GL_DEPTH_ATTACHMENT)
     {

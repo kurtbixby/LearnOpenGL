@@ -1,20 +1,20 @@
 //
-//  Texture_Inline.h
+//  ModelTexture_Inline.h
 //  FirstTutorial
 //
 //  Created by Kurt Bixby on 4/20/18.
 //  Copyright © 2018 Bixby Productions. All rights reserved.
 //
 
-#ifndef TEXTURE_INLINE_h
-#define TEXTURE_INLINE_h
+#ifndef MODEL_TEXTURE_INLINE_h
+#define MODEL_TEXTURE_INLINE_h
 
 #include <string>
 #include <boost/filesystem.hpp>
 
-inline Texture load_texture(std::string directory, std::string filename, TextureType texType)
+inline ModelTexture load_texture(std::string directory, std::string filename, ModelTextureType texType)
 {
-    Texture texture;
+    ModelTexture texture;
     texture.id = texture_from_file(filename.c_str(), directory);
     texture.type = texType;
     texture.path = filename;
@@ -72,4 +72,4 @@ inline unsigned int load_cubemap(std::vector<std::string> texturePaths)
     return cubemapTexId;
 }
 
-#endif /* TEXTURE_INLINE_h */
+#endif /* MODEL_TEXTURE_INLINE_h */

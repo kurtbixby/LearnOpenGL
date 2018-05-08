@@ -17,6 +17,7 @@ enum class FBAttachment
 {
     Color,
     Depth,
+    DepthHiRes,
     DepthStencil,
     ColorHDR
 };

@@ -112,8 +112,11 @@ SceneGraph::SceneGraph(uint32_t number)
                 objects_.push_back(new_obj);
             }
             
-            Object plane = Object(glm::vec3(0.0f, -0.75f, 0.0f), "Defaults/plane", glm::vec3(10.0f), false, true);
+            Object plane = Object(glm::vec3(0.0f, -0.075f, 0.0f), "Defaults/plane", glm::vec3(10.0f), false, true);
             objects_.push_back(plane);
+            
+            Object sphere = Object(glm::vec3(-10.0f, 5.01f, -6.0f), "Defaults/sphere", glm::vec3(5.0f), false);
+            objects_.push_back(sphere);
             
             /**
              *  Old Scene

@@ -8,11 +8,14 @@
 
 #include "Headers/SceneRenderer.h"
 
+#include <random>
+#include <string>
 #include <vector>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+#include "Headers/TextureCreator.h"
 #include "Headers/Object.h"
 #include "Headers/UniformBlockBuffer.h"
 
@@ -36,14 +39,17 @@ const std::vector<std::string> SceneRenderer::deferredTextureNames_ = {
     "colorDiffuse",
     "colorSpec",
     "reflectDir",
-    "reflectColor",
+    "reflectColor"
+};
+
+const std::vector<std::string> SceneRenderer::deferredSSAOTextureNames_ = {
     "viewPosition",
     "viewNormal"
 };
 
 uint32_t SceneRenderer::DeferredFramebuffersNumber()
 {
-    return deferredTextureNames_.size();
+    return deferredTextureNames_.size() + deferredSSAOTextureNames_.size();
 }
 
 // Unit vector for greyScale conversion/brightness measurement
@@ -68,14 +74,58 @@ const glm::vec3 SceneRenderer::cubeShadMapUps_[] = {
     glm::vec3(0.0f, -1.0f, 0.0f)
 };
 
-SceneRenderer::SceneRenderer(Scene* scene, uint32_t shadowRes, ScreenRenderer* scrRenderer)
+SceneRenderer::SceneRenderer(Scene* scene, ScreenRenderer* scrRenderer, RenderConfig* renderConfig)
 {
     scene_ = scene;
     scrRenderer_ = scrRenderer;
     modelLoader_ = ModelLoader(boost::filesystem::path("Resources").make_preferred());
+    renderConfig_ = renderConfig;
+    ssaoEnabled_ = renderConfig_->SSAOEnabled();
     
     MakeShaders();
-    MakeShadowMaps(shadowRes);
+    MakeFramebuffers(renderConfig_->RenderWidth(), renderConfig_->RenderHeight());
+    MakeShadowMaps(renderConfig_->ShadowMapRes());
+    
+    SSAO_Setup();
+}
+
+void SceneRenderer::MakeFramebuffers(uint32_t renderWidth, uint32_t renderHeight, uint32_t samples)
+{
+    forwardBuffer_ = Framebuffer(renderWidth, renderHeight, samples);
+    forwardBuffer_.AddTextureAttachment(FBAttachment::ColorHDR);
+    forwardBuffer_.AddTextureAttachment(FBAttachment::ColorHDR);
+    forwardBuffer_.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    uint32_t bufferClearBits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    forwardBuffer_.SetBufferClear(bufferClearBits, clearColor);
+    
+    gBuffer_ = Framebuffer(renderWidth, renderHeight);
+    for (int i = 0; i < SceneRenderer::DeferredFramebuffersNumber(); i++)
+    {
+        gBuffer_.AddTextureAttachment(FBAttachment::ColorHDR);
+    }
+    gBuffer_.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    bufferClearBits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    gBuffer_.SetBufferClear(bufferClearBits);
+    
+    deferredCompBuffer_ = Framebuffer(renderWidth, renderHeight);
+    deferredCompBuffer_.AddTextureAttachment(FBAttachment::ColorHDR);
+    deferredCompBuffer_.AddTextureAttachment(FBAttachment::ColorHDR);
+    deferredCompBuffer_.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+    bufferClearBits = GL_COLOR_BUFFER_BIT;
+    clearColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    deferredCompBuffer_.SetBufferClear(bufferClearBits, clearColor);
+    
+    ssaoBuffer_ = Framebuffer(renderWidth, renderHeight);
+    // Refactor this to allow single channel textures
+    ssaoBuffer_.AddTextureAttachment(FBAttachment::Color);
+    bufferClearBits = GL_COLOR_BUFFER_BIT;
+    ssaoBuffer_.SetBufferClear(bufferClearBits, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    
+    ssaoBlurBuffer_ = Framebuffer(renderWidth, renderHeight);
+    ssaoBlurBuffer_.AddTextureAttachment(FBAttachment::Color);
+    bufferClearBits = GL_COLOR_BUFFER_BIT;
+    ssaoBlurBuffer_.SetBufferClear(bufferClearBits, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void SceneRenderer::MakeShaders()
@@ -120,8 +170,14 @@ void SceneRenderer::MakeShaders()
     deferredGBufferCreationShader_ = Shader(deferred_vert_shader_path.string().c_str(), deferred_gbuffer_frag_shader_path.string().c_str());
     
     boost::filesystem::path quad_vert_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-    boost::filesystem::path gbuffer_comp_frag_shader_path = boost::filesystem::path("Shaders/Deferred_BufferComposition.frag").make_preferred();
+    boost::filesystem::path gbuffer_comp_frag_shader_path = boost::filesystem::path("Shaders/Deferred_BufferComposition_SSAO.frag").make_preferred();
     deferredGBufferCompositionShader_ = Shader(quad_vert_shader_path.string().c_str(), gbuffer_comp_frag_shader_path.string().c_str());
+    
+    boost::filesystem::path ssao_frag_shader_path = boost::filesystem::path("Shaders/Deferred_SSAO.frag").make_preferred();
+    deferredSSAOShader_ = Shader(quad_vert_shader_path.string().c_str(), ssao_frag_shader_path.string().c_str());
+    
+    boost::filesystem::path ssao_blur_frag_shader_path = boost::filesystem::path("Shaders/SSAO_Blur.frag").make_preferred();
+    ssaoBlurShader_ = Shader(quad_vert_shader_path.string().c_str(), ssao_blur_frag_shader_path.string().c_str());
 }
 
 
@@ -134,6 +190,7 @@ void SceneRenderer::MakeShadowMaps(uint32_t shadowRes)
     glCullFace(GL_FRONT);
     
     Framebuffer shadowFramebuffer = Framebuffer(shadowRes, shadowRes, 1, false);
+    shadowFramebuffer.SetBufferClear(GL_DEPTH_BUFFER_BIT);
     shadowFramebuffer.SetViewPort();
     GenerateDirLightShadowMaps(lighting.DirLights(), regularDrawLists, shadowFramebuffer);
     GeneratePntLightShadowMaps(lighting.PntLights(), regularDrawLists, shadowFramebuffer);
@@ -150,15 +207,15 @@ void SceneRenderer::GenerateDirLightShadowMaps(const std::vector<Light>& lights,
     
     for (Light light : lights)
     {
-        shadowFramebuffer.AddTextureAttachment(FBAttachment::Depth);
-        shadowFramebuffer.Use();
-        
         glm::vec3 position = glm::vec3(0.0f) - (20.0f * light.Direction());
         glm::mat4 lightView = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0, 1.0f, 0.0f));
         glm::mat4 lightProjection = glm::ortho(-LIGHT_DIMEN_H, LIGHT_DIMEN_H, -LIGHT_DIMEN_V, LIGHT_DIMEN_V, LIGHT_NEAR_Z, LIGHT_FAR_Z);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
         dirShadMapMakerShader_.SetMatrix4fv("lightSpaceMatrix", glm::value_ptr(lightSpaceMatrix));
-        glClear(GL_DEPTH_BUFFER_BIT);
+        
+        shadowFramebuffer.AddTextureAttachment(FBAttachment::DepthHiRes);
+        shadowFramebuffer.Use();
+        shadowFramebuffer.Clear();
         for (auto drawList : regularDrawLists)
         {
             if (drawList.front().Is2D_)
@@ -201,9 +258,9 @@ void SceneRenderer::GeneratePntLightShadowMaps(const std::vector<PointLight>& li
             pntShadMapMakerShader_.SetMatrix4fv(lightSpaceName, glm::value_ptr(lightSpace));
         }
         
-        shadowFramebuffer.AddCubemapAttachment(FBAttachment::Depth);
+        shadowFramebuffer.AddCubemapAttachment(FBAttachment::DepthHiRes);
         shadowFramebuffer.Use();
-        glClear(GL_DEPTH_BUFFER_BIT);
+        shadowFramebuffer.Clear();
         for (auto drawList : regularDrawLists)
         {
             bool is2D = drawList.front().Is2D_;
@@ -228,16 +285,12 @@ void SceneRenderer::RenderChanged()
     sentShadowMaps_ = false;
 }
 
-void SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
+const Framebuffer* SceneRenderer::Render_Forward()
 {
+    Framebuffer& mainBuffer = forwardBuffer_;
     mainBuffer.SetViewPort();
     mainBuffer.Use();
-    
-    // Can wait until the draw calls
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // state setter
-    glClearDepth(1.0f);
-    glClearStencil(0x0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // state user
+    mainBuffer.Clear();
     
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_ALWAYS, 0x1, 0x1);
@@ -296,6 +349,8 @@ void SceneRenderer::Render_Forward(Framebuffer& mainBuffer)
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
+    
+    return &forwardBuffer_;
 }
 
 void SceneRenderer::SendShadowMapsToShader(Shader& shader)
@@ -332,17 +387,12 @@ void SceneRenderer::DrawLights(SceneLighting& lighting, Shader& lightsShader)
     RenderObjectsInstanced(lightsList, lightsShader);
 }
 
-void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& gBuffer)
+const Framebuffer* SceneRenderer::Render_Deferred()
 {
+    Framebuffer& gBuffer = gBuffer_;
     gBuffer.SetViewPort();
     gBuffer.Use();
-    // Can wait until the draw calls
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // state setter
-    glClearDepth(1.0f);
-    glClearStencil(0x0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // state user
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
+    gBuffer.Clear();
     
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_ALWAYS, 0x1, 0x1);
@@ -370,6 +420,7 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     deferredGBufferCreationShader_.BindUniformBlock("Matrices", matrixBindIndex);
     deferredGBufferCreationShader_.SetVec3("camPosition", camPos.x, camPos.y, camPos.z);
     std::vector<std::vector<Object>> regularObjDrawLists = scene_->RegularObjectsDrawLists();
+    
     if (regularObjDrawLists.size() > 0)
     {
         RenderDrawLists(regularObjDrawLists, deferredGBufferCreationShader_);
@@ -377,6 +428,28 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_DEPTH_TEST);
+    
+    if (ssaoEnabled_)
+    {
+        // SSAO
+        // Make/use SSAO framebuffer
+        // Render out SSAO
+        // Buffer not cleared
+        ssaoBuffer_.Use();
+        ssaoBuffer_.Clear();
+        deferredSSAOShader_.Use();
+        deferredSSAOShader_.BindUniformBlock("Matrices", matrixBindIndex);
+        SSAO_SendViewTextures(deferredSSAOShader_, gBuffer);
+        scrRenderer_->DrawPostProcessScreenQuad();
+        ssaoBlurBuffer_.Use();
+        ssaoBlurBuffer_.Clear();
+        ssaoBlurShader_.Use();
+        ssaoBlurShader_.SetInt("blurSize", 4);
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, ssaoBuffer_.RetrieveColorBuffer(0).TargetName);
+        ssaoBlurShader_.SetInt("ssaoTexture", 1);
+        scrRenderer_->DrawPostProcessScreenQuad();
+    }
     
     // COMPOSITING STAGE
     // Composite deferred textures to one
@@ -387,14 +460,14 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     Cubemap skybox = scene_->ActiveSkybox();
     skybox.Activate(deferredGBufferCompositionShader_);
 
+    Framebuffer& compositeBuffer = deferredCompBuffer_;
     compositeBuffer.Use();
+    //    // Can wait until the draw calls
+    //    glClearColor(1.0f, 0.0f, 0.0f, 1.0f); // state setter
+    //    glClear(GL_COLOR_BUFFER_BIT); // state user
+    compositeBuffer.Clear();
     
-    CompositeDeferredRenderTextures(gBuffer, deferredGBufferCompositionShader_);
-    
-    // Can wait until the draw calls
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f); // state setter
-    glClearDepth(1.0f);
-    glClear(GL_COLOR_BUFFER_BIT); // state user
+    CompositeDeferredRenderTextures(deferredGBufferCompositionShader_, gBuffer, ssaoBlurBuffer_);
     scrRenderer_->DrawPostProcessScreenQuad();
     
     gBuffer.CopyAttachmentToFramebuffer(compositeBuffer, GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH_STENCIL_ATTACHMENT);
@@ -402,7 +475,6 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
-    // Draw lights
     
     // Draw transparent objects
     
@@ -423,9 +495,11 @@ void SceneRenderer::Render_Deferred(Framebuffer& compositeBuffer, Framebuffer& g
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
+    
+    return &compositeBuffer;
 }
 
-void SceneRenderer::CompositeDeferredRenderTextures(Framebuffer& gBuffer, Shader& compositionShader)
+void SceneRenderer::CompositeDeferredRenderTextures(Shader& compositionShader, Framebuffer& gBuffer, Framebuffer& ssaoBuffer)
 {
     for (int i = 0; i < deferredTextureNames_.size(); i++)
     {
@@ -435,6 +509,12 @@ void SceneRenderer::CompositeDeferredRenderTextures(Framebuffer& gBuffer, Shader
         glBindTexture(GL_TEXTURE_2D, textureName);
         compositionShader.SetInt(deferredTextureNames_[i], textureUnitNumber);
     }
+    
+    GLuint ssaoTexUnitNumber = DEFERRED_RENDER_TEX_UNIT + deferredTextureNames_.size();
+    GLuint ssaoTextureName = ssaoBuffer.RetrieveColorBuffer(0).TargetName;
+    glActiveTexture(GL_TEXTURE0 + ssaoTexUnitNumber);
+    glBindTexture(GL_TEXTURE_2D, ssaoTextureName);
+    compositionShader.SetInt("ssaoTexture", ssaoTexUnitNumber);
     
     // Only have to do this when the shadow maps change
     if (scene_->LightingChanged() || !sentShadowMaps_)
@@ -453,12 +533,14 @@ void SceneRenderer::RenderDrawLists(std::vector<std::vector<Object>> drawLists, 
     }
 }
 
-void SceneRenderer::RenderObjectsInstanced(std::vector<Object> drawList, Shader& shader)
+void SceneRenderer::RenderObjectsInstanced(std::vector<Object> drawList, Shader& shader, GLuint fillMode)
 {
     if (drawList.size() < 1)
     {
         return;
     }
+    
+    glPolygonMode(GL_FRONT_AND_BACK, fillMode);
     
     Model model = modelLoader_.LoadModel(drawList.front().Model_);
     
@@ -471,4 +553,99 @@ void SceneRenderer::RenderObjectsInstanced(std::vector<Object> drawList, Shader&
     }
     
     model.DrawInstanced(shader, instanceMatrices);
+}
+
+void SceneRenderer::SSAO_Setup()
+{
+    // Generate fragment offsets to sample from
+    std::vector<glm::vec3> sampleOffsets = SSAO_SampleOffsets(64);
+    // Generate noise texture for better results (optional)
+    GLuint noiseTex = SSAO_NoiseTexture();
+    deferredSSAOShader_.Use();
+    SSAO_SendConstantData(deferredSSAOShader_, sampleOffsets, noiseTex);
+}
+
+std::vector<glm::vec3> SceneRenderer::SSAO_SampleOffsets(uint32_t sampleNumber)
+{
+    std::uniform_real_distribution<float> distribution(0.0, 1.0);
+    std::default_random_engine generator;
+    std::vector<glm::vec3> sampleOffsets;
+    for (uint32_t i = 0; i < sampleNumber; i++)
+    {
+        // Generate hemisphere of samples
+        glm::vec3 sample = glm::vec3(distribution(generator) * 2.0 - 1.0,
+                                     distribution(generator) * 2.0 - 1.0,
+                                     distribution(generator));
+        sample = glm::normalize(sample);
+        float radiusScale = (float) i / (float) sampleNumber;
+        radiusScale = lerp(0.1, 1.0, radiusScale * radiusScale);
+        sampleOffsets.push_back(sample * radiusScale);
+    }
+    
+    // Make this into a texture?
+    return sampleOffsets;
+}
+
+float SceneRenderer::lerp(float a, float b, float t)
+{
+    return a + t * (b - a);
+}
+
+GLuint SceneRenderer::SSAO_NoiseTexture()
+{
+    std::uniform_real_distribution<float> distribution(0.0, 1.0);
+    std::default_random_engine generator;
+    std::vector<glm::vec3> ssaoNoise;
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        glm::vec3 noise(
+                        distribution(generator) * 2.0 - 1.0,
+                        distribution(generator) * 2.0 - 1.0,
+                        0.0f);
+        noise = glm::normalize(noise);
+        ssaoNoise.push_back(noise);
+    }
+    
+    TextureOptions options;
+    options.TexFormat = GL_RGB;
+    options.SourceDataFormat = GL_RGB;
+    options.SourceDataType = GL_FLOAT;
+    options.MinFilter = GL_NEAREST;
+    options.MagFilter = GL_NEAREST;
+    options.WrapType = GL_REPEAT;
+    
+    GLuint noiseTex = TextureCreator::CreateTexture(options, 4, 4, 1, &ssaoNoise[0]);
+    return noiseTex;
+}
+
+void SceneRenderer::SSAO_SendConstantData(Shader& shader, std::vector<glm::vec3>& sampleOffsets, GLuint noiseTex)
+{
+    uint32_t noiseNum = DEFERRED_RENDER_TEX_UNIT + DeferredFramebuffersNumber();
+    glActiveTexture(GL_TEXTURE0 + noiseNum);
+    glBindTexture(GL_TEXTURE_2D, noiseTex);
+    shader.SetInt("rotationNoise", noiseNum);
+    
+    shader.SetInt("numSamples", sampleOffsets.size());
+    for (uint32_t i = 0; i < sampleOffsets.size(); i++)
+    {
+        glm::vec3 sampleOffset = sampleOffsets[i];
+        shader.SetVec3("sampleOffsets[" + std::to_string(i) + "]", sampleOffset.x, sampleOffset.y, sampleOffset.z);
+    }
+    
+    float ssaoRadius = 0.75f;
+    shader.SetFloat("ssaoRadius", ssaoRadius);
+}
+
+void SceneRenderer::SSAO_SendViewTextures(Shader& shader, Framebuffer& gBuffer)
+{
+    uint32_t defTexs = deferredTextureNames_.size();
+    uint32_t ssaoTexNum = defTexs + DEFERRED_RENDER_TEX_UNIT;
+    for (uint32_t i = 0; i < deferredSSAOTextureNames_.size(); i++)
+    {
+        GLuint defTexId = gBuffer.RetrieveColorBuffer(defTexs + i).TargetName;
+        GLuint texNum = ssaoTexNum + i;
+        glActiveTexture(GL_TEXTURE0 + texNum);
+        glBindTexture(GL_TEXTURE_2D, defTexId);
+        shader.SetInt(deferredSSAOTextureNames_[i], texNum);
+    }
 }

@@ -10,14 +10,26 @@
 
 #include <cstdint>
 
-RenderConfig::RenderConfig()
+// Texture size has to change on Mac. Cause of skybox issue?
+#ifdef __APPLE__
+#define FRAMEBUFFERMULTIPLIER 2
+#else
+#define FRAMEBUFFERMULTIPLIER 1
+#endif
+
+RenderConfig::RenderConfig() : RenderConfig(1280, 720)
+{ }
+
+RenderConfig::RenderConfig(uint32_t renderWidth, uint32_t renderHeight)
 {
-    windowWidth_ = 800;
-    windowHeight_ = 600;
+    renderWidth_ = renderWidth;
+    renderHeight_ = renderHeight;
+    shadowMapRes_ = 1024;
     samples_ = 1;
     bloom_ = true;
     shadowmaps_ = true;
     deferredRendering_ = true;
+    ssao_ = true;
     gamma_ = 2.2f;
     exposure_ = 1.0f;
     kernel_ = {
@@ -34,27 +46,32 @@ RenderConfig::RenderConfig()
 
 uint32_t RenderConfig::WindowWidth()
 {
-    return windowWidth_;
+    return renderWidth_ / FRAMEBUFFERMULTIPLIER;
 }
 
 uint32_t RenderConfig::WindowHeight()
 {
-    return windowHeight_;
+    return renderHeight_ / FRAMEBUFFERMULTIPLIER;
 }
 
 uint32_t RenderConfig::RenderWidth()
 {
-    return windowWidth_;
+    return renderWidth_;
 }
 
 uint32_t RenderConfig::RenderHeight()
 {
-    return windowHeight_;
+    return renderHeight_;
 }
 
 uint32_t RenderConfig::RenderSamples()
 {
     return samples_;
+}
+
+uint32_t RenderConfig::ShadowMapRes()
+{
+    return shadowMapRes_;
 }
 
 bool RenderConfig::BloomEnabled()
@@ -70,6 +87,11 @@ bool RenderConfig::ShadowmapsEnabled()
 bool RenderConfig::DeferredRenderingEnabled()
 {
     return deferredRendering_;
+}
+
+bool RenderConfig::SSAOEnabled()
+{
+    return ssao_;
 }
 
 float RenderConfig::ScreenGamma()

@@ -27,6 +27,7 @@ ScreenRenderer::ScreenRenderer(RenderConfig& config)
 
 void ScreenRenderer::DrawPostProcessScreenQuad()
 {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(screenQuadVAO_);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);

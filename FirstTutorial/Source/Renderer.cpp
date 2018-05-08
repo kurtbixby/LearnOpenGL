@@ -21,9 +21,6 @@ Renderer::Renderer(RenderConfig& config, ScreenRenderer* scrRenderer)
 {
     scrRenderer_ = scrRenderer;
     renderDeferred_ = config.DeferredRenderingEnabled();
-
-    SetupForwardBuffers(config);
-    SetupDeferredBuffers(config);
     
     boost::filesystem::path screen_vertex_shader_path = boost::filesystem::path(config.ScreenVertShaderPath()).make_preferred();
     
@@ -42,10 +39,12 @@ Renderer::Renderer(RenderConfig& config, ScreenRenderer* scrRenderer)
         Framebuffer pingBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight());
         pingBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
         pingBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+        pingBuffer.SetBufferClear(GL_COLOR_BUFFER_BIT);
         
         Framebuffer pongBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight());
         pongBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
         pongBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
+        pongBuffer.SetBufferClear(GL_COLOR_BUFFER_BIT);
         
         Framebuffer compositeBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight());
         compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
@@ -63,34 +62,6 @@ Renderer::Renderer(RenderConfig& config, ScreenRenderer* scrRenderer)
     }
 }
 
-void Renderer::SetupForwardBuffers(RenderConfig& config)
-{
-    // Forward Render Setup
-    Framebuffer renderBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
-    renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-    renderBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-    renderBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-    mainBuffers_.push_back(renderBuffer);
-}
-
-void Renderer::SetupDeferredBuffers(RenderConfig& config)
-{
-    // Deferred Render Setup
-    Framebuffer compositeBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
-    compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-    compositeBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-    compositeBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-    mainBuffers_Deferred_.push_back(compositeBuffer);
-    
-    Framebuffer gBuffer = Framebuffer(config.RenderWidth(), config.RenderHeight(), config.RenderSamples());
-    for (int i = 0; i < SceneRenderer::DeferredFramebuffersNumber(); i++)
-    {
-        gBuffer.AddTextureAttachment(FBAttachment::ColorHDR);
-    }
-    gBuffer.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-    mainBuffers_Deferred_.push_back(gBuffer);
-}
-
 void Renderer::SwitchRenderMethod()
 {
     renderDeferred_ = !renderDeferred_;
@@ -98,24 +69,20 @@ void Renderer::SwitchRenderMethod()
 
 void Renderer::RenderScene(SceneRenderer& sceneRenderer)
 {
-    Framebuffer* resultBuffer;
+    const Framebuffer* resultBuffer;
     
     glEnable(GL_DEPTH_TEST);
     if (renderDeferred_)
     {
-        resultBuffer = &mainBuffers_Deferred_.front();
-        Framebuffer* gBuffer = &mainBuffers_Deferred_[1];
-        sceneRenderer.Render_Deferred(*resultBuffer, *gBuffer);
-//        resultBuffer = gBuffer;
+        resultBuffer = sceneRenderer.Render_Deferred();
     }
     else
     {
-        resultBuffer = &mainBuffers_.front();
-        sceneRenderer.Render_Forward(*resultBuffer);
+        resultBuffer = sceneRenderer.Render_Forward();
     }
     glDisable(GL_DEPTH_TEST);
  
-    Framebuffer* workingBuffer;
+    const Framebuffer* workingBuffer;
     if (resultBuffer->IsMultiSample())
     {
         Framebuffer* intermediateBuffer = &mainBuffers_.back();
@@ -130,9 +97,18 @@ void Renderer::RenderScene(SceneRenderer& sceneRenderer)
     GLuint finalFrame = workingBuffer->RetrieveColorBuffer(0).TargetName;
     if (bloom_)
     {
-        GLuint blurredBloom = BlurTexture(workingBuffer->RetrieveColorBuffer(1).TargetName);
-        std::vector<GLuint> textures = {finalFrame, blurredBloom};
-        finalFrame = CombineTextures(textures);
+        GLuint bloomFrame = workingBuffer->RetrieveColorBuffer(1).TargetName;
+        if (finalFrame == bloomFrame)
+        {
+            // Didn't attach second render attachment
+            // Message error
+        }
+        else
+        {
+            GLuint blurredBloom = BlurTexture(bloomFrame);
+            std::vector<GLuint> textures = {finalFrame, blurredBloom};
+            finalFrame = CombineTextures(textures);
+        }
     }
     
     scrRenderer_->DrawFinalScreenQuad(finalFrame);
@@ -141,9 +117,9 @@ void Renderer::RenderScene(SceneRenderer& sceneRenderer)
 GLuint Renderer::BlurTexture(GLuint textureName)
 {
     supportBuffers_[PINGBUFFER].Use();
-    glClear(GL_COLOR_BUFFER_BIT);
+    supportBuffers_[PINGBUFFER].Clear();
     supportBuffers_[PONGBUFFER].Use();
-    glClear(GL_COLOR_BUFFER_BIT);
+    supportBuffers_[PONGBUFFER].Clear();
     glActiveTexture(GL_TEXTURE0);
     int amount = 6;
     GLuint readColorBuffer = textureName;

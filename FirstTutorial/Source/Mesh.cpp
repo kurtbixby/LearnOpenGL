@@ -2,9 +2,9 @@
 
 #include <vector>
 
+#include "Headers/ModelTexture.h"
 #include "Headers/Structs.h"
 #include "Headers/Shader.h"
-#include "Headers/Texture.h"
 
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
 {
@@ -14,7 +14,17 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
 	initializeMesh();
 }
 
-void Mesh::Draw(const Shader& shader, vector<Texture> textures)
+void Mesh::Draw(const Shader& shader, vector<ModelTexture> textures)
+{
+    PrepareTextures(shader, textures);
+    
+    glBindVertexArray(vao_);
+    glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    glActiveTexture(GL_TEXTURE0);
+}
+
+void Mesh::Draw_NormalMapped(const Shader& shader, vector<ModelTexture> textures)
 {
     PrepareTextures(shader, textures);
     PrepareTangentSpace();
@@ -25,7 +35,7 @@ void Mesh::Draw(const Shader& shader, vector<Texture> textures)
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Mesh::DrawInstanced(const Shader& shader, vector<Texture> textures, vector<glm::mat4> instance_matrices)
+void Mesh::DrawInstanced(const Shader& shader, vector<ModelTexture> textures, vector<glm::mat4> instance_matrices)
 {
     glBindVertexArray(vao_);
     PrepareTextures(shader, textures);
@@ -37,7 +47,7 @@ void Mesh::DrawInstanced(const Shader& shader, vector<Texture> textures, vector<
     glBindVertexArray(0);
 }
 
-void Mesh::PrepareTextures(const Shader& shader, vector<Texture>& textures)
+void Mesh::PrepareTextures(const Shader& shader, vector<ModelTexture>& textures)
 {
     unsigned int diffuseTexs = 0;
     unsigned int specularTexs = 0;
@@ -47,28 +57,28 @@ void Mesh::PrepareTextures(const Shader& shader, vector<Texture>& textures)
     for (int i = 0; i < textures.size(); i++)
     {
         std::string texName = "material.";
-        Texture tex = textures[i];
+        ModelTexture tex = textures[i];
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, tex.id);
         switch(tex.type)
         {
-            case TextureType::Diffuse:
+            case ModelTextureType::DiffuseMap:
             texName.append("diffuse[").append(std::to_string(diffuseTexs)).append("]");
                 shader.SetInt(texName, i);
                 diffuseTexs += 1;
                 break;
-            case TextureType::Specular:
+            case ModelTextureType::SpecularMap:
             texName.append("specular[").append(std::to_string(specularTexs)).append("]");
                 shader.SetInt(texName, i);
                 specularTexs += 1;
                 break;
-            case TextureType::Reflection:
+            case ModelTextureType::ReflectionMap:
             texName.append("reflection[").append(std::to_string(reflectionMaps)).append("]");
                 shader.SetInt(texName, i);
                 reflectionMaps += 1;
                 break;
                 
-            case TextureType::Normal:
+            case ModelTextureType::NormalMap:
                 texName.append("normals[").append(std::to_string(reflectionMaps)).append("]");
                 shader.SetInt(texName, i);
                 normalMaps += 1;

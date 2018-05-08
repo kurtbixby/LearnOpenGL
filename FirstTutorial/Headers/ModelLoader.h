@@ -10,10 +10,10 @@
 
 #include <unordered_map>
 
+#include "ModelTexture.h"
 #include "Mesh.h"
 #include "Model.h"
 #include "Structs.h"
-#include "Texture.h"
 
 enum class DefaultModel
 {
@@ -35,16 +35,16 @@ private:
         const aiScene* scene;
     };
     
-	static unordered_map<string, Texture> loaded_textures_;
+	static unordered_map<string, ModelTexture> loaded_textures_;
     static unordered_map<string, Model> loaded_models_;
 
     const static std::string defaultModelsFolder_;
 	std::string directory_;
 
     Model loadDefaultModel(std::string file);
-	void processNode(aiNode* node, aiSceneWrapper wrapped_scene, std::vector<Mesh>& meshes, std::vector<std::vector<Texture>>& mesh_textures);
-	Mesh processMesh(aiMesh* mesh, aiSceneWrapper wrapped_scene, std::vector<Texture>& textures);
-    std::vector<Texture> loadMaterialTextures(std::string relative_dir, aiMaterial* mat, aiTextureType type, TextureType texType);
+	void processNode(aiNode* node, aiSceneWrapper wrapped_scene, std::vector<Mesh>& meshes, std::vector<std::vector<ModelTexture>>& mesh_textures);
+	Mesh processMesh(aiMesh* mesh, aiSceneWrapper wrapped_scene, std::vector<ModelTexture>& textures);
+    std::vector<ModelTexture> loadMaterialTextures(std::string relative_dir, aiMaterial* mat, aiTextureType type, ModelTextureType texType);
 };
 
 #endif
