@@ -5,6 +5,7 @@
 
 #include "Headers/Camera.h"
 
+#include <algorithm>
 #include <iostream>
 
 #include <glm/glm.hpp>
@@ -40,7 +41,7 @@ Camera::Camera(const glm::vec3 position, const glm::vec3 target, const glm::vec3
 
 	aspectRatio_ = 4 / 3.0f;
 	fov_ = M_PI_4;
-
+    
 	projection_ = glm::perspective(fov_, aspectRatio_, 0.1f, 100.0f);
 }
 
@@ -63,6 +64,11 @@ glm::vec3 Camera::GetPosition() const
 glm::vec3 Camera::GetDirection() const
 {
 	return direction_;
+}
+
+glm::vec3 Camera::Right() const
+{
+    return right_;
 }
 
 glm::mat4 lookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)

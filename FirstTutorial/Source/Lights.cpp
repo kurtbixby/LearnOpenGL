@@ -24,7 +24,7 @@ Light::Light(LightData data)
 Light::Light(LightColorData color_data, glm::vec3 direction)
 {
     data_.color_data = color_data;
-    data_.direction = direction;
+    data_.direction = glm::normalize(direction);
 }
 
 size_t Light::DataSize()
@@ -63,6 +63,9 @@ PointLight::PointLight(PointLightData data)
 {
     data_ = data;
 }
+
+PointLight::PointLight(LightColorData color_data, glm::vec3 position): PointLight(color_data, position, 1.0f, 0.09f, 0.032f)
+{}
 
 PointLight::PointLight(LightColorData color_data, glm::vec3 position, float constant, float linear, float quadratic)
 {
@@ -174,4 +177,9 @@ glm::vec3 SpotLight::Direction()
 void SpotLight::ChangeDirection(glm::vec3 direction)
 {
     data_.direction = direction;
+}
+
+float SpotLight::LightAngle()
+{
+    return 2 * data_.outerCutoff;
 }

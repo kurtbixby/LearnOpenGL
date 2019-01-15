@@ -1,6 +1,8 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <string>
+
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 
@@ -10,19 +12,19 @@
 class Object
 {
 public:
-    uint32_t Model_;
+    std::string Model_;
     bool Outlined_;
     bool Is2D_;
     bool IsTransparent_;
     
     // Have a tree-like structure for
 
-    Object() : Object(glm::vec3(1.0f), -1, 1.0f, false) {};
-    Object(const glm::vec3 transform, const int model, const float scale, const bool outline, const bool is2D = false, const bool isTransparent = false)
+    Object() : Object(glm::vec3(1.0f), "Defaults/box", glm::vec3(1.0f), false) {};
+    Object(const glm::vec3 transform, std::string model, const glm::vec3 scale, const bool outline = false, const bool is2D = false, const bool isTransparent = false)
     {
         Transform_ = transform;
         Model_ = model;
-        Scale_ = glm::vec3(scale);
+        Scale_ = scale;
         Outlined_ = outline;
         Is2D_ = is2D;
         IsTransparent_ = isTransparent;

@@ -10,6 +10,10 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 1
 
+#define DIR_SHAD_MAP_TEX_START 20
+#define PNT_SHAD_MAP_TEX_START DIR_SHAD_MAP_TEX_START + MAX_DIR_LIGHTS
+#define SPT_SHAD_MAP_TEX_START PNT_SHAD_MAP_TEX_START + MAX_POINT_LIGHTS
+
 struct LightColorData
 {
     glm::vec3 ambient;
@@ -77,6 +81,7 @@ public:
 class PointLight : public IBufferable {
 public:
     PointLight(PointLightData data);
+    PointLight(LightColorData color_data, glm::vec3 position);
     PointLight(LightColorData color_data, glm::vec3 position, float constant, float linear, float quadratic);
     
     size_t DataSize();
@@ -105,6 +110,8 @@ public:
     
     glm::vec3 Position();
     glm::vec3 Direction();
+    
+    float LightAngle();
     
     SpotLightData data_;
 };

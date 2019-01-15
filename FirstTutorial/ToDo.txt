@@ -1,0 +1,25 @@
+Graphical:
+    Tutorial:
+        Directional Shadow Mapping
+        Point Shadow Mapping
+        Normal Mapping
+        Parallax Mapping
+        Bloom
+        Deferred Shading
+        SSAO
+        Physically-Based Rednering (PBR)
+        Image-Based Lighting (IBL)
+    Virtual Texturing
+    Pre-baked Lighting
+    Dynamic Shadows
+        Shadow Volumes(?)
+
+Scene Creation/Loading
+Resource Manager - Good for memory constraints. Pass (handles with?) pointers around
+    Textures
+    Objects
+Legitimate Scene Graph
+Pre-baked Lighting
+    Shadow Maps
+    Cascading Shadow Maps?
+Shader Code Generation

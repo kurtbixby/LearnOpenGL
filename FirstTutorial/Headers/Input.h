@@ -34,11 +34,15 @@ public:
     
     CameraInput CameraInput() const;
     bool BlinnLighting() const;
+    bool ChangeRenderMethod() const;
+    bool ChangePolygonFill() const;
     
 private:
     struct CameraInput cameraInput_;
     float textureMix_;
     bool blinnLighting_ : 1;
+    bool changeRenderMethod_ : 1;
+    bool changePolyFill_ : 1;
 };
 
 #endif /* Input_h */

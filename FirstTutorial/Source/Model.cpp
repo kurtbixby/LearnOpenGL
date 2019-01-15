@@ -10,7 +10,7 @@
 #include "Headers/Mesh.h"
 #include "Headers/Shader.h"
 
-Model::Model(std::vector<Mesh> meshes, std::vector<std::vector<Texture>> mesh_textures)
+Model::Model(std::vector<Mesh> meshes, std::vector<std::vector<ModelTexture>> mesh_textures)
 {
 	meshes_ = meshes;
 	mesh_textures_ = mesh_textures;
@@ -20,7 +20,7 @@ void Model::Draw(const Shader& shader)
 {
 	for (unsigned int i = 0; i < meshes_.size(); i++)
 	{
-		meshes_[i].Draw(shader, mesh_textures_[i]);
+		meshes_[i].Draw_NormalMapped(shader, mesh_textures_[i]);
 	}
 }
 

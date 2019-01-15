@@ -14,7 +14,8 @@
 class SceneGraph
 {
 public:
-	SceneGraph();
+    SceneGraph();
+    SceneGraph(uint32_t number);
 	// SceneGraph(ifstream istream);
 
 	void UseCamera(const Camera& camera);

@@ -4,21 +4,27 @@
 #include <algorithm>
 #include <string>
 #include <chrono>
+#include <cmath>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-//#include "Headers/Debug.h"
+#include "Headers/Debug.h"
 
 #include "Headers/Camera.h"
+#include <Headers/CompilerWarning.h>
 #include "Headers/Framebuffer.h"
 #include "Headers/InputWrapper.h"
 #include "Headers/Model.h"
-#include "Headers/Primitives.h"
+#include "Headers/PrimitivesLoader.h"
+#include "Headers/RenderConfig.h"
+#include "Headers/Renderer.h"
 #include "Headers/Scene.h"
 #include "Headers/SceneGraph.h"
+#include "Headers/ScreenRenderer.h"
 #include "Headers/Shader.h"
 #include "Headers/Structs.h"
+#include "Headers/Timer.h"
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -26,159 +32,88 @@
 #include <boost/filesystem.hpp>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include "Headers/ModelLoader.h"
 
-#define WIDTH 800
-#define HEIGHT 600
+#define WIDTH 1280
+#define HEIGHT 720
 
-int create_window(GLFWwindow** foo, InputWrapper& inputWrapper);
+int create_window(GLFWwindow** foo, InputWrapper& inputWrapper, uint32_t width, uint32_t height);
 Input get_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 void generate_cube_locations(const unsigned number, glm::vec3* const cube_array);
+Scene load_normal_scene();
 Scene load_scene();
+
+void timer_message(std::chrono::steady_clock::time_point start, std::chrono::steady_clock::time_point end, std::string message);
 
 int main()
 {
-    // Get configuration?
+    // Change to load config from disk
+    RenderConfig config = RenderConfig(WIDTH, HEIGHT);
+    
     // Create InputWrapper?
     InputWrapper inputWrapper = InputWrapper();
 	GLFWwindow* window;
-	if (create_window(&window, inputWrapper))
+	if (create_window(&window, inputWrapper, config.WindowWidth(), config.WindowHeight()))
 	{
 		std::cerr << "Error creating window" << std::endl;
 		return -1;
 	}
-
-	// Create standard shader
-	boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/Screen.vert").make_preferred();
-	boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/Kernel.frag").make_preferred();
-	Shader screenShader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
-
-	// Create intermediary framebuffer
-	Framebuffer output_fb = Framebuffer();
-	output_fb.AddTextureAttachment(FBAttachment::Color);
-	output_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil);
-    
-    Framebuffer multi_sample_fb = Framebuffer();
-    multi_sample_fb.AddTextureAttachment(FBAttachment::Color, 4);
-    multi_sample_fb.AddRenderbufferAttachment(FBAttachment::DepthStencil, 4);
-
-	// Create Screen Quad VAO
-	float quadVertices[] = {
-		// positions   // texCoords
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-		1.0f,  1.0f,  1.0f, 1.0f
-	};
-
-	unsigned int quadVAO;
-	glGenVertexArrays(1, &quadVAO);
-	unsigned int quadVBO;
-	glGenBuffers(1, &quadVBO);
-	glBindVertexArray(quadVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(0));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
-	glBindVertexArray(0);
-
-	// Edge Detection?
-//    float kernel[9] = {
-//        1, 1, 1,
-//        1, -8, 1,
-//        1, 1, 1
-//    };
-
-	// Identity
-    float kernel[9] = {
-        0, 0, 0,
-        0, 1, 0,
-        0, 0, 0
-    };
-    
     Scene scene = load_scene();
-
-//    uint32_t frame_number = 0;
-    uint32_t frames_rendered = 0;
-    std::chrono::steady_clock::time_point previous_time = std::chrono::steady_clock::now();
+//    Scene scene = load_normal_scene();
     
+//    if (config.ShadowmapsEnabled())
+//    {
+//        // Switch this to use SceneRenderer
+//        Framebuffer shadow_map_buffer = Framebuffer(SHADOW_RES, SHADOW_RES, 1, false);
+//        scene.GenerateShadowMaps(shadow_map_buffer);
+//    }
+    
+    ScreenRenderer scrRenderer = ScreenRenderer(config);
+    SceneRenderer sceneRenderer = SceneRenderer(&scene, &scrRenderer, &config);
+    Renderer renderer = Renderer(config, &scrRenderer);
+    
+    Timer frame_timer = Timer();
     // main loop
     while (!glfwWindowShouldClose(window))
     {
+        frame_timer.Start();
         // process any input
         Input input = inputWrapper.TakeInput(window);
+        if (input.ChangeRenderMethod())
+        {
+            renderer.SwitchRenderMethod();
+            sceneRenderer.RenderChanged();
+        }
         scene.TakeInput(input);
-
-		// Enable texture framebuffer
-		multi_sample_fb.Use();
-
-		// (Re)enable depth for main scene
-		glEnable(GL_DEPTH_TEST);
-        scene.Render();
-		// Disable depth for screen quad
-		glDisable(GL_DEPTH_TEST);
         
-        multi_sample_fb.DownsampleToFramebuffer(output_fb);
-        uint32_t frame_buffer_target = output_fb.RetrieveColorBuffer(0).TargetName;
+        scene.Simulate();
         
-		// Reenable default framebuffer
-		Framebuffer::UseDefault();
-		// Reset clears
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// Enable screen shader
-		screenShader.Use();
-
-		// bind screen quad
-		glBindVertexArray(quadVAO);
-
-		glActiveTexture(GL_TEXTURE0);
+        renderer.RenderScene(sceneRenderer);
         
-//        debug::openGL_Errors();
-        
-		// bind fb texture
-		glBindTexture(GL_TEXTURE_2D, frame_buffer_target);
-		// send kernel to shader
-		screenShader.SetFloats("kernel", 9, &kernel[0]);
-		// draw screen quad
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
         // buffer swap and poll for new events
         glfwSwapBuffers(window);
         glfwPollEvents();
         // break;
 
-		glBindTexture(GL_TEXTURE_2D, 0);
-//        frame_number++;
-        frames_rendered++;
-        
-        std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
-        double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - previous_time).count();
-        if (milliseconds > 1000)
-        {
-            float frame_time = milliseconds / frames_rendered;
-            std::cout << "Avg frame time: " << frame_time << std::endl;
-            previous_time = current_time;
-            frames_rendered = 0;
-        }
+//        glBindTexture(GL_TEXTURE_2D, 0);
+        frame_timer.Stop();
+        std::cout << "Frame time: " << frame_timer.ElapsedTime() << std::endl;
+        frame_timer.Reset();
     }
 
     glfwTerminate();
     return 0;
 }
 
-int create_window(GLFWwindow** foo, InputWrapper& inputWrapper)
+int create_window(GLFWwindow** foo, InputWrapper& inputWrapper, uint32_t width, uint32_t height)
 {
 	// glfw initialization and configuration
 	glfwInit();
@@ -191,7 +126,7 @@ int create_window(GLFWwindow** foo, InputWrapper& inputWrapper)
 #endif
     
     // glfw window creation
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(width, height, "LearnOpenGL", nullptr, nullptr);
 	if (nullptr == window)
 	{
 		std::cerr << "Failed to create GLFW window" << std::endl;
@@ -204,9 +139,9 @@ int create_window(GLFWwindow** foo, InputWrapper& inputWrapper)
     glfwSetWindowUserPointer(window, &inputWrapper);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
 
 	// glad load all opengl fxn pointers
-	//if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 	{
 		std::cerr << "Failed to initialize GLAD" << std::endl;
@@ -243,6 +178,19 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
     wrapper->ScrollCallback(window, xOffset, yOffset);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    InputWrapper* wrapper = static_cast<InputWrapper*>(glfwGetWindowUserPointer(window));
+    wrapper->KeyCallback(window, key, scancode, action, mods);
+}
+
+void timer_message(std::chrono::steady_clock::time_point start, std::chrono::steady_clock::time_point end, std::string message)
+{
+    double milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << message << milliseconds << std::endl;
+}
+
+#pragma message WARN("REFACTOR THIS INTO LOADING A SCENE FROM DISK")
 Scene load_scene()
 {
     SceneGraph graph = SceneGraph();
@@ -252,50 +200,43 @@ Scene load_scene()
     cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
     std::vector<Camera> cams = std::vector<Camera>();
     cams.push_back(cam);
-
-    std::vector<Model> models = std::vector<Model>();
-	ModelLoader crysisLoader = ModelLoader(boost::filesystem::path("Resources/nanosuit_reflection").make_preferred());
-	Model crysis = crysisLoader.loadModel("nanosuit.obj");
-    models.push_back(crysis);
-	models.push_back(create_box());
-//    models.push_back(create_plane());
-//    models.push_back(create_quad());
-
-    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
-//    boost::filesystem::path geometry_shader_path = boost::filesystem::path("Shaders/Identity.geom").make_preferred();
-    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection.frag").make_preferred();
-    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
-
-	boost::filesystem::path transparent_fragment_shader_path = boost::filesystem::path("Shaders/Transparency_Blended.frag").make_preferred();
-	Shader transparent_shader = Shader(vertex_shader_path.string().c_str(), transparent_fragment_shader_path.string().c_str());
-
-    boost::filesystem::path outline_fragment_shader_path = boost::filesystem::path("Shaders/Outline.frag").make_preferred();
-    Shader outline_shader = Shader(vertex_shader_path.string().c_str(), outline_fragment_shader_path.string().c_str());
-
-	boost::filesystem::path skybox_vertex_shader_path = boost::filesystem::path("Shaders/SkyboxBuff.vert").make_preferred();
-	boost::filesystem::path skybox_fragment_shader_path = boost::filesystem::path("Shaders/Skybox.frag").make_preferred();
-	Shader skybox_shader = Shader(skybox_vertex_shader_path.string().c_str(), skybox_fragment_shader_path.string().c_str());
     
-    boost::filesystem::path bonus_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTextures.vert").make_preferred();
-    boost::filesystem::path bonus_geometry_shader_path = boost::filesystem::path("Shaders/Normals.geom").make_preferred();
-    boost::filesystem::path bonus_fragment_shader_path = boost::filesystem::path("Shaders/First.frag").make_preferred();
-    Shader bonus_shader = Shader(bonus_vertex_shader_path.string().c_str(), bonus_geometry_shader_path.string().c_str(), bonus_fragment_shader_path.string().c_str());
-    
-    boost::filesystem::path alt_light_vertex_shader_path = boost::filesystem::path("Shaders/MultipleTexturesInstanced.vert").make_preferred();
-    boost::filesystem::path alt_light_fragment_shader_path = boost::filesystem::path("Shaders/TexturesReflection_Blinn.frag").make_preferred();
-    Shader alt_light_shader = Shader(alt_light_vertex_shader_path.string().c_str(), alt_light_fragment_shader_path.string().c_str());
-
     std::vector<Shader> shaders = std::vector<Shader>();
-    shaders.push_back(standard_shader);
-	shaders.push_back(transparent_shader);
-    shaders.push_back(outline_shader);
-	shaders.push_back(skybox_shader);
-    shaders.push_back(bonus_shader);
-    shaders.push_back(alt_light_shader);
 
 	Cubemap skybox = Cubemap();
 
-    Scene scene = Scene(graph, cams, models, shaders, skybox);
+    Scene scene = Scene(graph, cams, ModelLoader("Resources/"), shaders, skybox);
 
+    return scene;
+}
+
+Scene load_normal_scene()
+{
+    SceneGraph graph = SceneGraph(1);
+    
+    // Camera initialization
+    Camera cam = Camera();
+    cam.SetAspectRatio(WIDTH / static_cast<float>(HEIGHT));
+    std::vector<Camera> cams = std::vector<Camera>();
+    cams.push_back(cam);
+    
+//    std::vector<Model> models = std::vector<Model>();
+//    models.push_back(create_brick_wall());
+    
+    std::vector<Shader> shaders = std::vector<Shader>();
+    boost::filesystem::path vertex_shader_path = boost::filesystem::path("Shaders/NormalMaps.vert").make_preferred();
+    boost::filesystem::path fragment_shader_path = boost::filesystem::path("Shaders/NormalMaps.frag").make_preferred();
+    Shader standard_shader = Shader(vertex_shader_path.string().c_str(), fragment_shader_path.string().c_str());
+    shaders.push_back(standard_shader);
+    
+    while (shaders.size() < 9)
+    {
+        shaders.push_back(Shader());
+    }
+    
+    Cubemap skybox = Cubemap();
+    
+    Scene scene = Scene(graph, cams, ModelLoader("Resources/"), shaders, skybox);
+    
     return scene;
 }

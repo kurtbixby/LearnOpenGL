@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <Headers/CompilerWarning.h>
+
 InputWrapper::InputWrapper()
 {
     input_ = Input();
@@ -47,6 +49,11 @@ void InputWrapper::MouseCallback(GLFWwindow* window, double xPos, double yPos)
 void InputWrapper::ScrollCallback(GLFWwindow* window, double xOffset, double yOffset)
 {
     yOffset_ += yOffset;
+}
+
+void InputWrapper::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+#pragma message WARN("Implement this. Remember to reset the state every frame/tick.")
 }
 
 Input InputWrapper::TakeInput(GLFWwindow* window)
@@ -91,6 +98,24 @@ Input InputWrapper::TakeInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
     {
         input_.blinnLighting_ ^= 1;
+    }
+    
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+    {
+        input_.changeRenderMethod_ = 1;
+    }
+    else
+    {
+        input_.changeRenderMethod_ = 0;
+    }
+    
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    {
+        input_.changePolyFill_ = 1;
+    }
+    else
+    {
+        input_.changePolyFill_ = 0;
     }
     
     float x_delta = currentX_ - lastX_;
