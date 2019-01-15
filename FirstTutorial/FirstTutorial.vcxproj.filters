@@ -22,6 +22,9 @@
     <Filter Include="Source Files\Transformations">
       <UniqueIdentifier>{2211c49d-fcbe-44f4-b275-26ba0c562f98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shaders\Old">
+      <UniqueIdentifier>{0c9f1748-516f-41b8-a84d-3f53ca677396}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Camera.cpp">
@@ -51,9 +54,6 @@
     <ClCompile Include="Source\ModelLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Primitives.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,7 +66,34 @@
     <ClCompile Include="Source\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Structs.cpp">
+    <ClCompile Include="Source\Input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InputWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ModelTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PrimitivesLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RenderConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ScreenRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SceneRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\TextureCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -123,6 +150,45 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\UniformBlockBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\InputWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\ModelTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\ModelTexture_Inline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\PrimitivesLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\RenderConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\SceneRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\ScreenRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\TextureCreator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\CompilerWarning.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -288,141 +354,235 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Colors.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Colors.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Container.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Container.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\ControlMix.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\First.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\First.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\FlippedTextureMix.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\GroovyContainer.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Linked.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Linked.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Uniform.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\SpacesMatrices.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\TextureMix.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Transform.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\BasicColor.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\BasicColor.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Light.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Ambient.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Diffuse.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Diffuse.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Specular.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\ViewLighting.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\ViewLighting.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Materials.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\DiffuseMap.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\DiffuseMap.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\DirectionalLight.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\InverseSpecularMap.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\MultipleLights.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\MultipleTextures.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\MultipleTextures.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\PointLight.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\SoftSpotLight.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\SpecularMap.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\SpotLight.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
     <None Include="Resources\nanosuit\nanosuit.blend" />
     <None Include="Resources\nanosuit\nanosuit.mtl" />
-    <None Include="Shaders\Transparency_Blended.frag">
+    <None Include="Resources\nanosuit_reflection\nanosuit.blend" />
+    <None Include="Resources\nanosuit_reflection\nanosuit.mtl" />
+    <None Include="Shaders\Ambient.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\BasicColor.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\BasicColor.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Colors.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Colors.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Container.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Container.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\ControlMix.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Diffuse.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Diffuse.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\DiffuseMap.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\DiffuseMap.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\DirectionalLight.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\First.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\First.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\FlippedTextureMix.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\GroovyContainer.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\InverseSpecularMap.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Light.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Linked.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Linked.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Materials.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\MultipleLights.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\MultipleTextures.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\PointLight.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\SoftSpotLight.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\SpacesMatrices.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Specular.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\SpecularMap.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\SpotLight.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\TextureMix.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Transform.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Uniform.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\ViewLighting.frag">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\ViewLighting.vert">
+      <Filter>Source Files\Shaders\Old</Filter>
+    </None>
+    <None Include="Shaders\Explode.geom" />
+    <None Include="Shaders\Identity.geom" />
+    <None Include="Shaders\Normals.geom" />
+    <None Include="Shaders\Point_Shadows.geom" />
+    <None Include="Shaders\SmallLines.Geom" />
+    <None Include="Shaders\Old\Ambient.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\Transparency.frag">
+    <None Include="Shaders\Old\BasicColor.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\Outline.frag">
+    <None Include="Shaders\Blur.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Color.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Colors.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Combine.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Container.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\ControlMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred_BuffCreation.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred_BufferComposition.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred_BufferComposition_SSAO.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred_Skybox.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred_SSAO.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Depth.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\Screen.frag">
+    <None Include="Shaders\DepthMap.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\Screen.vert">
+    <None Include="Shaders\Old\Diffuse.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\DiffuseMap.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Dir_Shadows.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\DirectionalLight.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\First.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\FlippedTextureMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\GroovyContainer.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\IdentityVec2.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\InverseSpecularMap.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Kernel.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\Skybox.vert">
+    <None Include="Shaders\Kernel_Gamma.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\Skybox.frag">
+    <None Include="Shaders\Kernel_Gamma_HDR.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Kernel_Gamma_HDR_Exposure.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Light.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Lights.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Lights_Bloom.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Linked.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Materials.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\MultipleLights.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\MultipleTextures.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\NormalMaps.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Outline.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Point_Shadows.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\PointLight.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="Shaders\Reflection.frag">
@@ -431,22 +591,145 @@
     <None Include="Shaders\Refraction.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\Screen.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Skybox.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\SoftSpotLight.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Specular.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\SpecularMap.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Spot_Shadows.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\SpotLight.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\SSAO_Blur.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\TextureMix.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
     <None Include="Shaders\TexturesReflection.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Resources\nanosuit_reflection\nanosuit.blend" />
-    <None Include="Resources\nanosuit_reflection\nanosuit.mtl" />
+    <None Include="Shaders\TexturesReflection_Blinn.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\TexturesReflection_GS.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\TexturesReflection_ShadMap.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\TexturesReflection_ShadMapSmooth.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\TexturesReflection_ShadMapSmooth_ManyLights.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\TexturesReflection_ShadMapSmooth_ManyLights_Bloom.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Transparency.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Transparency_Blended.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Uniform.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\ViewLighting.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\BasicColor.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Colors.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Container.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred_Vertex.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Diffuse.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\DiffuseMap.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Dir_ShadowsInstanced.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\First.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\IdentityVec2.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Lights.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Linked.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\MultipleTextures.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\MultipleTextures_GS.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\MultipleTexturesInstanced.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\MultipleTexturesInstanced_GS.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\MultipleTexturesInstanced_ShadMap.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\MultipleTexturesInstanced_ShadMap_ManyLights.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\NormalMaps.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Point_Shadows.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Screen.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Skybox.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
     <None Include="Shaders\SkyboxBuff.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\TexturesReflection_GS.frag" />
-    <None Include="Shaders\SmallLines.Geom" />
-    <None Include="Shaders\Normals.geom" />
-    <None Include="Shaders\MultipleTextures_GS.vert" />
-    <None Include="Shaders\IdentityVec2.vert" />
-    <None Include="Shaders\IdentityVec2.frag" />
-    <None Include="Shaders\Identity.geom" />
-    <None Include="Shaders\Explode.geom" />
+    <None Include="Shaders\Old\SpacesMatrices.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Spot_Shadows.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\Transform.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Old\ViewLighting.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.TXT" />

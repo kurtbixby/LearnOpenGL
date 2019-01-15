@@ -5,6 +5,7 @@
 
 #include "Headers/Camera.h"
 
+#include <algorithm>
 #include <iostream>
 
 #include <glm/glm.hpp>

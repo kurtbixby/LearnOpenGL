@@ -15,6 +15,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+#include "Headers/CompilerWarning.h"
 #include "Headers/TextureCreator.h"
 #include "Headers/Object.h"
 #include "Headers/UniformBlockBuffer.h"
@@ -355,7 +356,7 @@ const Framebuffer* SceneRenderer::Render_Forward()
 
 void SceneRenderer::SendShadowMapsToShader(Shader& shader)
 {
-#warning "REFACTOR THIS FOR MULTIPLE LIGHT SHADOW MAPS"
+#pragma message WARN("REFACTOR THIS FOR MULTIPLE LIGHT SHADOW MAPS")
     shader.SetMatrix4fv("dirLightSpaceMatrices[0]", glm::value_ptr(shadowMaps_.dirLightSpaceMats.front()));
     shader.SetInt("dirLightShadowMaps[0]", DIR_SHAD_MAP_TEX_START);
     glActiveTexture(GL_TEXTURE0 + DIR_SHAD_MAP_TEX_START);

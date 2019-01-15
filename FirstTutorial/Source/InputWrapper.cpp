@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <Headers/CompilerWarning.h>
+
 InputWrapper::InputWrapper()
 {
     input_ = Input();
@@ -51,7 +53,7 @@ void InputWrapper::ScrollCallback(GLFWwindow* window, double xOffset, double yOf
 
 void InputWrapper::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-#warning Implement this. Remember to reset the state every frame/tick.
+#pragma message WARN("Implement this. Remember to reset the state every frame/tick.")
 }
 
 Input InputWrapper::TakeInput(GLFWwindow* window)

@@ -9,6 +9,7 @@
 #ifndef TEXTURECREATOR_H
 #define TEXTURECREATOR_H
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include <glad/glad.h>

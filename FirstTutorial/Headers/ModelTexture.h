@@ -10,6 +10,7 @@
 #define MODEL_TEXTURE_H
 
 #include <string>
+#include <vector>
 #include <glad/glad.h>
 
 #define MAX_DIFFUSE_TEX 3

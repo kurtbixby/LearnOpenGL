@@ -12,6 +12,7 @@
 #include "Headers/Debug.h"
 
 #include "Headers/Camera.h"
+#include <Headers/CompilerWarning.h>
 #include "Headers/Framebuffer.h"
 #include "Headers/InputWrapper.h"
 #include "Headers/Model.h"
@@ -189,7 +190,7 @@ void timer_message(std::chrono::steady_clock::time_point start, std::chrono::ste
     std::cout << message << milliseconds << std::endl;
 }
 
-#warning REFACTOR THIS INTO LOADING A SCENE FROM DISK
+#pragma message WARN("REFACTOR THIS INTO LOADING A SCENE FROM DISK")
 Scene load_scene()
 {
     SceneGraph graph = SceneGraph();

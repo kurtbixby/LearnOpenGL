@@ -9,6 +9,7 @@
 //#include "Headers/Debug.h"
 #include "Headers/Structs.h"
 #include "Headers/TextureCreator.h"
+#include "Headers/CompilerWarning.h"
 
 Framebuffer::Framebuffer(): Framebuffer(800, 600, 1, true, GL_FRAMEBUFFER) {}
 
@@ -472,7 +473,7 @@ bool Framebuffer::HasAttachment(GLuint attachmentPoint) const
     {
         return depthStencilAttachment_.TargetType != RenderTargetType::None;
     }
-#warning CHANGE IF STENCIL ATTACHMENT IS IMPLEMENTED
+#pragma message WARN("CHANGE IF STENCIL ATTACHMENT IS IMPLEMENTED")
     if (attachmentPoint == GL_STENCIL_ATTACHMENT)
     {
         return false;
